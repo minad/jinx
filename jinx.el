@@ -28,9 +28,8 @@
 ;; Jinx supports multiple languages at the same time in a buffer via
 ;; the `jinx-languages' customization variable and offers flexible
 ;; settings to ignore misspellings via faces (`jinx-exclude-faces' and
-;; `jinx-include-faces'), regular expressions (`jinx-exclude-regexps')
-;; and programmable predicates.  Jinx comes preconfigured for the most
-;; important major modes.
+;; `jinx-include-faces') and programmable predicates.  Jinx comes
+;; preconfigured for the most important major modes.
 ;;
 ;; Jinx offers two main autoloaded entry points , the mode `jinx-mode'
 ;; and the command `jinx-correct'.  In your configuration add
@@ -144,23 +143,12 @@ These faces mark regions which should be excluded in spell
 checking."
   :type '(alist :key-type symbol :value-type (repeat face)))
 
-(defcustom jinx-exclude-regexps
-  '((emacs-lisp-mode "Package-Requires:.*$")
-    (t "[a-z]+://\\S-+" ;; URI
-       "<?[-+_.~a-zA-Z][-+_.~:a-zA-Z0-9]*@[-.a-zA-Z0-9]+>?")) ;; Email
-  "List of excluded regexps."
-  :type '(alist :key-type symbol :value-type (repeat regexp)))
-
 ;;;; Internal variables
 
 (defvar jinx--predicates
   (list #'jinx--face-ignored-p
-        #'jinx--regexp-ignored-p
-        #'jinx--word-valid-p
         #'jinx--flyspell-ignored-p)
-  "Predicate functions called at point with argument START.
-A predicate should return t if the word before point is valid.  A
-predicate can also return a position to skip forward.")
+  "Predicate functions called with two arguments START and END.")
 
 (defvar jinx--timer nil
   "Global timer to check pending regions.")
@@ -191,16 +179,7 @@ predicate can also return a position to skip forward.")
 
 ;;;; Predicates
 
-(defun jinx--regexp-ignored-p (start)
-  "Return non-nil if word at START matches ignore regexps."
-  (save-excursion
-    (goto-char start)
-    (when (and jinx--exclude-regexp (looking-at-p jinx--exclude-regexp))
-      (save-match-data
-        (looking-at jinx--exclude-regexp)
-        (match-end 0)))))
-
-(defun jinx--face-ignored-p (start)
+(defun jinx--face-ignored-p (start _end)
   "Return non-nil if face at START of word is ignored."
   (let ((face (get-text-property start 'face)))
     (or
@@ -213,19 +192,15 @@ predicate can also return a position to skip forward.")
               (cl-loop for f in face thereis (memq f jinx--exclude-faces))
             (memq face jinx--exclude-faces))))))
 
-(defun jinx--word-valid-p (start)
-  "Return non-nil if word at START is valid."
-  (let ((word (buffer-substring-no-properties start (point))))
-    (cl-loop for dict in jinx--dicts
-             thereis (jinx--mod-check dict word))))
-
-(defun jinx--flyspell-ignored-p (_start)
-  "Check if word before point is ignored.
+(defun jinx--flyspell-ignored-p (_start end)
+  "Check if word before END is ignored.
 This predicate uses the `flyspell-mode-predicate' provided by
 some Emacs modes."
   (when-let ((pred (or (bound-and-true-p flyspell-generic-check-word-predicate)
                        (get major-mode 'flyspell-mode-predicate))))
-    (ignore-errors (not (funcall pred)))))
+    (save-excursion
+      (goto-char end)
+      (ignore-errors (not (funcall pred))))))
 
 ;;;; Internal functions
 
@@ -245,16 +220,24 @@ This function is a modification hook for the overlay."
   "Check region between START and END."
   (with-silent-modifications
     (save-excursion
-      (save-match-data
-        (jinx--delete-overlays start end)
-        (goto-char start)
-        (while (re-search-forward "\\<\\w+\\>" end t)
-          (let ((word-start (match-beginning 0))
-                (word-end (match-end 0)))
-            (pcase (run-hook-with-args-until-success 'jinx--predicates word-start)
-              ((and (pred integerp) skip) (goto-char (min end skip)))
-              ('nil (overlay-put (make-overlay word-start word-end) 'category 'jinx)))))
-        (remove-list-of-text-properties start end '(jinx--pending))))))
+      (jinx--delete-overlays start end)
+      (let ((line-start start))
+        (while (< line-start end)
+          (goto-char line-start)
+          (let ((line-end (pos-eol)))
+            (when (> line-end line-start)
+              ;;(message "CHECKING %S" (buffer-substring-no-properties line-start line-end))
+              (pcase-dolist (`(,word-start . ,word-end)
+                             (jinx--mod-check
+                              (car jinx--dicts) ;; TODO multiple dicts
+                              (buffer-substring-no-properties line-start line-end)))
+                ;;(message "%S %S" word-start word-end)
+                (cl-incf word-start line-start)
+                (cl-incf word-end line-start)
+                (unless (run-hook-with-args-until-success 'jinx--predicates word-start word-end)
+                  (overlay-put (make-overlay word-start word-end) 'category 'jinx))))
+            (setq line-start (1+ line-end)))))
+      (remove-list-of-text-properties start end '(jinx--pending)))))
 
 (defun jinx--delete-overlays (start end)
   "Delete overlays between START and END."
@@ -275,9 +258,9 @@ This function is a modification hook for the overlay."
   "Mark region between START and END as pending."
   (save-excursion
     (goto-char start)
-    (setq start (if (re-search-backward "\\s-" nil t) (match-end 0) (pos-bol)))
+    (setq start (pos-bol))
     (goto-char end)
-    (setq end (or (re-search-forward "\\s-" nil t) (pos-eol)))
+    (setq end (pos-eol))
     (put-text-property start end 'jinx--pending t)
     ;; inhibit-quit is non-nil for stealth locking
     (unless inhibit-quit (jinx--schedule))
@@ -366,7 +349,7 @@ This function is a modification hook for the overlay."
           (module "jinx-mod.so"))
       (unless (file-exists-p module)
         (let ((command
-               `("cc" "-O2" "-Wall" "-Wextra" "-shared" "-Wl,--no-as-needed"
+               `("cc" "-O2" "-Wall" "-Wextra" "-fPIC" "-shared" "-Wl,--no-as-needed"
                  ,@(split-string-and-unquote
                     (condition-case nil
                         (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
@@ -428,8 +411,11 @@ If no misspellings are found, the region is rechecked."
           (jinx--mod-add (nth (1- len) jinx--dicts)
                          (substring selected len))
           (dolist (overlay (jinx--get-overlays (point-min) (point-max)))
-            (goto-char (overlay-end overlay))
-            (when (jinx--word-valid-p (overlay-start overlay))
+            (unless (jinx--mod-check
+                     (car jinx--dicts) ;; TODO multiple dicts
+                     (buffer-substring-no-properties
+                      (overlay-start overlay)
+                      (overlay-end overlay)))
               (delete-overlay overlay))))
       (unless (equal selected word)
         (delete-overlay overlay)
@@ -473,11 +459,7 @@ If predicate argument ALL is given correct all misspellings."
     (jinx--load-module)
     (hack-local-variables)
     (jinx--get-org-language)
-    (setq jinx--exclude-regexp
-          (when-let ((regexps (jinx--mode-list jinx-exclude-regexps)))
-            (mapconcat (lambda (r) (format "\\(?:%s\\)" r))
-                       regexps "\\|"))
-          jinx--include-faces (jinx--mode-list jinx-include-faces)
+    (setq jinx--include-faces (jinx--mode-list jinx-include-faces)
           jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
           jinx--dicts (delq nil (mapcar #'jinx--mod-dict
                                         (ensure-list jinx-languages))))
@@ -486,7 +468,6 @@ If predicate argument ALL is given correct all misspellings."
     (add-hook 'post-command-hook #'jinx--reschedule nil t)
     (jit-lock-register #'jinx--mark-pending))
    (t
-    (kill-local-variable 'jinx--exclude-regexp)
     (kill-local-variable 'jinx--include-faces)
     (kill-local-variable 'jinx--exclude-faces)
     (kill-local-variable 'jinx--dicts)
