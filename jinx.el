@@ -49,7 +49,7 @@
 ;; and programmable predicates.  Jinx comes preconfigured for the most
 ;; important major modes.
 ;;
-;; Jinx offers three autoloaded entry points , the modes
+;; Jinx offers three auto-loaded entry points , the modes
 ;; `global-jinx-mode', `jinx-mode' and the command `jinx-correct'.
 ;; You can either enable `global-jinx-mode' or add `jinx-mode' to the
 ;; hooks of the modes.
@@ -182,7 +182,7 @@ checking."
   '((emacs-lisp-mode "Package-Requires:.*$")
     (t "[A-Z]+\\>"         ;; Uppercase words
        "\\w*?[0-9]\\w*\\>" ;; Words with numbers, hex codes
-       "[a-z]+://\\w*\\>"  ;; URI
+       "[a-z]+://\\S-+"    ;; URI
        "<?[-+_.~a-zA-Z][-+_.~:a-zA-Z0-9]*@[-.a-zA-Z0-9]+>?")) ;; Email
   "List of excluded regexps."
   :type '(alist :key-type symbol :value-type (repeat regexp)))
@@ -565,14 +565,14 @@ Return list of overlays, see `jinx--get-overlays'."
       (when (jinx--word-valid-p (overlay-start ov))
         (delete-overlay ov)))))
 
-(defun jinx--correct (overlay &optional recenter)
-  "Correct word at OVERLAY, optionally RECENTER."
+(defun jinx--correct (overlay &optional recenter info)
+  "Correct word at OVERLAY with optional RECENTER and prompt INFO."
   (let* ((word (buffer-substring-no-properties
                 (overlay-start overlay) (overlay-end overlay)))
          (selected
           (jinx--with-highlight overlay recenter
             (lambda ()
-              (or (completing-read (format "Correct ‘%s’ (RET to skip): " word)
+              (or (completing-read (format "Correct ‘%s’%s: " word (or info ""))
                                    (jinx--suggestion-table word)
                                    nil nil nil t word)
                   word)))))
@@ -620,12 +620,16 @@ If predicate argument ALL is given correct all misspellings."
         (save-excursion
           (cl-letf (((symbol-function #'jinx--timer-handler) #'ignore)) ;; Inhibit
             (if all
-                (dolist (overlay
-                         (sort (or (jinx--force-overlays (point-min) (point-max))
-                                   (user-error "No misspellings in whole buffer"))
-                               (lambda (a b) (< (overlay-start a) (overlay-start b)))))
-                  (when (overlay-buffer overlay) ;; Could be already deleted
-                    (jinx--correct overlay 'recenter)))
+                (let* ((overlays
+                        (or (sort (jinx--force-overlays (point-min) (point-max))
+                                  (lambda (a b) (< (overlay-start a) (overlay-start b))))
+                            (user-error "No misspellings in whole buffer")))
+                       (count (length overlays)))
+                  (cl-loop for ov in overlays for idx from 1
+                           if (overlay-buffer ov) do ;; Could be already deleted
+                           (jinx--correct ov 'recenter
+                                          (format " (%d of %d, RET to skip)"
+                                                  idx count))))
               (jinx--correct (or (jinx--nearest-overlay)
                                  (user-error "No misspelling in visible text")))))))
     (jit-lock-refontify)))

@@ -6,6 +6,7 @@
 
 - Add =jinx-misspelled-map=.
 - =jinx-correct=: Unfold invisible line when correcting misspellings.
+- =jinx-correct=: Show number of misspellings.
 
 * Version 0.2 (2023-03-26)
 

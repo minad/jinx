@@ -39,7 +39,7 @@ Ubuntu, install the packages =libenchant-2-2=, =libenchant-2-dev= and =pkg-confi
 
 * Usage
 
-Jinx offers three autoloaded entry points , the modes =global-jinx-mode=,
+Jinx offers three auto-loaded entry points , the modes =global-jinx-mode=,
 =jinx-mode= and the command =jinx-correct=. You can either enable =global-jinx-mode=
 or add =jinx-mode= to the hooks of the modes.
 
