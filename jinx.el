@@ -292,22 +292,48 @@ some Emacs modes."
 This function is a modification hook for the overlay."
   (delete-overlay overlay))
 
-(defun jinx--check-pending (start end)
-  "Check pending regions between START and END."
-  (while-let ((from (text-property-any start end 'jinx--pending t))
-              (to (or (text-property-any from end 'jinx--pending nil) end)))
-    (jinx--check-region from to)
-    (setq start to)))
+(defun jinx--find-visible-pending (start end flag)
+  "Find (in)visible and (non-)pending region between START and END.
+FLAG must be t or nil."
+  (while (and (< start end)
+              (eq flag
+                  (not (and (get-text-property start 'jinx--pending)
+                            (not (invisible-p start))))))
+    (setq start (next-single-char-property-change
+                 start 'jinx--pending nil
+                 (next-single-char-property-change start 'invisible nil end))))
+  start)
+
+(defun jinx--check-pending ()
+  "Check pending visible regions."
+  (let* ((start (window-start))
+         (end (window-end))
+         (pos start))
+    (while (< pos end)
+      (let* ((from (jinx--find-visible-pending pos end t))
+             (to (jinx--find-visible-pending from end nil)))
+        (if (< from to)
+            (setq pos (cdr (jinx--check-region from to)))
+          (setq pos to))))))
 
 (defun jinx--check-region (start end)
-  "Check region between START and END."
+  "Check region between START and END.
+Returns a pair of updated (START END) bounds."
   (let ((jinx--mode-syntax-table (syntax-table)))
     (unwind-protect
         (with-silent-modifications
           (save-excursion
             (save-match-data
-              (set-syntax-table jinx--syntax-table)
+              ;; Ensure that region starts and ends at word boundaries
+              (goto-char start)
+              (re-search-backward "[[:blank:]]\\|^")
+              (setq start (match-end 0))
+              (goto-char end)
+              (re-search-forward "[[:blank:]]\\|$")
+              (setq end (match-beginning 0))
               (jinx--delete-overlays start end)
+              ;; Use dictionary-dependent syntax table
+              (set-syntax-table jinx--syntax-table)
               (goto-char start)
               (while (re-search-forward "\\<\\w+\\>" end t)
                 (let ((word-start (match-beginning 0))
@@ -322,7 +348,8 @@ This function is a modification hook for the overlay."
                       ((and (pred integerp) skip) (goto-char (max word-end (min end skip))))
                       ('nil (overlay-put (make-overlay word-start word-end) 'category 'jinx))))))
               (remove-list-of-text-properties start end '(jinx--pending)))
-            (set-syntax-table jinx--mode-syntax-table))))))
+            (set-syntax-table jinx--mode-syntax-table)))))
+  (cons start end))
 
 (defun jinx--get-overlays (start end)
   "Return misspelled words overlays between START and END."
@@ -346,17 +373,10 @@ This function is a modification hook for the overlay."
 
 (defun jinx--mark-pending (start end)
   "Mark region between START and END as pending."
-  (save-excursion
-    (goto-char start)
-    (re-search-backward "[[:blank:]]\\|^")
-    (setq start (match-end 0))
-    (goto-char end)
-    (re-search-forward "[[:blank:]]\\|$")
-    (setq end (match-beginning 0))
-    (put-text-property start end 'jinx--pending t)
-    ;; inhibit-quit is non-nil for stealth locking
-    (unless inhibit-quit (jinx--schedule))
-    `(jit-lock-bounds ,start . ,end)))
+  (put-text-property start end 'jinx--pending t)
+  (unless inhibit-quit ;; non-nil for stealth locking
+    (jinx--schedule))
+  nil)
 
 (defun jinx--mode-list (list)
   "Lookup by major mode in LIST."
@@ -380,7 +400,8 @@ This function is a modification hook for the overlay."
     (dolist (win (window-list frame 'no-miniwindow))
       (with-current-buffer (window-buffer win)
         (when jinx-mode
-          (jinx--check-pending (window-start win) (window-end win)))))))
+          (with-selected-window win
+            (jinx--check-pending)))))))
 
 (defun jinx--reschedule (&rest _)
   "Restart the global idle timer."
@@ -434,7 +455,8 @@ Return list of overlays, see `jinx--get-overlays'."
      (message "Fontifying...")
      (jit-lock-fontify-now)
      (message "Checking...")
-     (jinx--check-region start end)
+     (setq start (jinx--check-region start end)
+           end (cdr start) start (car start))
      (message "Done")
      (jinx--get-overlays start end))
    (error "No misspelled word found")))
