@@ -20,7 +20,7 @@ intervention.
 Jinx highlights misspellings lazily only in the visible area of the window. Jinx
 binds directly to the native libenchant API, such that process communication
 with a backend Aspell process can be avoided. Libenchant is widely used as
-spell-checking API by text editors and supports Nuspell, Hunspell, Aspell and a
+spell-checking API by text editors and supports [[https://nuspell.github.io/][Nuspell]], [[http://hunspell.github.io/][Hunspell]], [[http://aspell.net/][Aspell]] and a
 few lesser known backends. Jinx automatically compiles and loads the native
 module at startup.
 
