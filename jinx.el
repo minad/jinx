@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; Jinx provides just-in-time spell-checking checking via libenchant
+;; Jinx provides just-in-time spell-checking via libenchant
 ;; (https://abiword.github.io/enchant/).  The package aims to achieve
 ;; high performance and low resource usage, without impacting your
 ;; editing experience.  Overall Jinx should just work out of the box
@@ -36,10 +36,10 @@
 ;; avoided.  Libenchant is widely used as spell-checking API by text
 ;; editors and supports Nuspell, Hunspell, Aspell and a few lesser
 ;; known backends.  Jinx automatically compiles and loads the native
-;; module at startup.  Libenchant must be available for compilation.
-;; If `pkg-config' is available it will be used to locate libenchant.
-;; On Debian or Ubuntu, install the packages `libenchant-2',
-;; `libenchant-2-dev' and `pkg-config'.
+;; module at startup.  Libenchant must be installed on your system for
+;; compilation.  If `pkg-config' is available it will be used to
+;; locate libenchant.  On Debian or Ubuntu, install the packages
+;; `libenchant-2', `libenchant-2-dev' and `pkg-config'.
 ;;
 ;; Jinx supports multiple languages in a buffer at the same time via
 ;; the `jinx-languages' customization variable.  It offers flexible
