@@ -1,0 +1,7 @@
+#+title: jinx.el - Changelog
+#+author: Daniel Mendler
+#+language: en
+
+* Version 0.1 (2023-03-26)
+
+- Start of changelog.
