@@ -469,8 +469,7 @@ Return list of overlays, see `jinx--get-overlays'."
     (setq start (jinx--check-region start end)
           end (cdr start) start (car start))
     (message "Done")
-    (or (jinx--get-overlays start end)
-        (error "No misspelled word found"))))
+    (jinx--get-overlays start end)))
 
 (defun jinx--annotate-suggestion (word)
   "Annotate WORD during completion."
@@ -598,12 +597,14 @@ Return list of overlays, see `jinx--get-overlays'."
 
 (defun jinx--nearest-overlay ()
   "Find nearest misspelled word."
-  (let* ((overlays (or (jinx--get-overlays (window-start) (window-end))
-                       (jinx--force-overlays (window-start) (window-end))))
-         (nearest (car overlays)))
-    (dolist (ov (cdr overlays) nearest)
-      (when (< (abs (- (overlay-start ov) (point)))
-               (abs (- (overlay-start nearest) (point))))
+  (let ((overlays (or (jinx--get-overlays (window-start) (window-end))
+                      (jinx--force-overlays (window-start) (window-end))))
+        nearest)
+    (dolist (ov overlays nearest)
+      (when (and (not (invisible-p (overlay-start ov)))
+                 (or (not nearest)
+                     (< (abs (- (overlay-start ov) (point)))
+                        (abs (- (overlay-start nearest) (point))))))
         (setq nearest ov)))))
 
 ;;;; Public commands
@@ -620,11 +621,13 @@ If predicate argument ALL is given correct all misspellings."
           (cl-letf (((symbol-function #'jinx--timer-handler) #'ignore)) ;; Inhibit
             (if all
                 (dolist (overlay
-                         (sort (jinx--force-overlays (point-min) (point-max))
+                         (sort (or (jinx--force-overlays (point-min) (point-max))
+                                   (user-error "No misspellings in whole buffer"))
                                (lambda (a b) (< (overlay-start a) (overlay-start b)))))
                   (when (overlay-buffer overlay) ;; Could be already deleted
                     (jinx--correct overlay 'recenter)))
-              (jinx--correct (jinx--nearest-overlay))))))
+              (jinx--correct (or (jinx--nearest-overlay)
+                                 (user-error "No misspelling in visible text")))))))
     (jit-lock-refontify)))
 
 ;;;###autoload
