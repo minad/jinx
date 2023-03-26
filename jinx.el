@@ -442,7 +442,7 @@ Returns a pair of updated (START END) bounds."
                  ,@(split-string-and-unquote
                     (condition-case nil
                         (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
-                      (error "-I/usr/include/glib-2.0 -I/usr/include/enchant-2 -lenchant-2")))
+                      (error "-I/usr/include/enchant-2 -lenchant-2")))
                  ,@(and source-directory
                         (list (concat "-I" (file-name-concat source-directory "src/"))))
                  "-o" ,module ,(file-name-with-extension module ".c"))))

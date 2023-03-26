@@ -18,13 +18,17 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <emacs-module.h>
 #include <enchant.h>
 #include <string.h>
-#include <glib.h>
 
 int plugin_is_GPL_compatible;
 
 static EnchantBroker* broker = 0;
 
 #define jinx_unused(var) _##var __attribute__((unused))
+#define jinx_autofree    __attribute__((cleanup(jinx_autofree_cleanup)))
+
+static void jinx_autofree_cleanup(char **p) {
+    free(*(void**)p);
+}
 
 static emacs_value jinx_str(emacs_env* env, const char* str) {
     return env->make_string(env, str, strlen(str));
@@ -69,7 +73,7 @@ static emacs_value jinx_dict(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                              emacs_value args[], void* jinx_unused(data)) {
     if (!broker)
         broker = enchant_broker_init();
-    g_autofree char* str = jinx_cstr(env, args[0]);
+    jinx_autofree char* str = jinx_cstr(env, args[0]);
     EnchantDict* dict = str ? enchant_broker_request_dict(broker, str) : 0;
     return dict
         ? env->make_user_ptr(env, jinx_free_dict, dict)
@@ -100,7 +104,7 @@ static emacs_value jinx_describe(emacs_env* env, ptrdiff_t jinx_unused(nargs),
 static emacs_value jinx_check(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                               emacs_value args[], void* jinx_unused(data)) {
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
-    g_autofree char* str = jinx_cstr(env, args[1]);
+    jinx_autofree char* str = jinx_cstr(env, args[1]);
     return env->intern(env, !dict || !str || enchant_dict_check(dict, str, -1)
                        ? "nil" : "t");
 }
@@ -108,7 +112,7 @@ static emacs_value jinx_check(emacs_env* env, ptrdiff_t jinx_unused(nargs),
 static emacs_value jinx_add(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                             emacs_value args[], void* jinx_unused(data)) {
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
-    g_autofree char* str = jinx_cstr(env, args[1]);
+    jinx_autofree char* str = jinx_cstr(env, args[1]);
     if (dict && str)
         enchant_dict_add(dict, str, -1);
     return env->intern(env, "nil");
@@ -125,7 +129,7 @@ static emacs_value jinx_wordchars(emacs_env* env, ptrdiff_t jinx_unused(nargs),
 static emacs_value jinx_suggest(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                                 emacs_value args[], void* jinx_unused(data)) {
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
-    g_autofree char* str = jinx_cstr(env, args[1]);
+    jinx_autofree char* str = jinx_cstr(env, args[1]);
     emacs_value list = env->intern(env, "nil");
     size_t count = 0;
     char** suggs = str && dict ? enchant_dict_suggest(dict, str, -1, &count) : 0;
