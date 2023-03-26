@@ -99,17 +99,17 @@ static emacs_value jinx_describe(emacs_env* env, ptrdiff_t jinx_unused(nargs),
 
 static emacs_value jinx_check(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                               emacs_value args[], void* jinx_unused(data)) {
-    g_autofree char* str = jinx_cstr(env, args[1]);
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
-    return env->intern(env, !str || !dict || enchant_dict_check(dict, str, -1)
+    g_autofree char* str = jinx_cstr(env, args[1]);
+    return env->intern(env, !dict || !str || enchant_dict_check(dict, str, -1)
                        ? "nil" : "t");
 }
 
 static emacs_value jinx_add(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                             emacs_value args[], void* jinx_unused(data)) {
-    g_autofree char* str = jinx_cstr(env, args[1]);
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
-    if (str && dict)
+    g_autofree char* str = jinx_cstr(env, args[1]);
+    if (dict && str)
         enchant_dict_add(dict, str, -1);
     return env->intern(env, "nil");
 }
@@ -124,8 +124,8 @@ static emacs_value jinx_wordchars(emacs_env* env, ptrdiff_t jinx_unused(nargs),
 
 static emacs_value jinx_suggest(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                                 emacs_value args[], void* jinx_unused(data)) {
-    g_autofree char* str = jinx_cstr(env, args[1]);
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
+    g_autofree char* str = jinx_cstr(env, args[1]);
     emacs_value list = env->intern(env, "nil");
     size_t count = 0;
     char** suggs = str && dict ? enchant_dict_suggest(dict, str, -1, &count) : 0;
@@ -140,9 +140,11 @@ static emacs_value jinx_suggest(emacs_env* env, ptrdiff_t jinx_unused(nargs),
 }
 
 int emacs_module_init(struct emacs_runtime *runtime) {
-    if (runtime->size < (ptrdiff_t)sizeof (*runtime))
+    if ((size_t)runtime->size < sizeof (*runtime))
         return 1;
     emacs_env* env = runtime->get_environment(runtime);
+    if ((size_t)env->size < sizeof (*env))
+        return 2;
     jinx_defun(env, "jinx--mod-suggest", 2, 2, jinx_suggest);
     jinx_defun(env, "jinx--mod-check", 2, 2, jinx_check);
     jinx_defun(env, "jinx--mod-add", 2, 2, jinx_add);
