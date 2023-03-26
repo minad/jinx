@@ -462,14 +462,12 @@ Returns a pair of updated (START END) bounds."
 (defun jinx--force-overlays (start end)
   "Enforce spell-check of region between START and END.
 Return list of overlays, see `jinx--get-overlays'."
-  (let (message-log-max)
-    (message "Fontifying...")
-    (jit-lock-fontify-now)
-    (message "Checking...")
+  (with-delayed-message (1 "Fontifying...")
+    (jit-lock-fontify-now))
+  (with-delayed-message (1 "Checking...")
     (setq start (jinx--check-region start end)
-          end (cdr start) start (car start))
-    (message "Done")
-    (jinx--get-overlays start end)))
+          end (cdr start) start (car start)))
+  (jinx--get-overlays start end))
 
 (defun jinx--annotate-suggestion (word)
   "Annotate WORD during completion."
