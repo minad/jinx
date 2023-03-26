@@ -30,7 +30,7 @@ misspellings via faces (=jinx-exclude-faces= and =jinx-include-faces=), regular
 expressions (=jinx-exclude-regexps=) and programmable predicates. Jinx comes
 preconfigured for the most important major modes.
 
-#+html: <img src="https://github.com/minad/jinx/blob/screenshots/screenhot.png?raw=true">
+#+html: <img src="https://github.com/minad/jinx/blob/screenshots/screenshot.png?raw=true">
 
 * Installation
 
