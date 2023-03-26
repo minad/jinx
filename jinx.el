@@ -236,6 +236,8 @@ Predicate may return a position to skip forward.")
 (declare-function jinx--mod-dict nil)
 (declare-function jinx--mod-describe nil)
 (declare-function jinx--mod-wordchars nil)
+(declare-function org-fold-core-region "org-fold-core")
+(declare-function org-fold-core-get-regions "org-fold-core")
 
 ;;;; Overlay properties
 
@@ -457,20 +459,18 @@ Returns a pair of updated (START END) bounds."
                   (error msg)))))))
       (module-load (expand-file-name module)))))
 
-(defun jinx--force-check (start end)
+(defun jinx--force-overlays (start end)
   "Enforce spell-check of region between START and END.
 Return list of overlays, see `jinx--get-overlays'."
-  (or
-   (jinx--get-overlays start end)
-   (let (message-log-max)
-     (message "Fontifying...")
-     (jit-lock-fontify-now)
-     (message "Checking...")
-     (setq start (jinx--check-region start end)
-           end (cdr start) start (car start))
-     (message "Done")
-     (jinx--get-overlays start end))
-   (error "No misspelled word found")))
+  (let (message-log-max)
+    (message "Fontifying...")
+    (jit-lock-fontify-now)
+    (message "Checking...")
+    (setq start (jinx--check-region start end)
+          end (cdr start) start (car start))
+    (message "Done")
+    (or (jinx--get-overlays start end)
+        (error "No misspelled word found"))))
 
 (defun jinx--annotate-suggestion (word)
   "Annotate WORD during completion."
@@ -523,25 +523,60 @@ Return list of overlays, see `jinx--get-overlays'."
                    (annotation-function . jinx--annotate-suggestion))
       (complete-with-action action word str pred))))
 
+(defun jinx--with-highlight (overlay recenter fun)
+  "Highlight and show OVERLAY during FUN, optionally RECENTER."
+  (declare (indent 2))
+  (let (restore)
+    (goto-char (overlay-end overlay))
+    (unwind-protect
+        (progn
+          (if (and (derived-mode-p #'org-mode)
+                   (fboundp 'org-fold-show-set-visibility))
+              (let ((regions (delq nil (org-fold-core-get-regions
+                                        :with-markers t :from (point-min) :to (point-max)))))
+                (org-fold-show-set-visibility 'canonical)
+                (push (lambda ()
+                        (cl-loop for (beg end spec) in regions do
+                                 (org-fold-core-region beg end t spec)))
+                      restore))
+            (dolist (ov (overlays-in (pos-bol) (pos-eol)))
+              (let ((inv (overlay-get ov 'invisible)))
+                (when (and (invisible-p inv) (overlay-get ov 'isearch-open-invisible))
+                  (push (if-let (fun (overlay-get ov 'isearch-open-invisible-temporary))
+                            (progn
+                              (funcall fun ov nil)
+                              (lambda () (funcall fun ov t)))
+                          (overlay-put ov 'invisible nil)
+                          (lambda () (overlay-put ov 'invisible inv)))
+                        restore)))))
+          (when recenter (recenter))
+          (let ((hl (make-overlay (overlay-start overlay) (overlay-end overlay))))
+            (overlay-put hl 'face 'jinx-highlight)
+            (overlay-put hl 'window (selected-window))
+            (push (lambda () (delete-overlay hl)) restore))
+          (funcall fun))
+      (mapc #'funcall restore))))
+
+(defun jinx--recheck-overlays ()
+  "Recheck all overlays in buffer after a dictionary update."
+  (save-restriction
+    (widen)
+    (dolist (ov (jinx--get-overlays (point-min) (point-max)))
+      (goto-char (overlay-end ov))
+      (when (jinx--word-valid-p (overlay-start ov))
+        (delete-overlay ov)))))
+
 (defun jinx--correct (overlay &optional recenter)
   "Correct word at OVERLAY, optionally RECENTER."
-  (let* ((start (overlay-start overlay))
-         (end (goto-char (overlay-end overlay)))
-         (word (buffer-substring-no-properties start end))
-         (hl nil)
+  (let* ((word (buffer-substring-no-properties
+                (overlay-start overlay) (overlay-end overlay)))
          (selected
-          (unwind-protect
-              (progn
-                (when recenter (recenter))
-                (setq hl (make-overlay start end))
-                (overlay-put hl 'face 'jinx-highlight)
-                (overlay-put hl 'window (selected-window))
-                (or (completing-read
-                     (format "Correct ‘%s’ (RET to skip): " word)
-                     (jinx--suggestion-table word)
-                     nil nil nil t word)
-                    word))
-            (delete-overlay hl))))
+          (jinx--with-highlight overlay recenter
+            (lambda ()
+              (or (completing-read (format "Correct ‘%s’ (RET to skip): " word)
+                                   (jinx--suggestion-table word)
+                                   nil nil nil t word)
+                  word)))))
     (if (string-match-p "\\`[@#]" selected)
         (let* ((new-word (replace-regexp-in-string "\\`[@#]+" "" selected))
                (idx (- (length selected) (length new-word) 1)))
@@ -552,20 +587,19 @@ Return list of overlays, see `jinx--get-overlays'."
             (jinx--mod-add (or (nth idx jinx--dicts)
                                (user-error "Invalid dictionary"))
                            new-word))
-          (save-restriction
-            (widen)
-            (dolist (overlay (jinx--get-overlays (point-min) (point-max)))
-              (goto-char (overlay-end overlay))
-              (when (jinx--word-valid-p (overlay-start overlay))
-                (delete-overlay overlay)))))
-      (unless (equal selected word)
+          (jinx--recheck-overlays))
+      (when-let (((not (equal selected word)))
+                 (start (overlay-start overlay))
+                 (end (overlay-end overlay)))
         (delete-overlay overlay)
+        (goto-char end)
         (insert-before-markers selected)
         (delete-region start end)))))
 
 (defun jinx--nearest-overlay ()
   "Find nearest misspelled word."
-  (let* ((overlays (jinx--force-check (window-start) (window-end)))
+  (let* ((overlays (or (jinx--get-overlays (window-start) (window-end))
+                       (jinx--force-overlays (window-start) (window-end))))
          (nearest (car overlays)))
     (dolist (ov (cdr overlays) nearest)
       (when (< (abs (- (overlay-start ov) (point)))
@@ -586,7 +620,7 @@ If predicate argument ALL is given correct all misspellings."
           (cl-letf (((symbol-function #'jinx--timer-handler) #'ignore)) ;; Inhibit
             (if all
                 (dolist (overlay
-                         (sort (jinx--force-check (point-min) (point-max))
+                         (sort (jinx--force-overlays (point-min) (point-max))
                                (lambda (a b) (< (overlay-start a) (overlay-start b)))))
                   (when (overlay-buffer overlay) ;; Could be already deleted
                     (jinx--correct overlay 'recenter)))
