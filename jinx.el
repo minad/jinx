@@ -240,9 +240,11 @@ Predicate may return a position to skip forward.")
 
 (put 'jinx 'evaporate             t)
 (put 'jinx 'face                  'jinx-misspelled)
+(put 'jinx 'mouse-face            '(jinx-misspelled jinx-highlight))
 (put 'jinx 'modification-hooks    (list #'jinx--overlay-modified))
 (put 'jinx 'insert-in-front-hooks (list #'jinx--overlay-modified))
 (put 'jinx 'insert-behind-hooks   (list #'jinx--overlay-modified))
+(put 'jinx 'keymap                (define-keymap "<mouse-1>" #'jinx-correct))
 
 ;;;; Predicates
 
