@@ -245,7 +245,13 @@ Predicate may return a position to skip forward.")
 (put 'jinx 'modification-hooks    (list #'jinx--overlay-modified))
 (put 'jinx 'insert-in-front-hooks (list #'jinx--overlay-modified))
 (put 'jinx 'insert-behind-hooks   (list #'jinx--overlay-modified))
-(put 'jinx 'keymap                (define-keymap "<mouse-1>" #'jinx-correct))
+(put 'jinx 'keymap                'jinx-misspelled-map)
+
+(defvar-keymap jinx-misspelled-map
+  :doc "Keymap attached to misspelled words."
+  "<mouse-1>" #'jinx-correct)
+
+(fset 'jinx-misspelled-map jinx-misspelled-map)
 
 ;;;; Predicates
 
