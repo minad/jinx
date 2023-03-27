@@ -65,11 +65,12 @@ key =C-u= is pressed, the entire buffer is spell-checked.
 * Enchant backends and personal dictionaries
 
 Enchant uses different backends depending on the language. The ordering of the
-backends is configured by the file =enchant.ordering=. For most languages Hunspell
-is used by default. Depending on the backend the personal dictionary will be
-taken from different locations, e.g., =~/.aspell.LANG.pws= or =~/.config/enchant/=.
-It is possible to symlink different personal dictionaries such that they are
-shared by different spell checkers. See the [[https://abiword.github.io/enchant/src/enchant.html][Enchant manual]] for more details.
+backends is configured by the file =~/.config/enchant/enchant.ordering=. For most
+languages Hunspell is used by default. Depending on the backend the personal
+dictionary will be taken from different locations, e.g., =~/.aspell.LANG.pws= or
+=~/.config/enchant/=. It is possible to symlink different personal dictionaries
+such that they are shared by different spell checkers. See the [[https://abiword.github.io/enchant/src/enchant.html][Enchant manual]]
+for more details.
 
 * Alternatives
 
