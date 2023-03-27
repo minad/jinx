@@ -2,6 +2,11 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Development
+
+- =jinx-languages=: Fall back to =$LANG= environment variable, since
+  =current-locale-environment= is an Emacs 29 addition.
+
 * Version 0.3 (2023-03-27)
 
 - Add =jinx-misspelled-map=.
