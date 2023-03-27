@@ -104,8 +104,12 @@
   :type 'float)
 
 (defface jinx-misspelled
-  '((((supports :underline (:style wave)))
+  '((((class color) (min-colors 88) (background dark)
+      (supports :underline (:style wave)))
      :underline (:style wave :color "red"))
+    (((class color) (min-colors 88) (background light)
+      (supports :underline (:style wave)))
+     :underline (:style wave :color "#5f4400"))
     (t :underline t :inherit error))
   "Face used for misspelled words.")
 
