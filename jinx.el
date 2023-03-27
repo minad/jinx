@@ -106,7 +106,7 @@
 (defface jinx-misspelled
   '((((class color) (min-colors 88) (background dark)
       (supports :underline (:style wave)))
-     :underline (:style wave :color "red"))
+     :underline (:style wave :color "#d2b580"))
     (((class color) (min-colors 88) (background light)
       (supports :underline (:style wave)))
      :underline (:style wave :color "#5f4400"))
