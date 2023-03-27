@@ -7,6 +7,7 @@
 - =jinx-languages=: Fall back to =$LANG= environment variable, since
   =current-locale-environment= is an Emacs 29 addition.
 - =jinx--mod-wordchars=: Handle non-UTF8 return values gracefully.
+- =jinx-correct=: Always start from nearest overlay.
 
 * Version 0.3 (2023-03-27)
 
