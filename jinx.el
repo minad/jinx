@@ -435,17 +435,15 @@ Returns a pair of updated (START END) bounds."
       (error "Jinx: Native modules are not supported"))
     (let ((default-directory
            (file-name-directory (locate-library "jinx.el" t)))
-          (module (concat "jinx-mod" module-file-suffix)))
+          (module (file-name-with-extension "jinx-mod" module-file-suffix)))
       (unless (file-exists-p module)
         (let ((command
-               `("cc" "-O2" "-Wall" "-Wextra" "-fPIC" "-shared" "-Wl,--no-as-needed"
+               `("cc" "-I." "-O2" "-Wall" "-Wextra" "-fPIC" "-shared"
+                 "-o" ,module ,(file-name-with-extension module ".c")
                  ,@(split-string-and-unquote
                     (condition-case nil
                         (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
-                      (error "-I/usr/include/enchant-2 -lenchant-2")))
-                 ,@(and source-directory
-                        (list (concat "-I" (file-name-concat source-directory "src/"))))
-                 "-o" ,module ,(file-name-with-extension module ".c"))))
+                      (error "-I/usr/include/enchant-2 -lenchant-2"))))))
           (with-current-buffer (get-buffer-create "*jinx module compilation*")
             (let ((inhibit-read-only t))
               (erase-buffer)
