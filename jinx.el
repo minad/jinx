@@ -38,9 +38,8 @@
 ;; editors and supports Nuspell, Hunspell, Aspell and a few lesser
 ;; known backends.  Jinx automatically compiles and loads the native
 ;; module at startup.  Libenchant must be installed on your system for
-;; compilation.  If `pkg-config' is available it will be used to
-;; locate libenchant.  On Debian or Ubuntu, install the packages
-;; `libenchant-2-2', `libenchant-2-dev' and `pkg-config'.
+;; compilation.  Debian or Ubuntu the library is provided by the
+;; package `libenchant-2-2'.
 ;;
 ;; Jinx supports multiple languages in a buffer at the same time via
 ;; the `jinx-languages' customization variable.  It offers flexible
@@ -438,13 +437,8 @@ Returns a pair of updated (START END) bounds."
           (module (concat "jinx-mod" module-file-suffix)))
       (unless (file-exists-p module)
         (let ((command
-               `("cc" "-O2" "-Wall" "-Wextra" "-fPIC" "-shared" "-Wl,--no-as-needed"
-                 ,@(split-string-and-unquote
-                    (condition-case nil
-                        (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
-                      (error "-I/usr/include/enchant-2 -lenchant-2")))
-                 ,@(and source-directory
-                        (list (concat "-I" (file-name-concat source-directory "src/"))))
+               `("cc" "-Iinclude" "-O2" "-Wall" "-Wextra"
+                 "-fPIC" "-shared" "-Wl,--no-as-needed" "-lenchant-2"
                  "-o" ,module ,(file-name-with-extension module ".c"))))
           (with-current-buffer (get-buffer-create "*jinx module compilation*")
             (let ((inhibit-read-only t))

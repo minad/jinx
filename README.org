@@ -35,9 +35,8 @@ preconfigured for the most important major modes.
 * Installation
 
 The package is available on GNU ELPA and MELPA and can be installed with
-=package-install=. Libenchant must be installed on your system for compilation. If
-=pkg-config= is available it will be used to locate libenchant. On Debian or
-Ubuntu, install the packages =libenchant-2-2=, =libenchant-2-dev= and =pkg-config=.
+=package-install=. Libenchant must be installed on your system for compilation. On
+Debian or Ubuntu the library is provided by the package =libenchant-2-2=.
 
 * Usage
 

@@ -18,6 +18,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <emacs-module.h>
 #include <enchant.h>
 #include <string.h>
+#include <stdlib.h>
 
 int plugin_is_GPL_compatible;
 
