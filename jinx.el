@@ -1,4 +1,4 @@
-;;; jinx.el --- Enchanted just-in-time spell checker -*- lexical-binding: t -*-
+;;; jinx.el --- Enchanted Just-in-time Spell Checker -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2023 Free Software Foundation, Inc.
 
@@ -92,7 +92,7 @@
 ;;;; Customization
 
 (defgroup jinx nil
-  "Enchanted just-in-time spell checker."
+  "Enchanted Just-in-time Spell Checker."
   :link '(info-link :tag "Info Manual" "(jinx)")
   :link '(url-link :tag "Homepage" "https://github.com/minad/jinx")
   :link '(emacs-library-link :tag "Library Source" "jinx.el")
@@ -634,7 +634,7 @@ If predicate argument ALL is given correct all misspellings."
 
 ;;;###autoload
 (define-minor-mode jinx-mode
-  "Enchanted just-in-time spell checker."
+  "Enchanted Just-in-time Spell Checker."
   :global nil :group 'jinx
   (cond
    (jinx-mode
