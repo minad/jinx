@@ -88,6 +88,10 @@ for more details.
   managing the dictionary and access the advanced spell-checker algorithms
   directly via libenchant (affixation, compound words, etc.).
 
+- flyspell: Flyspell is a builtin package which highlight misspellings while
+  typing and when you move the cursor to a word. Jinx uses a different mode of
+  operation, where the entire visible text of the buffer is checked always.
+
 * Contributions
 
 Since this package is part of [[https://elpa.gnu.org/packages/jinx.html][GNU ELPA]] contributions require a copyright
