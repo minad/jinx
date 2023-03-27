@@ -117,7 +117,7 @@
   '((t :inherit font-lock-negation-char-face))
   "Face used for the accept action during correction.")
 
-(defcustom jinx-languages "en"
+(defcustom jinx-languages current-locale-environment
   "List of languages."
   :type '(choice string (repeat string)))
 
