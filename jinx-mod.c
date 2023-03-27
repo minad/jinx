@@ -135,10 +135,8 @@ static emacs_value jinx_suggest(emacs_env* env, ptrdiff_t jinx_unused(nargs),
     size_t count = 0;
     char** suggs = str && dict ? enchant_dict_suggest(dict, str, -1, &count) : 0;
     if (suggs) {
-        while (count > 0) {
-            char* sugg = suggs[--count];
-            list = jinx_cons(env, jinx_str(env, sugg), list);
-        }
+        while (count > 0)
+            list = jinx_cons(env, jinx_str(env, suggs[--count]), list);
         enchant_dict_free_string_list(dict, suggs);
     }
     return list;
