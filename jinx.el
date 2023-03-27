@@ -367,8 +367,9 @@ Returns a pair of updated (START END) bounds."
 
 (defun jinx--get-overlays (start end)
   "Return misspelled words overlays between START and END."
-  (cl-loop for ov in (overlays-in start end)
-           if (eq (overlay-get ov 'category) 'jinx) collect ov))
+  (sort (cl-loop for ov in (overlays-in start end)
+                 if (eq (overlay-get ov 'category) 'jinx) collect ov)
+        (lambda (a b) (< (overlay-start a) (overlay-start b)))))
 
 (defun jinx--delete-overlays (start end)
   "Delete overlays between START and END."
@@ -594,16 +595,16 @@ Return list of overlays, see `jinx--get-overlays'."
         (insert-before-markers selected)
         (delete-region start end)))))
 
-(defun jinx--nearest-overlay ()
-  "Find nearest misspelled word."
-  (let ((overlays (or (jinx--get-overlays (window-start) (window-end))
-                      (jinx--force-overlays (window-start) (window-end))))
-        nearest)
+(defun jinx--nearest-overlay (overlays)
+  "Find nearest visible overlay from OVERLAYS."
+  (let ((pt (point)) nearest)
     (dolist (ov overlays nearest)
       (when (and (not (invisible-p (overlay-start ov)))
                  (or (not nearest)
-                     (< (abs (- (overlay-start ov) (point)))
-                        (abs (- (overlay-start nearest) (point))))))
+                     (< (min (abs (- (overlay-start ov) pt))
+                             (abs (- (overlay-end ov) pt)))
+                        (min (abs (- (overlay-start nearest) pt))
+                             (abs (- (overlay-end nearest) pt))))))
         (setq nearest ov)))))
 
 ;;;; Public commands
@@ -619,18 +620,27 @@ If predicate argument ALL is given correct all misspellings."
         (save-excursion
           (cl-letf (((symbol-function #'jinx--timer-handler) #'ignore)) ;; Inhibit
             (if all
-                (let* ((overlays
-                        (or (sort (jinx--force-overlays (point-min) (point-max))
-                                  (lambda (a b) (< (overlay-start a) (overlay-start b))))
-                            (user-error "No misspellings in whole buffer")))
-                       (count (length overlays)))
+                (let* ((overlays (or (jinx--force-overlays (point-min) (point-max))
+                                     (user-error "No misspellings in whole buffer")))
+                       (nearest (jinx--nearest-overlay overlays))
+                       (count (length overlays))
+                       before after)
+                  (dolist (ov overlays)
+                    (if (or after (eq ov nearest))
+                        (push ov after)
+                      (push ov before)))
+                  (setq overlays (nreverse (nconc before after)))
                   (cl-loop for ov in overlays for idx from 1
                            if (overlay-buffer ov) do ;; Could be already deleted
                            (jinx--correct ov 'recenter
                                           (format " (%d of %d, RET to skip)"
                                                   idx count))))
-              (jinx--correct (or (jinx--nearest-overlay)
-                                 (user-error "No misspelling in visible text")))))))
+              (jinx--correct
+               (or
+                (jinx--nearest-overlay
+                 (or (jinx--get-overlays (window-start) (window-end))
+                     (jinx--force-overlays (window-start) (window-end))))
+                (user-error "No misspelling in visible text")))))))
     (jit-lock-refontify)))
 
 ;;;###autoload
