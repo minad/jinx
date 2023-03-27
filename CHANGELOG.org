@@ -7,6 +7,8 @@
 - Add =jinx-misspelled-map=.
 - =jinx-correct=: Unfold invisible line when correcting misspellings.
 - =jinx-correct=: Show number of misspellings.
+- Add =emacs-module.h= to avoid compilation problems.
+- =jinx-languages=: Use =current-locale-environment= by default.
 
 * Version 0.2 (2023-03-26)
 
