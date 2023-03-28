@@ -5,6 +5,9 @@
 * Development
 
 - Add =jinx-languages= command to switch languages locally or globally.
+- =jinx-correct=: When checking the whole buffer via =C-u M-$=, don't restore
+  original point position upon =C-g= to ease cursory edits. Instead push a mark
+  which can be used to go back to the original position.
 
 * Version 0.4 (2023-03-27)
 
