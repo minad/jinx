@@ -676,7 +676,8 @@ If prefix argument ALL non-nil correct all misspellings."
   (cond
    (jinx-mode
     (jinx--load-module)
-    (hack-local-variables)
+    (let ((enable-local-variables :safe))
+      (hack-local-variables))
     (jinx--get-org-language)
     (setq jinx--exclude-regexp
           (when-let ((regexps (jinx--mode-list jinx-exclude-regexps)))
