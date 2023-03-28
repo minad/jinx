@@ -134,12 +134,9 @@
 ;;;###autoload
 (put 'jinx-languages 'safe-local-variable
      (lambda (val)
-       (or (stringp val)
-           (and (listp val)
-                (catch 'break
-                  (dolist (s val t)
-                    (unless (stringp s)
-                      (throw 'break nil))))))))
+       (while (and (consp val) (stringp (car val)))
+         (setq val (cdr val)))
+       (or (not val) (stringp val))))
 
 (defcustom jinx-include-faces
   '((prog-mode font-lock-comment-face
