@@ -123,9 +123,11 @@
   "Face used for the accept action during correction.")
 
 (defcustom jinx-languages
-  (or (bound-and-true-p current-locale-environment)
-      (getenv "LANG")
-      "en_US")
+  (replace-regexp-in-string
+   "\\..*\\'" ""
+   (or (bound-and-true-p current-locale-environment)
+       (getenv "LANG")
+       "en_US"))
   "List of languages."
   :type '(choice string (repeat string)))
 
