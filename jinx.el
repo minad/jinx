@@ -619,8 +619,8 @@ Return list of overlays, see `jinx--get-overlays'."
 
 ;;;###autoload
 (defun jinx-languages (&optional global)
-  "Change languages locally.
-If predicate argument GLOBAL is given, change the languages globally."
+  "Change languages locally or globally.
+With prefix argument GLOBAL non-nil change the languages globally."
   (interactive "*P")
   (jinx--load-module)
   (when-let ((langs
@@ -641,7 +641,7 @@ If predicate argument GLOBAL is given, change the languages globally."
 ;;;###autoload
 (defun jinx-correct (&optional all)
   "Correct nearest misspelled word.
-If predicate argument ALL is given correct all misspellings."
+If prefix argument ALL non-nil correct all misspellings."
   (interactive "*P")
   (unless jinx-mode (jinx-mode 1))
   (unwind-protect
