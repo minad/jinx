@@ -642,7 +642,7 @@ If prefix argument ALL non-nil correct all misspellings."
   (interactive "*P")
   (unless jinx-mode (jinx-mode 1))
   (cl-letf (((symbol-function #'jinx--timer-handler) #'ignore) ;; Inhibit
-            (old-point (if all (push-mark) (point-marker))))
+            (old-point (and (not all) (point-marker))))
     (unwind-protect
         (if all
             (let* ((overlays (or (jinx--force-overlays (point-min) (point-max))
@@ -650,6 +650,7 @@ If prefix argument ALL non-nil correct all misspellings."
                    (nearest (jinx--nearest-overlay overlays))
                    (count (length overlays))
                    before after)
+              (push-mark)
               (dolist (ov overlays)
                 (if (or after (eq ov nearest))
                     (push ov after)
@@ -666,7 +667,7 @@ If prefix argument ALL non-nil correct all misspellings."
              (or (jinx--get-overlays (window-start) (window-end))
                  (jinx--force-overlays (window-start) (window-end))))
             (user-error "No misspelling in visible text"))))
-      (unless all (goto-char old-point))
+      (when old-point (goto-char old-point))
       (jit-lock-refontify))))
 
 ;;;###autoload
