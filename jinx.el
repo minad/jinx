@@ -49,22 +49,23 @@
 ;; and programmable predicates.  Jinx comes preconfigured for the most
 ;; important major modes.
 ;;
-;; Jinx offers three auto-loaded entry points , the modes
-;; `global-jinx-mode', `jinx-mode' and the command `jinx-correct'.
-;; You can either enable `global-jinx-mode' or add `jinx-mode' to the
-;; hooks of the modes.
+;; Jinx offers the auto-loaded modes `global-jinx-mode' and
+;; `jinx-mode'.  You can either enable `global-jinx-mode' or add
+;; `jinx-mode' to the hooks of the modes.
 ;;
 ;; (add-hook 'emacs-startup-hook #'global-jinx-mode)
 ;;
 ;; (dolist (hook '(text-mode-hook prog-mode-hook conf-mode-hook))
 ;;   (add-hook hook #'jinx-mode))
 ;;
-;; In order to correct misspellings bind `jinx-correct' to a
-;; convenient key in your configuration.  Jinx is independent of the
-;; Ispell package, so you can reuse the binding M-$ which is bound to
-;; `ispell-word' by default.  When pressing M-$, Jinx offers
-;; correction suggestions for the misspelling next to point.  If the
-;; prefix key C-u is pressed, the entire buffer is spell-checked.
+;; Furthermore Jinx brings two auto-loaded commands `jinx-correct' and
+;; `jinx-languages'.  In order to correct misspellings bind
+;; `jinx-correct' to a convenient key in your configuration.  Jinx is
+;; independent of the Ispell package, so you can reuse the binding M-$
+;; which is bound to `ispell-word' by default.  When pressing M-$,
+;; Jinx offers correction suggestions for the misspelling next to
+;; point.  If the prefix key C-u is pressed, the entire buffer is
+;; spell-checked.
 ;;
 ;; (keymap-global-set "<remap> <ispell-word>" #'jinx-correct)
 ;;
@@ -242,6 +243,7 @@ Predicate may return a position to skip forward.")
 (declare-function jinx--mod-suggest nil)
 (declare-function jinx--mod-dict nil)
 (declare-function jinx--mod-describe nil)
+(declare-function jinx--mod-langs nil)
 (declare-function jinx--mod-wordchars nil)
 (declare-function org-fold-core-region "org-fold-core")
 (declare-function org-fold-core-get-regions "org-fold-core")
@@ -612,6 +614,27 @@ Return list of overlays, see `jinx--get-overlays'."
         (setq nearest ov)))))
 
 ;;;; Public commands
+
+;;;###autoload
+(defun jinx-languages (&optional global)
+  "Change languages locally.
+If predicate argument GLOBAL is given, change the languages globally."
+  (interactive "*P")
+  (jinx--load-module)
+  (when-let ((langs
+              (completing-read-multiple
+               (format "Change languages (%s): "
+                       (string-join (ensure-list jinx-languages) ", "))
+               (delete-dups (jinx--mod-langs)) nil t)))
+    (when (length= langs 1)
+      (setq langs (car langs)))
+    (if (not global)
+        (setq-local jinx-languages langs)
+      (when (local-variable-p 'jinx-languages)
+        (kill-local-variable 'jinx-languages))
+      (setq-default jinx-languages langs))
+    (jinx-mode -1)
+    (jinx-mode 1)))
 
 ;;;###autoload
 (defun jinx-correct (&optional all)

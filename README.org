@@ -41,9 +41,8 @@ Ubuntu, install the packages =libenchant-2-2=, =libenchant-2-dev= and =pkg-confi
 
 * Usage
 
-Jinx offers three auto-loaded entry points , the modes =global-jinx-mode=,
-=jinx-mode= and the command =jinx-correct=. You can either enable =global-jinx-mode=
-or add =jinx-mode= to the hooks of the modes.
+Jinx offers two modes =global-jinx-mode= and =jinx-mode=. You can either enable
+=global-jinx-mode= or add =jinx-mode= to the hooks of the modes.
 
 #+begin_src emacs-lisp
   (add-hook 'emacs-startup-hook #'global-jinx-mode)
@@ -52,11 +51,12 @@ or add =jinx-mode= to the hooks of the modes.
     (add-hook hook #'jinx-mode))
 #+end_src
 
-In order to correct misspellings bind =jinx-correct= to a convenient key in your
-configuration. Jinx is independent of the Ispell package, so you can reuse the
-binding =M-$= which is bound to =ispell-word= by default. When pressing =M-$=, Jinx
-offers correction suggestions for the misspelling next to point. If the prefix
-key =C-u= is pressed, the entire buffer is spell-checked.
+Furthermore Jinx brings two auto-loaded commands =jinx-correct= and
+=jinx-languages=. In order to correct misspellings bind =jinx-correct= to a
+convenient key in your configuration. Jinx is independent of the Ispell package,
+so you can reuse the binding =M-$= which is bound to =ispell-word= by default. When
+pressing =M-$=, Jinx offers correction suggestions for the misspelling next to
+point. If the prefix key =C-u= is pressed, the entire buffer is spell-checked.
 
 #+begin_src emacs-lisp
   (keymap-global-set "<remap> <ispell-word>" #'jinx-correct)
