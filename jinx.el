@@ -200,6 +200,17 @@ checking."
   "List of modes included by `global-jinx-mode'."
   :type '(repeat symbol))
 
+;;;; Keymaps
+
+(defvar-keymap jinx-mode-map
+  :doc "Keymap for `jinx-mode'.")
+
+(defvar-keymap jinx-misspelled-map
+  :doc "Keymap attached to misspelled words."
+  "<mouse-1>" #'jinx-correct)
+
+(fset 'jinx-misspelled-map jinx-misspelled-map)
+
 ;;;; Internal variables
 
 (defvar jinx--predicates
@@ -257,12 +268,6 @@ Predicate may return a position to skip forward.")
 (put 'jinx 'insert-in-front-hooks (list #'jinx--overlay-modified))
 (put 'jinx 'insert-behind-hooks   (list #'jinx--overlay-modified))
 (put 'jinx 'keymap                'jinx-misspelled-map)
-
-(defvar-keymap jinx-misspelled-map
-  :doc "Keymap attached to misspelled words."
-  "<mouse-1>" #'jinx-correct)
-
-(fset 'jinx-misspelled-map jinx-misspelled-map)
 
 ;;;; Predicates
 
@@ -675,7 +680,7 @@ If prefix argument ALL non-nil correct all misspellings."
 ;;;###autoload
 (define-minor-mode jinx-mode
   "Enchanted Just-in-time Spell Checker."
-  :global nil :group 'jinx
+  :global nil :group 'jinx :keymap jinx-mode-map
   (cond
    (jinx-mode
     (jinx--load-module)
