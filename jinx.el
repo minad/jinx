@@ -418,8 +418,9 @@ Returns a pair of updated (START END) bounds."
   (setq jinx--timer nil)
   (dolist (frame (frame-list))
     (dolist (win (window-list frame 'no-miniwindow))
-      (with-current-buffer (window-buffer win)
-        (when jinx-mode
+      (when-let ((buffer (window-buffer win))
+                 ((buffer-local-value 'jinx-mode buffer)))
+        (with-current-buffer buffer
           (with-selected-window win
             (jinx--check-pending)))))))
 
