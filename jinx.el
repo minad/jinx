@@ -166,11 +166,12 @@ checking."
      org-todo-keyword-habt org-todo-keyword-kill
      org-todo-keyword-outd org-todo-keyword-todo
      org-todo-keyword-wait org-verbatim
-     org-modern-tag org-modern-date-active org-modern-date-inactive)
+     org-modern-tag org-modern-date-active
+     org-modern-date-inactive)
     (tex-mode
-     font-latex-math-face font-latex-sedate-face font-latex-verbatim-face
-     font-lock-function-name-face font-lock-keyword-face
-     font-lock-variable-name-face)
+     font-latex-math-face font-latex-sedate-face
+     font-latex-verbatim-face font-lock-function-name-face
+     font-lock-keyword-face font-lock-variable-name-face)
     (texinfo-mode
      font-lock-function-name-face font-lock-keyword-face
      font-lock-variable-name-face)
