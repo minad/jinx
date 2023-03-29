@@ -41,6 +41,7 @@
 ;; your system for compilation.  If `pkg-config' is available it will
 ;; be used to locate libenchant.  On Debian or Ubuntu, install the
 ;; packages `libenchant-2-2', `libenchant-2-dev' and `pkg-config'.
+;; On Fedora or RHEL, install the package `enchant2-devel'.
 ;;
 ;; Jinx supports multiple languages in a buffer at the same time via
 ;; the `jinx-languages' customization variable.  It offers flexible
