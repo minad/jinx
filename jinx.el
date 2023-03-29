@@ -36,11 +36,11 @@
 ;; that process communication with a backend Aspell process can be
 ;; avoided.  Libenchant is widely used as spell-checking API by text
 ;; editors and supports Nuspell, Hunspell, Aspell and a few lesser
-;; known backends.  Jinx automatically compiles and loads the native
-;; module at startup.  Libenchant must be installed on your system for
-;; compilation.  If `pkg-config' is available it will be used to
-;; locate libenchant.  On Debian or Ubuntu, install the packages
-;; `libenchant-2-2', `libenchant-2-dev' and `pkg-config'.
+;; known backends.  Jinx automatically compiles `jinx-mod.c' and loads
+;; the dynamic module at startup.  Libenchant must be installed on
+;; your system for compilation.  If `pkg-config' is available it will
+;; be used to locate libenchant.  On Debian or Ubuntu, install the
+;; packages `libenchant-2-2', `libenchant-2-dev' and `pkg-config'.
 ;;
 ;; Jinx supports multiple languages in a buffer at the same time via
 ;; the `jinx-languages' customization variable.  It offers flexible
@@ -439,10 +439,10 @@ Returns a pair of updated (START END) bounds."
                                nil #'jinx--timer-handler))))
 
 (defun jinx--load-module ()
-  "Compile and load native module."
+  "Compile and load dynamic module."
   (unless (fboundp #'jinx--mod-dict)
     (unless module-file-suffix
-      (error "Jinx: Native modules are not supported"))
+      (error "Jinx: Dynamic modules are not supported"))
     (let ((default-directory
            (file-name-directory (locate-library "jinx.el" t)))
           (module (file-name-with-extension "jinx-mod" module-file-suffix)))
