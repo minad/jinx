@@ -10,6 +10,8 @@
   which can be used to go back to the original position.
 - Add =jinx-mode-map= to make it easy to bind keys if =jinx-mode= is enabled. The
   map is empty by default.
+- Ignore single quotes and apostrophes at the beginning and end of words. Please
+  provide feedback if this is a reasonable approach.
 
 * Version 0.4 (2023-03-27)
 

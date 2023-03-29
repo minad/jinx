@@ -361,7 +361,10 @@ Returns a pair of updated (START END) bounds."
               (while (re-search-forward "\\<\\w+\\>" end t)
                 (let ((word-start (match-beginning 0))
                       (word-end (point)))
-                  ;; No quote or apostrophe at end
+                  ;; No quote or apostrophe at start or end
+                  (while (and (< word-start word-end)
+                              (let ((c (char-after word-start))) (or (= c 39) (= c 8217))))
+                    (cl-incf word-start))
                   (while (and (< word-start word-end)
                               (let ((c (char-before word-end))) (or (= c 39) (= c 8217))))
                     (cl-decf word-end))
