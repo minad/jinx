@@ -329,11 +329,9 @@ FLAG must be t or nil."
                  (next-single-char-property-change start 'invisible nil end))))
   start)
 
-(defun jinx--check-pending ()
-  "Check pending visible regions."
-  (let* ((start (window-start))
-         (end (window-end))
-         (pos start))
+(defun jinx--check-pending (start end)
+  "Check pending visible region between START and END."
+  (let ((pos start))
     (while (< pos end)
       (let* ((from (jinx--find-visible-pending pos end t))
              (to (jinx--find-visible-pending from end nil)))
@@ -427,8 +425,7 @@ Returns a pair of updated (START END) bounds."
       (when-let ((buffer (window-buffer win))
                  ((buffer-local-value 'jinx-mode buffer)))
         (with-current-buffer buffer
-          (with-selected-window win
-            (jinx--check-pending)))))))
+          (jinx--check-pending (window-start win) (window-end win)))))))
 
 (defun jinx--reschedule (&rest _)
   "Restart the global idle timer."
