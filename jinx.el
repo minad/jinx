@@ -337,12 +337,19 @@ FLAG must be t or nil."
       (let* ((from (jinx--find-visible-pending pos end t))
              (to (jinx--find-visible-pending from end nil)))
         (if (< from to)
-            (setq pos (cdr (jinx--check-region from to)))
+            (setq pos (jinx--check-region from to))
           (setq pos to))))))
+
+(defun jinx--force-check-region (start end)
+  "Enforce spell-check of region between START and END."
+  (with-delayed-message (1 "Fontifying...")
+    (jit-lock-fontify-now))
+  (with-delayed-message (1 "Checking...")
+    (jinx--check-region start end)))
 
 (defun jinx--check-region (start end)
   "Check region between START and END.
-Returns a pair of updated (START END) bounds."
+Return updated END position."
   (let ((jinx--mode-syntax-table (syntax-table)))
     (unwind-protect
         (with-silent-modifications
@@ -376,12 +383,15 @@ Returns a pair of updated (START END) bounds."
                       ('nil (overlay-put (make-overlay word-start word-end) 'category 'jinx))))))
               (remove-list-of-text-properties start end '(jinx--pending)))
             (set-syntax-table jinx--mode-syntax-table)))))
-  (cons start end))
+  end)
 
-(defun jinx--get-overlays (start end)
-  "Return misspelled words overlays between START and END."
+(defun jinx--get-overlays (start end &optional visible)
+  "Return misspelled word overlays between START and END.
+If VISIBLE is non-nil, only include visible overlays."
   (sort (cl-loop for ov in (overlays-in start end)
-                 if (eq (overlay-get ov 'category) 'jinx) collect ov)
+                 if (and (eq (overlay-get ov 'category) 'jinx)
+                         (not (and visible (invisible-p (overlay-start ov)))))
+                 collect ov)
         (lambda (a b) (< (overlay-start a) (overlay-start b)))))
 
 (defun jinx--delete-overlays (start end)
@@ -473,16 +483,6 @@ Returns a pair of updated (START END) bounds."
                   (pop-to-buffer (current-buffer))
                   (error msg)))))))
       (module-load (expand-file-name module)))))
-
-(defun jinx--force-overlays (start end)
-  "Enforce spell-check of region between START and END.
-Return list of overlays, see `jinx--get-overlays'."
-  (with-delayed-message (1 "Fontifying...")
-    (jit-lock-fontify-now))
-  (with-delayed-message (1 "Checking...")
-    (setq start (jinx--check-region start end)
-          end (cdr start) start (car start)))
-  (jinx--get-overlays start end))
 
 (defun jinx--annotate-suggestion (word)
   "Annotate WORD during completion."
@@ -653,8 +653,12 @@ If prefix argument ALL non-nil correct all misspellings."
             (old-point (and (not all) (point-marker))))
     (unwind-protect
         (if all
-            (let* ((overlays (or (jinx--force-overlays (point-min) (point-max))
-                                 (user-error "No misspellings in whole buffer")))
+            (let* ((overlays
+                    (progn
+                      (jinx--force-check-region (point-min) (point-max))
+                      (or
+                       (jinx--get-overlays (point-min) (point-max))
+                       (user-error "No misspellings in whole buffer"))))
                    (nearest (jinx--nearest-overlay overlays))
                    (count (length overlays))
                    before after)
@@ -672,8 +676,10 @@ If prefix argument ALL non-nil correct all misspellings."
           (jinx--correct
            (or
             (jinx--nearest-overlay
-             (or (jinx--get-overlays (window-start) (window-end))
-                 (jinx--force-overlays (window-start) (window-end))))
+             (or (jinx--get-overlays (window-start) (window-end) 'visible)
+                 (progn
+                   (jinx--force-check-region (window-start) (window-end))
+                   (jinx--get-overlays (window-start) (window-end) 'visible))))
             (user-error "No misspelling in visible text"))))
       (when old-point (goto-char old-point))
       (jit-lock-refontify))))
