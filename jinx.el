@@ -388,11 +388,19 @@ Return updated END position."
 (defun jinx--get-overlays (start end &optional visible)
   "Return misspelled word overlays between START and END.
 If VISIBLE is non-nil, only include visible overlays."
-  (sort (cl-loop for ov in (overlays-in start end)
-                 if (and (eq (overlay-get ov 'category) 'jinx)
-                         (not (and visible (invisible-p (overlay-start ov)))))
-                 collect ov)
-        (lambda (a b) (< (overlay-start a) (overlay-start b)))))
+  (let ((pt (point)) before overlays)
+    (dolist (ov (overlays-in start end))
+      (when (and (eq (overlay-get ov 'category) 'jinx)
+                 (not (and visible (invisible-p (overlay-start ov)))))
+        (push ov overlays)))
+    (setq overlays
+          (sort overlays
+                (lambda (a b) (< (overlay-start a) (overlay-start b)))))
+    (while (and (cdr overlays)
+                (> (abs (- (overlay-end (car overlays)) pt))
+                   (abs (- (overlay-start (cadr overlays)) pt))))
+      (push (pop overlays) before))
+    (nconc overlays (nreverse before))))
 
 (defun jinx--delete-overlays (start end)
   "Delete overlays between START and END."
@@ -610,18 +618,6 @@ If VISIBLE is non-nil, only include visible overlays."
         (insert-before-markers selected)
         (delete-region start end)))))
 
-(defun jinx--nearest-overlay (overlays)
-  "Find nearest visible overlay from OVERLAYS."
-  (let ((pt (point)) nearest)
-    (dolist (ov overlays nearest)
-      (when (and (not (invisible-p (overlay-start ov)))
-                 (or (not nearest)
-                     (< (min (abs (- (overlay-start ov) pt))
-                             (abs (- (overlay-end ov) pt)))
-                        (min (abs (- (overlay-start nearest) pt))
-                             (abs (- (overlay-end nearest) pt))))))
-        (setq nearest ov)))))
-
 ;;;; Public commands
 
 ;;;###autoload
@@ -654,35 +650,23 @@ If prefix argument ALL non-nil correct all misspellings."
   (cl-letf (((symbol-function #'jinx--timer-handler) #'ignore) ;; Inhibit
             (old-point (and (not all) (point-marker))))
     (unwind-protect
-        (if all
-            (let* ((overlays
-                    (progn
-                      (jinx--force-check-region (point-min) (point-max))
-                      (or
-                       (jinx--get-overlays (point-min) (point-max))
-                       (user-error "No misspellings in whole buffer"))))
-                   (nearest (jinx--nearest-overlay overlays))
-                   (count (length overlays))
-                   before after)
-              (push-mark)
-              (dolist (ov overlays)
-                (if (or after (eq ov nearest))
-                    (push ov after)
-                  (push ov before)))
-              (setq overlays (nreverse (nconc before after)))
-              (cl-loop for ov in overlays for idx from 1
-                       if (overlay-buffer ov) do ;; Could be already deleted
-                       (jinx--correct ov 'recenter
-                                      (format " (%d of %d, RET to skip)"
-                                              idx count))))
-          (jinx--correct
-           (or
-            (jinx--nearest-overlay
-             (or (jinx--get-overlays (window-start) (window-end) 'visible)
+        (if (not all)
+            (jinx--correct
+             (or (car (jinx--get-overlays (window-start) (window-end) 'visible))
                  (progn
                    (jinx--force-check-region (window-start) (window-end))
-                   (jinx--get-overlays (window-start) (window-end) 'visible))))
-            (user-error "No misspelling in visible text"))))
+                   (car (jinx--get-overlays (window-start) (window-end) 'visible)))
+                 (user-error "No misspelling in visible text")))
+          (push-mark)
+          (jinx--force-check-region (point-min) (point-max))
+          (let* ((overlays (or (jinx--get-overlays (point-min) (point-max))
+                               (user-error "No misspellings in whole buffer")))
+                 (count (length overlays)))
+            (cl-loop for ov in overlays for idx from 1
+                     if (overlay-buffer ov) do ;; Could be already deleted
+                     (jinx--correct ov 'recenter
+                                    (format " (%d of %d, RET to skip)"
+                                            idx count)))))
       (when old-point (goto-char old-point))
       (jit-lock-refontify))))
 
