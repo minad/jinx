@@ -355,16 +355,16 @@ Return updated END position."
         (with-silent-modifications
           (save-excursion
             (save-match-data
-              ;; Ensure that region starts and ends at word boundaries
-              (goto-char start)
-              (re-search-backward "[[:blank:]]\\|^")
-              (setq start (match-end 0))
-              (goto-char end)
-              (re-search-forward "[[:blank:]]\\|$")
-              (setq end (match-beginning 0))
-              (jinx--delete-overlays start end)
               ;; Use dictionary-dependent syntax table
               (set-syntax-table jinx--syntax-table)
+              ;; Ensure that region starts and ends at word boundaries
+              (goto-char start)
+              (re-search-backward "\\s-\\|^")
+              (setq start (match-end 0))
+              (goto-char end)
+              (re-search-forward "\\s-\\|$")
+              (setq end (match-beginning 0))
+              (jinx--delete-overlays start end)
               (goto-char start)
               (while (re-search-forward "\\<\\w+\\>" end t)
                 (let ((word-start (match-beginning 0))
@@ -381,8 +381,8 @@ Return updated END position."
                     (pcase (run-hook-with-args-until-success 'jinx--predicates word-start)
                       ((and (pred integerp) skip) (goto-char (max word-end (min end skip))))
                       ('nil (overlay-put (make-overlay word-start word-end) 'category 'jinx))))))
-              (remove-list-of-text-properties start end '(jinx--pending)))
-            (set-syntax-table jinx--mode-syntax-table)))))
+              (remove-list-of-text-properties start end '(jinx--pending)))))
+      (set-syntax-table jinx--mode-syntax-table)))
   end)
 
 (defun jinx--get-overlays (start end &optional visible)
