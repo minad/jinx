@@ -116,7 +116,8 @@ static void jinx_langs_cb(const char* const lang_tag,
 }
 
 static emacs_value jinx_langs(emacs_env* env, ptrdiff_t jinx_unused(nargs),
-                              emacs_value args[], void* jinx_unused(data)) {
+                              emacs_value jinx_unused(args[]),
+                              void* jinx_unused(data)) {
     void* data[] = { env, env->intern(env, "nil") };
     enchant_broker_list_dicts(jinx_broker(), jinx_langs_cb, data);
     return data[1];
