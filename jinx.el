@@ -571,12 +571,14 @@ If VISIBLE is non-nil, only include visible overlays."
 
 (defun jinx--recheck-overlays ()
   "Recheck all overlays in buffer after a dictionary update."
-  (save-restriction
-    (widen)
-    (dolist (ov (jinx--get-overlays (point-min) (point-max)))
-      (goto-char (overlay-end ov))
-      (when (jinx--word-valid-p (overlay-start ov))
-        (delete-overlay ov)))))
+  (save-excursion
+    (save-restriction
+      (widen)
+      (dolist (ov (overlays-in (point-min) (point-max)))
+        (when (eq (overlay-get ov 'category) 'jinx)
+          (goto-char (overlay-end ov))
+          (when (jinx--word-valid-p (overlay-start ov))
+            (delete-overlay ov)))))))
 
 (defun jinx--correct (overlay &optional recenter info)
   "Correct word at OVERLAY with optional RECENTER and prompt INFO."
