@@ -12,6 +12,7 @@
   map is empty by default.
 - Ignore single quotes and apostrophes at the beginning and end of words. Please
   provide feedback if this is a reasonable approach.
+- Support spell checking of camelCased words via the =jinx-camel-modes= variable.
 
 * Version 0.4 (2023-03-27)
 

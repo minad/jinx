@@ -110,6 +110,15 @@ These faces mark regions which should be included in spell
 checking."
   :type '(alist :key-type symbol :value-type (repeat face)))
 
+(defcustom jinx-camel-modes
+  '(java-mode javascript-mode
+    java-ts-mode javascript-ts-mode
+    ruby-mode ruby-ts-mode
+    rust-mode rust-ts-mode)
+  "Modes where camelCase or PascalCase words should be accepted.
+Set to t to enable camelCase everywhere."
+  :type '(choice (const t) (repeat symbol)))
+
 (defcustom jinx-exclude-faces
   '((markdown-mode
      markdown-code-face markdown-html-attr-name-face
@@ -194,6 +203,9 @@ Predicate may return a position to skip forward.")
 
 (defvar-local jinx--exclude-regexp nil
   "Ignore regexp.")
+
+(defvar-local jinx--camel nil
+  "Accept camel case.")
 
 (defvar-local jinx--dicts nil
   "List of dictionaries.")
@@ -329,19 +341,29 @@ Return updated END position."
               (goto-char start)
               (while (re-search-forward "\\<\\w+\\>" end t)
                 (let ((word-start (match-beginning 0))
-                      (word-end (point)))
+                      (word-end (match-end 0)))
                   ;; No quote or apostrophe at start or end
                   (while (and (< word-start word-end)
-                              (let ((c (char-after word-start))) (or (= c 39) (= c 8217))))
+                              (let ((c (char-after word-start)))
+                                (or (= c 39) (= c 8217))))
                     (cl-incf word-start))
                   (while (and (< word-start word-end)
-                              (let ((c (char-before word-end))) (or (= c 39) (= c 8217))))
+                              (let ((c (char-before word-end)))
+                                (or (= c 39) (= c 8217))))
                     (cl-decf word-end))
-                  (when (< word-start word-end)
-                    (goto-char word-end)
-                    (pcase (run-hook-with-args-until-success 'jinx--predicates word-start)
-                      ((and (pred integerp) skip) (goto-char (max word-end (min end skip))))
-                      ('nil (overlay-put (make-overlay word-start word-end) 'category 'jinx))))))
+                  (while (< word-start word-end)
+                    (let ((subword-end word-end))
+                      (when jinx--camel
+                        (goto-char word-start)
+                        (when (looking-at "\\([[:upper:]]?[[:lower:]]+\\)[[:upper:]][[:lower:]]+")
+                          (setq subword-end (match-end 1))))
+                      (goto-char subword-end)
+                      (pcase (run-hook-with-args-until-success 'jinx--predicates word-start)
+                        ((and (pred integerp) skip)
+                         (goto-char (max subword-end (min end skip))))
+                        ('nil
+                         (overlay-put (make-overlay word-start subword-end) 'category 'jinx)))
+                      (setq word-start subword-end)))))
               (remove-list-of-text-properties start end '(jinx--pending)))))
       (set-syntax-table jinx--mode-syntax-table)))
   end)
@@ -646,6 +668,9 @@ If prefix argument ALL non-nil correct all misspellings."
                        regexps "\\|"))
           jinx--include-faces (jinx--mode-list jinx-include-faces)
           jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
+          jinx--camel (or (eq jinx-camel-modes t)
+                          (cl-loop for m in jinx-camel-modes
+                                   thereis (derived-mode-p m)))
           jinx--dicts (delq nil (mapcar #'jinx--mod-dict
                                         (ensure-list jinx-languages)))
           jinx--syntax-table (make-syntax-table))
@@ -666,6 +691,7 @@ If prefix argument ALL non-nil correct all misspellings."
     (kill-local-variable 'jinx--exclude-regexp)
     (kill-local-variable 'jinx--include-faces)
     (kill-local-variable 'jinx--exclude-faces)
+    (kill-local-variable 'jinx--camel)
     (kill-local-variable 'jinx--dicts)
     (kill-local-variable 'jinx--syntax-table)
     (remove-hook 'window-state-change-hook #'jinx--reschedule t)
