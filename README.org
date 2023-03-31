@@ -113,10 +113,11 @@ spell checkers. See the [[https://abiword.github.io/enchant/src/enchant.html][En
   (affixation, compound words, etc.).
 
 - flyspell: Flyspell is Emacs's built-in package. Flyspell highlights
-  misspellings in realtime, while typing. Each word under the cursor is
+  misspellings in real-time, while typing. Each word under the cursor is
   spell-checked and underlined if mistyped. Jinx, on the other hand, is more
-  effective because it checks for misspellings in the entire visible text of the
-  buffer at once.
+  effective because it automatically checks for misspellings in the entire
+  visible text of the buffer at once. Flyspell can check the entire buffer but
+  must be instructed to do so via the command =flyspell-buffer=.
 
 * Contributions
 
