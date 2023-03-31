@@ -4,6 +4,7 @@
 
 * Development
 
+- The =jinx-languages= must be a space separate string of languages now.
 - Add =jinx-languages= command to switch languages locally or globally.
 - =jinx-correct=: When checking the whole buffer via =C-u M-$=, don't restore
   original point position upon =C-g= to ease cursory edits. Instead push a mark

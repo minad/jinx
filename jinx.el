@@ -87,15 +87,17 @@
    (or (bound-and-true-p current-locale-environment)
        (getenv "LANG")
        "en_US"))
-  "List of languages."
-  :type '(choice string (repeat string)))
+  "Space-separated string of languages used for spell checking."
+  :type 'string)
 
 ;;;###autoload
-(put 'jinx-languages 'safe-local-variable
-     (lambda (val)
-       (while (and (consp val) (stringp (car val)))
-         (setq val (cdr val)))
-       (or (not val) (stringp val))))
+(put 'jinx-languages 'safe-local-variable #'stringp)
+
+(defvar-local jinx-local-words nil
+  "Space-separated string of file local words.")
+
+;;;###autoload
+(put 'jinx-local-words 'safe-local-variable #'stringp)
 
 (defcustom jinx-include-faces
   '((prog-mode font-lock-comment-face
@@ -387,6 +389,10 @@ If VISIBLE is non-nil, only include visible overlays."
   (cl-loop for (mode . vals) in list
            if (or (eq mode t) (derived-mode-p mode)) append vals))
 
+(defun jinx--split (str)
+  "Convert STR to list of strings."
+  (and str (split-string str)))
+
 (defun jinx--get-org-language ()
   "Get language from Org #+language keyword."
   (when (and (not (local-variable-p 'jinx-languages))
@@ -485,6 +491,9 @@ If VISIBLE is non-nil, only include visible overlays."
              (propertize (concat at (downcase word))
                          'jinx--group group 'jinx--annotation ann))))
     (list
+     (propertize (concat #("*" 0 1 (face jinx-accept rear-nonsticky t)) word)
+                 'jinx--group "Accept and save word"
+                 'jinx--annotation " [File]")
      (propertize (concat #("#" 0 1 (face jinx-accept rear-nonsticky t)) word)
                  'jinx--group "Accept and save word"
                  'jinx--annotation " [Session]")))))
@@ -557,16 +566,25 @@ If VISIBLE is non-nil, only include visible overlays."
                                    (jinx--suggestion-table word)
                                    nil nil nil t word)
                   word)))))
-    (if (string-match-p "\\`[@#]" selected)
-        (let* ((new-word (replace-regexp-in-string "\\`[@#]+" "" selected))
+    (if (string-match-p "\\`[@#*]" selected)
+        (let* ((new-word (replace-regexp-in-string "\\`[@#*]+" "" selected))
                (idx (- (length selected) (length new-word) 1)))
           (when (equal new-word "") (setq new-word word))
-          (if (string-prefix-p "#" selected)
-              (unless (member new-word jinx--session-words)
-                (push new-word jinx--session-words))
-            (jinx--mod-add (or (nth idx jinx--dicts)
-                               (user-error "Invalid dictionary"))
-                           new-word))
+          (cond
+           ((string-prefix-p "#" selected)
+            (add-to-list 'jinx--session-words new-word))
+           ((string-prefix-p "*" selected)
+            (setq jinx-local-words
+                  (string-join
+                   (sort (delete-dups
+                          (cons new-word (jinx--split jinx-local-words)))
+                         #'string<)
+                   " "))
+            (add-file-local-variable 'jinx-local-words jinx-local-words)
+            (add-to-list 'jinx--session-words new-word))
+           (t (jinx--mod-add (or (nth idx jinx--dicts)
+                                 (user-error "Invalid dictionary"))
+                             new-word)))
           (jinx--recheck-overlays))
       (when-let (((not (equal selected word)))
                  (start (overlay-start overlay))
@@ -587,10 +605,9 @@ With prefix argument GLOBAL non-nil change the languages globally."
   (when-let ((langs
               (completing-read-multiple
                (format "Change languages (%s): "
-                       (string-join (ensure-list jinx-languages) ", "))
+                       (string-join (jinx--split jinx-languages) ", "))
                (delete-dups (jinx--mod-langs)) nil t)))
-    (when (length= langs 1)
-      (setq langs (car langs)))
+    (setq langs (string-join langs " "))
     (if (not global)
         (setq-local jinx-languages langs)
       (kill-local-variable 'jinx-languages)
@@ -644,7 +661,8 @@ If prefix argument ALL non-nil correct all misspellings."
           jinx--include-faces (jinx--mode-list jinx-include-faces)
           jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
           jinx--dicts (delq nil (mapcar #'jinx--mod-dict
-                                        (ensure-list jinx-languages)))
+                                        (jinx--split jinx-languages)))
+          jinx--session-words (jinx--split jinx-local-words)
           jinx--syntax-table (make-syntax-table))
     (unless jinx--dicts
       (message "Jinx: No dictionaries available for `jinx-languages' = %S"
