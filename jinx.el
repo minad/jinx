@@ -355,7 +355,7 @@ Return updated END position."
                     (let ((subword-end word-end))
                       (when jinx--camel
                         (goto-char word-start)
-                        (when (looking-at "\\([[:upper:]]?[[:lower:]]+\\)[[:upper:]][[:lower:]]+\\>")
+                        (when (looking-at "\\([[:upper:]]?[[:lower:]]+\\)\\(?:[[:upper:]][[:lower:]]+\\)+\\>")
                           (setq subword-end (match-end 1))))
                       (goto-char subword-end)
                       (pcase (run-hook-with-args-until-success 'jinx--predicates word-start)
