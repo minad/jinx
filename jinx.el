@@ -27,7 +27,9 @@
 ;; Jinx is a fast just-in-time spell-checker for Emacs.  Jinx
 ;; highlights misspelled words in the text of the visible portion of
 ;; the buffer.  For efficiency, Jinx highlights misspellings lazily,
-;; recognizes window boundaries and text folding, if any.  Each
+;; recognizes window boundaries and text folding, if any.  For
+;; example, when unfolding or scrolling, only the newly visible part
+;; of the text is checked, if it has not been checked before.  Each
 ;; misspelling can then be corrected from a list of dictionary words
 ;; presented as completion candidates in a list.
 
