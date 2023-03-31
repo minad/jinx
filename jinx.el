@@ -235,12 +235,11 @@ Predicate may return a position to skip forward.")
 (defun jinx--regexp-ignored-p (start)
   "Return non-nil if word at START matches ignore regexps."
   (save-excursion
-    (let (case-fold-search)
-      (goto-char start)
-      (when (and jinx--exclude-regexp (looking-at-p jinx--exclude-regexp))
-        (save-match-data
-          (looking-at jinx--exclude-regexp)
-          (match-end 0))))))
+    (goto-char start)
+    (when (and jinx--exclude-regexp (looking-at-p jinx--exclude-regexp))
+      (save-match-data
+        (looking-at jinx--exclude-regexp)
+        (match-end 0)))))
 
 (defun jinx--face-ignored-p (start)
   "Return non-nil if face at START of word is ignored."
@@ -269,7 +268,8 @@ some Emacs modes."
   (when-let ((pred (or (bound-and-true-p flyspell-generic-check-word-predicate)
                        (get major-mode 'flyspell-mode-predicate))))
     (with-syntax-table jinx--mode-syntax-table
-      (ignore-errors (not (funcall pred))))))
+      (let ((case-fold-search t))
+        (ignore-errors (not (funcall pred)))))))
 
 ;;;; Internal functions
 
@@ -310,7 +310,8 @@ FLAG must be t or nil."
 (defun jinx--check-region (start end)
   "Check region between START and END.
 Return updated END position."
-  (let ((jinx--mode-syntax-table (syntax-table)))
+  (let ((jinx--mode-syntax-table (syntax-table))
+        (case-fold-search nil))
     (unwind-protect
         (with-silent-modifications
           (save-excursion
