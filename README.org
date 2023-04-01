@@ -34,7 +34,8 @@ Jinx supports spell-checking multiple languages in the same buffer. See the
 =jinx-languages= variable to customize for multiple languages. Jinx can flexibly
 ignore misspellings via faces (=jinx-exclude-faces= and =jinx-include-faces=),
 regular expressions (=jinx-exclude-regexps=), and programmable predicates. Jinx
-comes preconfigured for the most important Emacs major modes.
+comes preconfigured for the most important Emacs major modes. For modes listed
+in =jinx-camel-modes= composite words in camelCase and PascalCase are accepted.
 
 #+html: <img src="https://github.com/minad/jinx/blob/screenshots/screenshot.png?raw=true">
 
