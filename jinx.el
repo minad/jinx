@@ -150,7 +150,9 @@ Set to t to enable camelCase everywhere."
     (sgml-mode
      font-lock-function-name-face font-lock-variable-name-face)
     (emacs-lisp-mode
-     font-lock-constant-face font-lock-warning-face))
+     font-lock-constant-face font-lock-warning-face)
+    (message-mode
+     message-header-name))
   "Alist of faces per major mode.
 These faces mark regions which should be excluded in spell
 checking."
