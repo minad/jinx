@@ -580,7 +580,7 @@ If VISIBLE is non-nil, only include visible overlays."
             (lambda ()
               (or (completing-read (format "Correct ‘%s’%s: " word (or info ""))
                                    (jinx--suggestion-table word)
-                                   nil nil nil t word)
+                                   nil nil nil nil t word)
                   word)))))
     (if (string-match-p "\\`[@#]" selected)
         (let* ((new-word (replace-regexp-in-string "\\`[@#]+" "" selected))
