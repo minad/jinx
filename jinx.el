@@ -6,7 +6,7 @@
 ;; Maintainer: Daniel Mendler <mail@daniel-mendler.de>
 ;; Package-Requires: ((emacs "27.1") (compat "29.1.4.0"))
 ;; Created: 2023
-;; Version: 0.4
+;; Version: 0.5
 ;; Homepage: https://github.com/minad/jinx
 
 ;; This program is free software: you can redistribute it and/or modify

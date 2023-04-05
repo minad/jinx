@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 0.5 (2023-04-05)
 
 - Add =jinx-languages= command to switch languages locally or globally.
 - =jinx-correct=: When checking the whole buffer via =C-u M-$=, don't restore
