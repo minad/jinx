@@ -695,13 +695,10 @@ If prefix argument ALL non-nil correct all misspellings."
     (add-hook 'post-command-hook #'jinx--reschedule nil t)
     (jit-lock-register #'jinx--mark-pending))
    (t
-    (kill-local-variable 'jinx--exclude-regexp)
-    (kill-local-variable 'jinx--include-faces)
-    (kill-local-variable 'jinx--exclude-faces)
-    (kill-local-variable 'jinx--camel)
-    (kill-local-variable 'jinx--session-words)
-    (kill-local-variable 'jinx--dicts)
-    (kill-local-variable 'jinx--syntax-table)
+    (mapc #'kill-local-variable '(jinx--exclude-regexp jinx--include-faces
+                                  jinx--exclude-faces jinx--camel
+                                  jinx--dicts jinx--syntax-table
+                                  jinx--session-words))
     (remove-hook 'window-state-change-hook #'jinx--reschedule t)
     (remove-hook 'window-scroll-functions #'jinx--reschedule t)
     (remove-hook 'post-command-hook #'jinx--reschedule t)
