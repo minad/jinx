@@ -214,9 +214,6 @@ Predicate may return a position to skip forward.")
 (defvar-local jinx--syntax-table nil
   "Syntax table used during checking.")
 
-(defvar-local jinx--mode-syntax-table nil
-  "Original syntax table of the mode.")
-
 (defvar-local jinx--session-words nil
   "List of words accepted in this session.")
 
@@ -313,7 +310,7 @@ FLAG must be t or nil."
 (defun jinx--check-region (start end)
   "Check region between START and END.
 Return updated END position."
-  (let ((jinx--mode-syntax-table (syntax-table))
+  (let ((st (syntax-table))
         (case-fold-search nil))
     (unwind-protect
         (with-silent-modifications
@@ -356,7 +353,7 @@ Return updated END position."
                          (overlay-put (make-overlay word-start subword-end) 'category 'jinx)))
                       (setq word-start subword-end)))))
               (remove-list-of-text-properties start end '(jinx--pending)))))
-      (set-syntax-table jinx--mode-syntax-table)))
+      (set-syntax-table st)))
   end)
 
 (defun jinx--get-overlays (start end &optional visible)
