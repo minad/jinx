@@ -679,12 +679,13 @@ If prefix argument ALL non-nil correct all misspellings."
     (unless jinx--dicts
       (message "Jinx: No dictionaries available for `jinx-languages' = %S"
                jinx-languages))
-    (modify-syntax-entry ?' "w" jinx--syntax-table)
-    (modify-syntax-entry ?$ "_" jinx--syntax-table)
-    (modify-syntax-entry ?% "_" jinx--syntax-table)
     (dolist (dict jinx--dicts)
       (cl-loop for c across (jinx--mod-wordchars dict) do
                (modify-syntax-entry c "w" jinx--syntax-table)))
+    (modify-syntax-entry ?$ "_" jinx--syntax-table)
+    (modify-syntax-entry ?% "_" jinx--syntax-table)
+    (modify-syntax-entry ?' "w" jinx--syntax-table)
+    (modify-syntax-entry ?. "." jinx--syntax-table)
     (add-hook 'window-state-change-hook #'jinx--reschedule nil t)
     (add-hook 'window-scroll-functions #'jinx--reschedule nil t)
     (add-hook 'post-command-hook #'jinx--reschedule nil t)
