@@ -606,7 +606,7 @@ If VISIBLE is non-nil, only include visible overlays."
 (defun jinx--load-dicts ()
   "Load dictionaries and setup syntax table."
   (setq jinx--dicts (delq nil (mapcar #'jinx--mod-dict
-                                      (split-string jinx-languages)))
+                                      (ensure-list jinx-languages)))
         jinx--syntax-table (make-syntax-table))
   (unless jinx--dicts
     (message "Jinx: No dictionaries available for `jinx-languages' = %S"
@@ -638,7 +638,8 @@ With prefix argument GLOBAL non-nil change the languages globally."
         (setq-local jinx-languages langs)
       (kill-local-variable 'jinx-languages)
       (setq-default jinx-languages langs))
-    (jinx--load-dicts)))
+    (jinx--load-dicts)
+    (jinx--cleanup)))
 
 ;;;###autoload
 (defun jinx-correct (&optional all)
