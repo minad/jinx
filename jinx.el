@@ -188,8 +188,7 @@ checking."
 (defvar jinx--predicates
   (list #'jinx--face-ignored-p
         #'jinx--regexp-ignored-p
-        #'jinx--word-valid-p
-        #'jinx--flyspell-ignored-p)
+        #'jinx--word-valid-p)
   "Predicate functions called at point with argument START.
 Predicate should return t if the word before point is valid.
 Predicate may return a position to skip forward.")
@@ -274,16 +273,6 @@ Predicate may return a position to skip forward.")
     (or (member word jinx--session-words)
         (cl-loop for dict in jinx--dicts
                  thereis (jinx--mod-check dict word)))))
-
-(defun jinx--flyspell-ignored-p (_start)
-  "Check if word before point is ignored.
-This predicate uses the `flyspell-mode-predicate' provided by
-some Emacs modes."
-  (when-let ((pred (or (bound-and-true-p flyspell-generic-check-word-predicate)
-                       (get major-mode 'flyspell-mode-predicate))))
-    (with-syntax-table jinx--mode-syntax-table
-      (let ((case-fold-search t))
-        (ignore-errors (not (funcall pred)))))))
 
 ;;;; Internal functions
 
