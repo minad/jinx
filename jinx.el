@@ -89,15 +89,11 @@
    (or (bound-and-true-p current-locale-environment)
        (getenv "LANG")
        "en_US"))
-  "List of languages."
-  :type '(choice string (repeat string)))
+  "Dictionary language codes, as a string separated by whitespace."
+  :type 'string)
 
 ;;;###autoload
-(put 'jinx-languages 'safe-local-variable
-     (lambda (val)
-       (while (and (consp val) (stringp (car val)))
-         (setq val (cdr val)))
-       (or (not val) (stringp val))))
+(put 'jinx-languages 'safe-local-variable #'stringp)
 
 (defcustom jinx-include-faces
   '((prog-mode font-lock-comment-face
@@ -592,11 +588,10 @@ If VISIBLE is non-nil, only include visible overlays."
 (defun jinx--load-dicts ()
   "Load dictionaries and setup syntax table."
   (setq jinx--dicts (delq nil (mapcar #'jinx--mod-dict
-                                      (ensure-list jinx-languages)))
+                                      (split-string jinx-languages)))
         jinx--syntax-table (make-syntax-table))
   (unless jinx--dicts
-    (message "Jinx: No dictionaries available for `jinx-languages' = %S"
-             jinx-languages))
+    (message "Jinx: No dictionaries available for %S" jinx-languages))
   (dolist (dict jinx--dicts)
     (cl-loop for c across (jinx--mod-wordchars dict) do
              (modify-syntax-entry c "w" jinx--syntax-table)))
@@ -616,10 +611,9 @@ With prefix argument GLOBAL non-nil change the languages globally."
   (when-let ((langs
               (completing-read-multiple
                (format "Change languages (%s): "
-                       (string-join (ensure-list jinx-languages) ", "))
+                       (string-join (split-string jinx-languages) ", "))
                (delete-dups (jinx--mod-langs)) nil t)))
-    (when (length= langs 1)
-      (setq langs (car langs)))
+    (setq langs (string-join langs " "))
     (if (not global)
         (setq-local jinx-languages langs)
       (kill-local-variable 'jinx-languages)

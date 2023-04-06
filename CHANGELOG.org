@@ -7,6 +7,8 @@
 - Fix the type of a few characters: =.= punctuation character, ='= word character, =%=
   and =$= identifier characters.
 - Abandon =flyspell-mode-predicate= completely. Rely on faces only.
+- =jinx-languages=: This variable must be a string now. Multiple language codes
+  can be separated by space.
 
 * Version 0.5 (2023-04-05)
 
