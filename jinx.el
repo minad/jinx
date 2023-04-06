@@ -160,7 +160,7 @@ checking."
        "\\w*?[0-9]\\w*\\>" ;; Words with numbers, hex codes
        "[a-z]+://\\S-+"    ;; URI
        "<?[-+_.~a-zA-Z][-+_.~:a-zA-Z0-9]*@[-.a-zA-Z0-9]+>?" ;; Email
-       "End:\\s-*$"             ;; Local variable end indicator
+       "\\(?:Local Variables\\|End\\):\\s-*$" ;; Local variable indicator
        "jinx-\\(?:languages\\|local-words\\):\\s-+.*$")) ;; Local variables
   "List of excluded regexps per major mode."
   :type '(alist :key-type symbol :value-type (repeat regexp)))
@@ -634,10 +634,14 @@ With prefix argument GLOBAL non-nil change the languages globally."
                        (string-join (split-string jinx-languages) ", "))
                (delete-dups (jinx--mod-langs)) nil t)))
     (setq langs (string-join langs " "))
-    (if (not global)
-        (setq-local jinx-languages langs)
+    (cond
+     (global
       (kill-local-variable 'jinx-languages)
       (setq-default jinx-languages langs))
+     (t
+      (setq-local jinx-languages langs)
+      (when (y-or-n-p "Save `jinx-languages' as file-local variable? ")
+        (add-file-local-variable 'jinx-languages jinx-languages))))
     (jinx--load-dicts)
     (jinx--cleanup)))
 
