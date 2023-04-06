@@ -103,15 +103,15 @@ spell checkers. See the [[https://abiword.github.io/enchant/src/enchant.html][En
   uses the less efficient Ispell process communication instead Jinx's calling
   native API. Since Jit-spell highlights misspellings in the entire buffer and
   does not confine to just the visible text, Jit-spell affects the load and
-  latency negatively.
+  latency negatively ([[https://github.com/astoff/jit-spell/issues/9][issue on github]]).
 
 - [[https://codeberg.org/ideasman42/emacs-spell-fu][spell-fu]]: The idea to highlight misspellings just in the visible text portion
   of the buffer came from Campbell Barton's spell-fu package. Spell-fu is fast
   but incurs high memory overhead on account of its dictionary in a hash table.
   For languages with compound words and inflected word forms, this overhead
-  magnifies. By accessing the Enchant API directly, Jinx avoids such an
-  overhead. Jinx also benefits from the advanced spell-checker algorithms of
-  Enchant (affixation, compound words, etc.).
+  magnifies ([[https://codeberg.org/ideasman42/emacs-spell-fu/issues/40][issue on codeberg]]). By accessing the Enchant API directly, Jinx
+  avoids such an overhead. Jinx also benefits from the advanced spell-checker
+  algorithms of Enchant (affixation, compound words, etc.).
 
 - flyspell: Flyspell is Emacs's built-in package. Flyspell highlights
   misspellings while typing. Only the word under the cursor is spell-checked.
