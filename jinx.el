@@ -189,6 +189,19 @@ checking."
 
 ;;;; Internal variables
 
+(defvar jinx--local-words-function #'jinx--file-local-words)
+
+(defun jinx--file-local-words (&optional word)
+  (when word
+    (setq jinx-local-words
+          (string-join
+           (sort (delete-dups
+                  (cons word (split-string jinx-local-words)))
+                 #'string<)
+           " "))
+    (add-file-local-variable 'jinx-local-words jinx-local-words))
+  (split-string jinx-local-words))
+
 (defvar jinx--predicates
   (list #'jinx--face-ignored-p
         #'jinx--regexp-ignored-p
@@ -586,13 +599,7 @@ If VISIBLE is non-nil, only include visible overlays."
             (add-to-list 'jinx--session-words new-word))
            ((string-prefix-p "*" selected)
             (add-to-list 'jinx--session-words new-word)
-            (setq jinx-local-words
-                  (string-join
-                   (sort (delete-dups
-                          (cons new-word (split-string jinx-local-words)))
-                         #'string<)
-                   " "))
-            (add-file-local-variable 'jinx-local-words jinx-local-words))
+            (funcall jinx--local-words-function new-word))
            (t (jinx--mod-add (or (nth idx jinx--dicts)
                                  (user-error "Invalid dictionary"))
                              new-word)))
@@ -693,7 +700,7 @@ If prefix argument ALL non-nil correct all misspellings."
           jinx--camel (or (eq jinx-camel-modes t)
                           (cl-loop for m in jinx-camel-modes
                                    thereis (derived-mode-p m)))
-          jinx--session-words (split-string jinx-local-words))
+          jinx--session-words (funcall jinx--local-words-function))
     (jinx--load-dicts)
     (add-hook 'window-state-change-hook #'jinx--reschedule nil t)
     (add-hook 'window-scroll-functions #'jinx--reschedule nil t)
