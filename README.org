@@ -99,6 +99,10 @@ spell checkers. See the [[https://abiword.github.io/enchant/src/enchant.html][En
 
 * Alternative spell-checking packages
 
+There exist multiple alternative spell-checking packages for Emacs, most
+famously the builtin ispell.el and flyspell.el packages. The following three
+packages come closest to the behavior of Jinx.
+
 - [[https://github.com/astoff/jit-spell][jit-spell]]: Jinx UI borrows ideas from Augusto Stoffel's Jit-spell. Jit-spell
   uses the less efficient Ispell process communication instead Jinx's calling
   native API. Since Jit-spell highlights misspellings in the entire buffer and
