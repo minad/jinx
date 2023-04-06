@@ -603,6 +603,22 @@ If VISIBLE is non-nil, only include visible overlays."
         (insert-before-markers selected)
         (delete-region start end)))))
 
+(defun jinx--load-dicts ()
+  "Load dictionaries and setup syntax table."
+  (setq jinx--dicts (delq nil (mapcar #'jinx--mod-dict
+                                      (split-string jinx-languages)))
+        jinx--syntax-table (make-syntax-table))
+  (unless jinx--dicts
+    (message "Jinx: No dictionaries available for `jinx-languages' = %S"
+             jinx-languages))
+  (dolist (dict jinx--dicts)
+    (cl-loop for c across (jinx--mod-wordchars dict) do
+             (modify-syntax-entry c "w" jinx--syntax-table)))
+  (modify-syntax-entry ?$ "_" jinx--syntax-table)
+  (modify-syntax-entry ?% "_" jinx--syntax-table)
+  (modify-syntax-entry ?' "w" jinx--syntax-table)
+  (modify-syntax-entry ?. "." jinx--syntax-table))
+
 ;;;; Public commands
 
 ;;;###autoload
@@ -622,8 +638,7 @@ With prefix argument GLOBAL non-nil change the languages globally."
         (setq-local jinx-languages langs)
       (kill-local-variable 'jinx-languages)
       (setq-default jinx-languages langs))
-    (jinx-mode -1)
-    (jinx-mode 1)))
+    (jinx--load-dicts)))
 
 ;;;###autoload
 (defun jinx-correct (&optional all)
@@ -672,20 +687,8 @@ If prefix argument ALL non-nil correct all misspellings."
           jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
           jinx--camel (or (eq jinx-camel-modes t)
                           (cl-loop for m in jinx-camel-modes
-                                   thereis (derived-mode-p m)))
-          jinx--dicts (delq nil (mapcar #'jinx--mod-dict
-                                        (ensure-list jinx-languages)))
-          jinx--syntax-table (make-syntax-table))
-    (unless jinx--dicts
-      (message "Jinx: No dictionaries available for `jinx-languages' = %S"
-               jinx-languages))
-    (dolist (dict jinx--dicts)
-      (cl-loop for c across (jinx--mod-wordchars dict) do
-               (modify-syntax-entry c "w" jinx--syntax-table)))
-    (modify-syntax-entry ?$ "_" jinx--syntax-table)
-    (modify-syntax-entry ?% "_" jinx--syntax-table)
-    (modify-syntax-entry ?' "w" jinx--syntax-table)
-    (modify-syntax-entry ?. "." jinx--syntax-table)
+                                   thereis (derived-mode-p m))))
+    (jinx--load-dicts)
     (add-hook 'window-state-change-hook #'jinx--reschedule nil t)
     (add-hook 'window-scroll-functions #'jinx--reschedule nil t)
     (add-hook 'post-command-hook #'jinx--reschedule nil t)
@@ -695,6 +698,7 @@ If prefix argument ALL non-nil correct all misspellings."
     (kill-local-variable 'jinx--include-faces)
     (kill-local-variable 'jinx--exclude-faces)
     (kill-local-variable 'jinx--camel)
+    (kill-local-variable 'jinx--session-words)
     (kill-local-variable 'jinx--dicts)
     (kill-local-variable 'jinx--syntax-table)
     (remove-hook 'window-state-change-hook #'jinx--reschedule t)
