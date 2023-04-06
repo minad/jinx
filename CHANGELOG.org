@@ -9,6 +9,8 @@
 - Abandon =flyspell-mode-predicate= completely. Rely on faces only.
 - =jinx-languages=: This variable must be a string now. Multiple language codes
   can be separated by space.
+- Add =jinx-local-words= to save file-local words. =jinx-correct= supports saving to
+  =jinx-local-words= by pressing =*=.
 
 * Version 0.5 (2023-04-05)
 

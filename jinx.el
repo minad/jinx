@@ -159,14 +159,22 @@ checking."
     (t "[A-Z]+\\>"         ;; Uppercase words
        "\\w*?[0-9]\\w*\\>" ;; Words with numbers, hex codes
        "[a-z]+://\\S-+"    ;; URI
-       "<?[-+_.~a-zA-Z][-+_.~:a-zA-Z0-9]*@[-.a-zA-Z0-9]+>?")) ;; Email
-  "List of excluded regexps."
+       "<?[-+_.~a-zA-Z][-+_.~:a-zA-Z0-9]*@[-.a-zA-Z0-9]+>?" ;; Email
+       "End:\\s-*$"             ;; Local variable end indicator
+       "jinx-\\(?:languages\\|local-words\\):\\s-+.*$")) ;; Local variables
+  "List of excluded regexps per major mode."
   :type '(alist :key-type symbol :value-type (repeat regexp)))
 
 (defcustom jinx-include-modes
   '(text-mode prog-mode conf-mode)
   "List of modes included by `global-jinx-mode'."
   :type '(repeat symbol))
+
+(defvar-local jinx-local-words ""
+  "File-local words, as a string separated by whitespace.")
+
+;;;###autoload
+(put 'jinx-local-words 'safe-local-variable #'stringp)
 
 ;;;; Keymaps
 
@@ -494,6 +502,9 @@ If VISIBLE is non-nil, only include visible overlays."
              (propertize (concat at (downcase word))
                          'jinx--group group 'jinx--annotation ann))))
     (list
+     (propertize (concat #("*" 0 1 (face jinx-accept rear-nonsticky t)) word)
+                 'jinx--group "Accept and save word"
+                 'jinx--annotation " [File]")
      (propertize (concat #("#" 0 1 (face jinx-accept rear-nonsticky t)) word)
                  'jinx--group "Accept and save word"
                  'jinx--annotation " [Session]")))))
@@ -566,16 +577,25 @@ If VISIBLE is non-nil, only include visible overlays."
                                    (jinx--suggestion-table word)
                                    nil nil nil t word)
                   word)))))
-    (if (string-match-p "\\`[@#]" selected)
-        (let* ((new-word (replace-regexp-in-string "\\`[@#]+" "" selected))
+    (if (string-match-p "\\`[@#*]" selected)
+        (let* ((new-word (replace-regexp-in-string "\\`[@#*]+" "" selected))
                (idx (- (length selected) (length new-word) 1)))
           (when (equal new-word "") (setq new-word word))
-          (if (string-prefix-p "#" selected)
-              (unless (member new-word jinx--session-words)
-                (push new-word jinx--session-words))
-            (jinx--mod-add (or (nth idx jinx--dicts)
-                               (user-error "Invalid dictionary"))
-                           new-word))
+          (cond
+           ((string-prefix-p "#" selected)
+            (add-to-list 'jinx--session-words new-word))
+           ((string-prefix-p "*" selected)
+            (add-to-list 'jinx--session-words new-word)
+            (setq jinx-local-words
+                  (string-join
+                   (sort (delete-dups
+                          (cons new-word (split-string jinx-local-words)))
+                         #'string<)
+                   " "))
+            (add-file-local-variable 'jinx-local-words jinx-local-words))
+           (t (jinx--mod-add (or (nth idx jinx--dicts)
+                                 (user-error "Invalid dictionary"))
+                             new-word)))
           (jinx--recheck-overlays))
       (when-let (((not (equal selected word)))
                  (start (overlay-start overlay))
@@ -668,7 +688,8 @@ If prefix argument ALL non-nil correct all misspellings."
           jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
           jinx--camel (or (eq jinx-camel-modes t)
                           (cl-loop for m in jinx-camel-modes
-                                   thereis (derived-mode-p m))))
+                                   thereis (derived-mode-p m)))
+          jinx--session-words (split-string jinx-local-words))
     (jinx--load-dicts)
     (add-hook 'window-state-change-hook #'jinx--reschedule nil t)
     (add-hook 'window-scroll-functions #'jinx--reschedule nil t)
