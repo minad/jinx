@@ -193,6 +193,9 @@ checking."
 Predicate should return t if the word before point is valid.
 Predicate may return a position to skip forward.")
 
+(defvar jinx--stale-overlays nil
+  "List of stale overlays.")
+
 (defvar jinx--timer nil
   "Global timer to check pending regions.")
 
@@ -235,9 +238,9 @@ Predicate may return a position to skip forward.")
 (put 'jinx 'evaporate             t)
 (put 'jinx 'face                  'jinx-misspelled)
 (put 'jinx 'mouse-face            '(jinx-misspelled jinx-highlight))
-(put 'jinx 'modification-hooks    (list #'jinx--overlay-modified))
-(put 'jinx 'insert-in-front-hooks (list #'jinx--overlay-modified))
-(put 'jinx 'insert-behind-hooks   (list #'jinx--overlay-modified))
+(put 'jinx 'modification-hooks    (list #'jinx--stale-overlay))
+(put 'jinx 'insert-in-front-hooks (list #'jinx--stale-overlay))
+(put 'jinx 'insert-behind-hooks   (list #'jinx--stale-overlay))
 (put 'jinx 'keymap                'jinx-misspelled-map)
 
 ;;;; Predicates
@@ -273,10 +276,12 @@ Predicate may return a position to skip forward.")
 
 ;;;; Internal functions
 
-(defun jinx--overlay-modified (overlay &rest _)
-  "Delete modified OVERLAY.
+(defun jinx--stale-overlay (overlay &rest _)
+  "Mark OVERLAY as stale.
 This function is a modification hook for the overlay."
-  (delete-overlay overlay))
+  (unless (memq overlay jinx--stale-overlays)
+    (push overlay jinx--stale-overlays)
+    (jinx--schedule)))
 
 (defun jinx--find-visible-pending (start end flag)
   "Find (in)visible and (non-)pending region between START and END.
@@ -412,7 +417,9 @@ If VISIBLE is non-nil, only include visible overlays."
 
 (defun jinx--timer-handler ()
   "Global timer handler, checking the pending regions in all windows."
-  (setq jinx--timer nil)
+  (mapc #'delete-overlay jinx--stale-overlays)
+  (setq jinx--stale-overlays nil
+        jinx--timer nil)
   (dolist (frame (frame-list))
     (dolist (win (window-list frame 'no-miniwindow))
       (when-let ((buffer (window-buffer win))
