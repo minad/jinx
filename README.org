@@ -57,8 +57,10 @@ Jinx has two modes: the command, =global-jinx-mode= activates globally; and the
 command, =jinx-mode=, for activating for specific modes.
 
 #+begin_src emacs-lisp
+  ;; Alternative 1: Enable Jinx globally
   (add-hook 'emacs-startup-hook #'global-jinx-mode)
 
+  ;; Alternative 2: Enable Jinx per mode
   (dolist (hook '(text-mode-hook prog-mode-hook conf-mode-hook))
     (add-hook hook #'jinx-mode))
 #+end_src
