@@ -190,7 +190,8 @@ checking."
 ;;;; Internal variables
 
 (defvar jinx--predicates
-  (list #'jinx--face-ignored-p
+  (list #'jinx--rcirc-at-input-p
+        #'jinx--face-ignored-p
         #'jinx--regexp-ignored-p
         #'jinx--word-valid-p)
   "Predicate functions called at point with argument START.
@@ -274,6 +275,11 @@ Predicate may return a position to skip forward.")
     (or (member word jinx--session-words)
         (cl-loop for dict in jinx--dicts
                  thereis (jinx--mod-check dict word)))))
+
+(defvar rcirc-prompt-end-marker)
+(defun jinx--rcirc-at-input-p ()
+  "Return non-nil if point is past the input marker."
+  (and (eq major-mode 'rcirc-mode) (>= (point) rcirc-prompt-end-marker)))
 
 ;;;; Internal functions
 
