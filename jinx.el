@@ -8,6 +8,7 @@
 ;; Created: 2023
 ;; Version: 0.5
 ;; Homepage: https://github.com/minad/jinx
+;; Keywords: convenience, wp
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
