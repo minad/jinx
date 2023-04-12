@@ -186,10 +186,10 @@ checking."
 (fset 'jinx-misspelled-map jinx-misspelled-map)
 
 (defvar-keymap jinx-mode-map
-  :doc "Keymap for `jinx-mode'.")
+  :doc "Keymap used when Jinx is active.")
 
 (easy-menu-define jinx-mode-menu jinx-mode-map
-  "Menu used when Jinx ix active."
+  "Menu used when Jinx is active."
   '("Jinx"
     ["Correct nearest" jinx-correct]
     ["Correct all" (jinx-correct t)
