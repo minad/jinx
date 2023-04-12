@@ -456,12 +456,7 @@ If VISIBLE is non-nil, only include visible overlays."
                        (string-match-p "self-insert-command\\'"
                                        (symbol-name real-last-command))
                        (characterp last-input-event)
-                       (let ((st (syntax-table)))
-                         (unwind-protect
-                             (progn
-                               (set-syntax-table jinx--syntax-table)
-                               (eq (char-syntax last-input-event) ?w))
-                           (set-syntax-table st))))))
+                       (eq (car (aref jinx--syntax-table last-input-event)) 2))))
       (setq jinx--timer
             (run-with-idle-timer jinx-delay
                                  nil #'jinx--timer-handler))))
