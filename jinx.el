@@ -446,10 +446,16 @@ If VISIBLE is non-nil, only include visible overlays."
 
 (defun jinx--schedule ()
   "Start the global idle timer."
-  (when (and (not jinx--timer) (get-buffer-window))
-    (setq jinx--timer
-          (run-with-idle-timer jinx-delay
-                               nil #'jinx--timer-handler))))
+  (when (and (not jinx--timer)
+             (get-buffer-window) ;; buffer visible
+             (not completion-in-region-mode) ;; Corfu completion
+             (or (eq last-input-event ?\s) ;; check after space
+                 (not (symbolp real-last-command))
+                 (not (string-match-p "self-insert-command\\'"
+                                      (symbol-name real-last-command)))))
+      (setq jinx--timer
+            (run-with-idle-timer jinx-delay
+                                 nil #'jinx--timer-handler))))
 
 (defun jinx--load-module ()
   "Compile and load dynamic module."
