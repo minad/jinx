@@ -179,14 +179,26 @@ checking."
 
 ;;;; Keymaps
 
-(defvar-keymap jinx-mode-map
-  :doc "Keymap for `jinx-mode'.")
-
 (defvar-keymap jinx-misspelled-map
   :doc "Keymap attached to misspelled words."
   "<mouse-1>" #'jinx-correct)
 
 (fset 'jinx-misspelled-map jinx-misspelled-map)
+
+(defvar-keymap jinx-mode-map
+  :doc "Keymap for `jinx-mode'.")
+
+(easy-menu-define jinx-mode-menu jinx-mode-map
+  "Menu used when Jinx ix active."
+  '("Jinx"
+    ["Correct nearest" jinx-correct]
+    ["Correct all" (jinx-correct t)
+     :keys "\\[universal-argument] \\[jinx-correct]"]
+    ["Change languages" jinx-languages]
+    "----"
+    ["Manual" (info "(jinx)")]
+    ["Customize" (customize-group 'jinx)]
+    ["Turn off" (jinx-mode -1)]))
 
 ;;;; Internal variables
 
@@ -678,7 +690,9 @@ If prefix argument ALL non-nil correct all misspellings."
 ;;;###autoload
 (define-minor-mode jinx-mode
   "Enchanted Spell Checker."
-  :global nil :group 'jinx :keymap jinx-mode-map
+  :lighter (" " jinx-languages)
+  :group 'jinx
+  :keymap jinx-mode-map
   (cond
    (jinx-mode
     (jinx--load-module)
