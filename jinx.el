@@ -451,7 +451,7 @@ If VISIBLE is non-nil, only include visible overlays."
              (get-buffer-window)
              ;; Corfu completion
              (not completion-in-region-mode)
-             ;; Don't check current word
+             ;; Don't check while typing a word
              (not (and (symbolp real-last-command)
                        (string-match-p "self-insert-command\\'"
                                        (symbol-name real-last-command))
