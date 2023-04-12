@@ -13,6 +13,7 @@
   the language.
 - Add =jinx-local-words= to save file-local words. =jinx-correct= supports saving to
   =jinx-local-words= by pressing =*=.
+- Add a lighter and a minor mode menu.
 
 * Version 0.5 (2023-04-05)
 
