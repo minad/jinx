@@ -452,11 +452,11 @@ If VISIBLE is non-nil, only include visible overlays."
              ;; Corfu completion
              (not completion-in-region-mode)
              ;; Don't check while typing a word
-             (not (and (symbolp real-last-command)
+             (not (and (characterp last-input-event)
+                       (eq (car (aref jinx--syntax-table last-input-event)) 2)
+                       (symbolp real-last-command)
                        (string-match-p "self-insert-command\\'"
-                                       (symbol-name real-last-command))
-                       (characterp last-input-event)
-                       (eq (car (aref jinx--syntax-table last-input-event)) 2))))
+                                       (symbol-name real-last-command)))))
       (setq jinx--timer
             (run-with-idle-timer jinx-delay
                                  nil #'jinx--timer-handler))))
