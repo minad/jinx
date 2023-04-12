@@ -313,9 +313,9 @@ FLAG must be t or nil."
     (while (< pos end)
       (let* ((from (jinx--find-visible-pending pos end t))
              (to (jinx--find-visible-pending from end nil)))
-        (if (< from to)
-            (setq pos (jinx--check-region from to))
-          (setq pos to))))))
+        (when (< from to)
+          (jinx--check-region from to))
+        (setq pos to)))))
 
 (defun jinx--force-check-region (start end)
   "Enforce spell-check of region between START and END."
@@ -325,8 +325,7 @@ FLAG must be t or nil."
     (jinx--check-region start end)))
 
 (defun jinx--check-region (start end)
-  "Check region between START and END.
-Return updated END position."
+  "Check region between START and END."
   (let ((st (syntax-table))
         (case-fold-search nil))
     (unwind-protect
@@ -370,8 +369,7 @@ Return updated END position."
                          (overlay-put (make-overlay word-start subword-end) 'category 'jinx)))
                       (setq word-start subword-end)))))
               (remove-list-of-text-properties start end '(jinx--pending)))))
-      (set-syntax-table st)))
-  end)
+      (set-syntax-table st))))
 
 (defun jinx--get-overlays (start end &optional visible)
   "Return misspelled word overlays between START and END.
