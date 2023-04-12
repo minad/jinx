@@ -309,13 +309,17 @@ FLAG must be t or nil."
 
 (defun jinx--check-pending (start end)
   "Check pending visible region between START and END."
-  (let ((pos start))
+  (let ((pos start)
+        (skip (and (symbolp real-last-command)
+                   (string-match-p "self-insert-command\\'"
+                                   (symbol-name real-last-command))
+                   (point))))
     (while (< pos end)
       (let* ((from (jinx--find-visible-pending pos end t))
              (to (jinx--find-visible-pending from end nil)))
-        (when (< from to)
-          (jinx--check-region from to))
-        (setq pos to)))))
+        (if (< from to)
+            (setq pos (jinx--check-region from to skip))
+          (setq pos to))))))
 
 (defun jinx--force-check-region (start end)
   "Enforce spell-check of region between START and END."
@@ -324,10 +328,12 @@ FLAG must be t or nil."
   (with-delayed-message (1 "Checking...")
     (jinx--check-region start end)))
 
-(defun jinx--check-region (start end)
-  "Check region between START and END."
-  (let ((st (syntax-table))
-        (case-fold-search nil))
+(defun jinx--check-region (start end &optional retry)
+  "Check region between START and END.
+Optionally RETRY word at given position.  Return updated END
+position."
+  (let ((st (syntax-table)) case-fold-search
+        retry-start retry-end)
     (unwind-protect
         (with-silent-modifications
           (save-excursion
@@ -366,10 +372,15 @@ FLAG must be t or nil."
                         ((and (pred integerp) skip)
                          (goto-char (max subword-end (min end skip))))
                         ('nil
-                         (overlay-put (make-overlay word-start subword-end) 'category 'jinx)))
+                         (if (and retry (<= word-start retry subword-end))
+                             (setq retry-start word-start retry-end subword-end retry nil)
+                           (overlay-put (make-overlay word-start subword-end) 'category 'jinx))))
                       (setq word-start subword-end)))))
-              (remove-list-of-text-properties start end '(jinx--pending)))))
-      (set-syntax-table st))))
+              (remove-list-of-text-properties start end '(jinx--pending))
+              (when retry-start
+                (put-text-property retry-start retry-end 'jinx--pending t)))))
+      (set-syntax-table st)))
+  end)
 
 (defun jinx--get-overlays (start end &optional visible)
   "Return misspelled word overlays between START and END.
@@ -445,16 +456,8 @@ If VISIBLE is non-nil, only include visible overlays."
 (defun jinx--schedule ()
   "Start the global idle timer."
   (when (and (not jinx--timer)
-             ;; Buffer must be visible
-             (get-buffer-window)
-             ;; Corfu completion
-             (not completion-in-region-mode)
-             ;; Don't check while typing a word
-             (not (and (characterp last-input-event)
-                       (eq (car (aref jinx--syntax-table last-input-event)) 2)
-                       (symbolp real-last-command)
-                       (string-match-p "self-insert-command\\'"
-                                       (symbol-name real-last-command)))))
+             (not completion-in-region-mode) ;; Corfu completion
+             (get-buffer-window)) ;; Buffer visible
       (setq jinx--timer
             (run-with-idle-timer jinx-delay
                                  nil #'jinx--timer-handler))))
