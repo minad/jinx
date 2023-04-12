@@ -309,13 +309,17 @@ FLAG must be t or nil."
 
 (defun jinx--check-pending (start end)
   "Check pending visible region between START and END."
-  (let ((pos start))
+  (let ((pos start)
+        (skip (and (symbolp real-last-command)
+                   (string-match-p "self-insert-command\\'"
+                                   (symbol-name real-last-command))
+                   (point))))
     (while (< pos end)
       (let* ((from (jinx--find-visible-pending pos end t))
              (to (jinx--find-visible-pending from end nil)))
-        (if (< from to)
-            (setq pos (jinx--check-region from to))
-          (setq pos to))))))
+        (when (< from to)
+          (jinx--check-region from to skip))
+        (setq pos to)))))
 
 (defun jinx--force-check-region (start end)
   "Enforce spell-check of region between START and END."
@@ -324,9 +328,8 @@ FLAG must be t or nil."
   (with-delayed-message (1 "Checking...")
     (jinx--check-region start end)))
 
-(defun jinx--check-region (start end)
-  "Check region between START and END.
-Return updated END position."
+(defun jinx--check-region (start end &optional skip)
+  "Check region between START and END."
   (let ((st (syntax-table))
         (case-fold-search nil))
     (unwind-protect
@@ -337,10 +340,10 @@ Return updated END position."
               (set-syntax-table jinx--syntax-table)
               ;; Ensure that region starts and ends at word boundaries
               (goto-char start)
-              (re-search-backward "\\s-\\|^")
+              (re-search-backward "\\<\\|^")
               (setq start (match-end 0))
               (goto-char end)
-              (re-search-forward "\\s-\\|$")
+              (re-search-forward "\\>\\|$")
               (setq end (match-beginning 0))
               (jinx--delete-overlays start end)
               (goto-char start)
@@ -356,22 +359,25 @@ Return updated END position."
                               (let ((c (char-before word-end)))
                                 (or (= c 39) (= c 8217))))
                     (cl-decf word-end))
-                  (while (< word-start word-end)
-                    (let ((subword-end word-end))
-                      (when jinx--camel
-                        (goto-char word-start)
-                        (when (looking-at "\\([[:upper:]]?[[:lower:]]+\\)\\(?:[[:upper:]][[:lower:]]+\\)+\\>")
-                          (setq subword-end (match-end 1))))
-                      (goto-char subword-end)
-                      (pcase (run-hook-with-args-until-success 'jinx--predicates word-start)
-                        ((and (pred integerp) skip)
-                         (goto-char (max subword-end (min end skip))))
-                        ('nil
-                         (overlay-put (make-overlay word-start subword-end) 'category 'jinx)))
-                      (setq word-start subword-end)))))
-              (remove-list-of-text-properties start end '(jinx--pending)))))
-      (set-syntax-table st)))
-  end)
+                  (if (and skip (<= word-start skip word-end))
+                      (setq skip (cons word-start word-end))
+                    (while (< word-start word-end)
+                      (let ((subword-end word-end))
+                        (when jinx--camel
+                          (goto-char word-start)
+                          (when (looking-at "\\([[:upper:]]?[[:lower:]]+\\)\\(?:[[:upper:]][[:lower:]]+\\)+\\>")
+                            (setq subword-end (match-end 1))))
+                        (goto-char subword-end)
+                        (pcase (run-hook-with-args-until-success 'jinx--predicates word-start)
+                          ((and (pred integerp) skip)
+                           (goto-char (max subword-end (min end skip))))
+                          ('nil
+                           (overlay-put (make-overlay word-start subword-end) 'category 'jinx)))
+                        (setq word-start subword-end))))))
+              (remove-list-of-text-properties start end '(jinx--pending))
+              (when (consp skip)
+                (put-text-property (car skip) (cdr skip) 'jinx--pending t)))))
+      (set-syntax-table st))))
 
 (defun jinx--get-overlays (start end &optional visible)
   "Return misspelled word overlays between START and END.
@@ -447,16 +453,8 @@ If VISIBLE is non-nil, only include visible overlays."
 (defun jinx--schedule ()
   "Start the global idle timer."
   (when (and (not jinx--timer)
-             ;; Buffer must be visible
-             (get-buffer-window)
-             ;; Corfu completion
-             (not completion-in-region-mode)
-             ;; Don't check while typing a word
-             (not (and (characterp last-input-event)
-                       (eq (car (aref jinx--syntax-table last-input-event)) 2)
-                       (symbolp real-last-command)
-                       (string-match-p "self-insert-command\\'"
-                                       (symbol-name real-last-command)))))
+             (not completion-in-region-mode) ;; Corfu completion
+             (get-buffer-window)) ;; Buffer visible
       (setq jinx--timer
             (run-with-idle-timer jinx-delay
                                  nil #'jinx--timer-handler))))
