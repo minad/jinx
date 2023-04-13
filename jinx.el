@@ -701,7 +701,7 @@ If prefix argument ALL non-nil correct all misspellings."
 ;;;###autoload
 (define-minor-mode jinx-mode
   "Enchanted Spell Checker."
-  :lighter (" " jinx-languages)
+  :lighter (" Jinx[" jinx-languages "]")
   :group 'jinx
   :keymap jinx-mode-map
   (cond
