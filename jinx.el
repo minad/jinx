@@ -135,7 +135,7 @@ Set to t to enable camelCase everywhere."
      org-modern-tag org-modern-date-active
      org-modern-date-inactive)
     (tex-mode
-     font-latex-math-face font-latex-sedate-face
+     tex-math font-latex-math-face font-latex-sedate-face
      font-latex-verbatim-face font-lock-function-name-face
      font-lock-keyword-face font-lock-variable-name-face)
     (texinfo-mode
