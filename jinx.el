@@ -600,11 +600,11 @@ If VISIBLE is non-nil, only include visible overlays."
 (defun jinx--correct-select ()
   "Quick selection key for corrections."
   (interactive)
-  (delete-minibuffer-contents)
-  (insert
-   (nth (- last-input-event ?1)
-        (all-completions "" minibuffer-completion-table)))
-  (exit-minibuffer))
+  (when-let ((str (nth (- last-input-event ?1)
+                       (all-completions "" minibuffer-completion-table))))
+    (delete-minibuffer-contents)
+    (insert str)
+    (exit-minibuffer)))
 
 (defun jinx--correct (overlay &optional recenter info)
   "Correct word at OVERLAY with optional RECENTER and prompt INFO."
