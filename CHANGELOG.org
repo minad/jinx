@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 0.6 (2023-04-17)
 
 - Fix the type of a few characters: =.= punctuation character, ='= word character, =%=
   and =$= identifier characters.

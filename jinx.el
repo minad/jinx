@@ -6,7 +6,7 @@
 ;; Maintainer: Daniel Mendler <mail@daniel-mendler.de>
 ;; Package-Requires: ((emacs "27.1") (compat "29.1.4.0"))
 ;; Created: 2023
-;; Version: 0.5
+;; Version: 0.6
 ;; Homepage: https://github.com/minad/jinx
 ;; Keywords: convenience, wp
 
