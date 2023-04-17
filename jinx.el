@@ -513,8 +513,13 @@ If VISIBLE is non-nil, only include visible overlays."
             (desc (jinx--mod-describe dict))
             (group (format "Suggestions from dictionary ‘%s’ (%s)"
                            (car desc) (cdr desc))))
-       (dolist (sugg suggs suggs)
-         (put-text-property 0 (length sugg) 'jinx--group group sugg))))
+       (cl-loop for sugg in suggs for i from 1 do
+                (add-text-properties
+                 0 (length sugg)
+                 (list 'jinx--group group
+                       'jinx--annotation (and (< i 10) (format " (%s)" i)))
+                 sugg))
+       suggs))
     (cl-loop
      for dict in jinx--dicts for idx from 1 nconc
      (let* ((at (propertize (make-string idx ?@)
@@ -592,6 +597,15 @@ If VISIBLE is non-nil, only include visible overlays."
           (when (jinx--word-valid-p (overlay-start ov))
             (delete-overlay ov)))))))
 
+(defun jinx--correct-select ()
+  "Quick selection key for corrections."
+  (interactive)
+  (delete-minibuffer-contents)
+  (insert
+   (nth (- last-input-event ?1)
+        (all-completions "" minibuffer-completion-table)))
+  (exit-minibuffer))
+
 (defun jinx--correct (overlay &optional recenter info)
   "Correct word at OVERLAY with optional RECENTER and prompt INFO."
   (let* ((word (buffer-substring-no-properties
@@ -599,10 +613,23 @@ If VISIBLE is non-nil, only include visible overlays."
          (selected
           (jinx--with-highlight overlay recenter
             (lambda ()
-              (or (completing-read (format "Correct ‘%s’%s: " word (or info ""))
-                                   (jinx--suggestion-table word)
-                                   nil nil nil t word)
-                  word)))))
+              (minibuffer-with-setup-hook
+                  (lambda ()
+                      (let ((message-log-max nil)
+                            (inhibit-message t)
+                            (map (define-keymap :parent (current-local-map)
+                                   "SPC" #'self-insert-command)))
+                        (dotimes (i 9)
+                          (define-key map (vector (+ ?1 i)) #'jinx--correct-select))
+                        (use-local-map map)
+                        (when (and (eq completing-read-function #'completing-read-default)
+                                   (not (bound-and-true-p vertico-mode))
+                                   (not (bound-and-true-p icomplete-mode)))
+                          (minibuffer-completion-help))))
+                (or (completing-read (format "Correct ‘%s’%s: " word (or info ""))
+                                     (jinx--suggestion-table word)
+                                     nil nil nil t word)
+                    word))))))
     (if (string-match-p "\\`[@#*]" selected)
         (let* ((new-word (replace-regexp-in-string "\\`[@#*]+" "" selected))
                (idx (- (length selected) (length new-word) 1)))

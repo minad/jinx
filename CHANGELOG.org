@@ -2,6 +2,10 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Development
+
+- Add quick selection keys to correction UI.
+
 * Version 0.6 (2023-04-17)
 
 - Fix the type of a few characters: =.= punctuation character, ='= word character, =%=
