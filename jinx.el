@@ -508,18 +508,19 @@ If VISIBLE is non-nil, only include visible overlays."
   (delete-dups
    (nconc
     (cl-loop
+     with idx = 1
      for dict in jinx--dicts nconc
      (let* ((suggs (jinx--mod-suggest dict word))
             (desc (jinx--mod-describe dict))
             (group (format "Suggestions from dictionary ‘%s’ (%s)"
                            (car desc) (cdr desc))))
-       (cl-loop for sugg in suggs for i from 1 do
-                (add-text-properties
-                 0 (length sugg)
-                 (list 'jinx--group group
-                       'jinx--annotation (and (< i 10) (format " (%s)" i)))
-                 sugg))
-       suggs))
+       (dolist (sugg suggs suggs)
+         (add-text-properties
+          0 (length sugg)
+          (list 'jinx--group group
+                'jinx--annotation (and (< idx 10) (format " (%s)" idx)))
+          sugg)
+         (cl-incf idx))))
     (cl-loop
      for dict in jinx--dicts for idx from 1 nconc
      (let* ((at (propertize (make-string idx ?@)
@@ -600,11 +601,12 @@ If VISIBLE is non-nil, only include visible overlays."
 (defun jinx--correct-select ()
   "Quick selection key for corrections."
   (interactive)
-  (when-let ((str (nth (- last-input-event ?1)
-                       (all-completions "" minibuffer-completion-table))))
-    (delete-minibuffer-contents)
-    (insert str)
-    (exit-minibuffer)))
+  (let ((word (nth (- last-input-event ?1)
+                   (all-completions "" minibuffer-completion-table))))
+    (when (and word (not (string-match-p "\\`[@#*]" word)))
+      (delete-minibuffer-contents)
+      (insert word)
+      (exit-minibuffer))))
 
 (defun jinx--correct (overlay &optional recenter info)
   "Correct word at OVERLAY with optional RECENTER and prompt INFO."
