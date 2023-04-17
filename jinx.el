@@ -460,9 +460,9 @@ If VISIBLE is non-nil, only include visible overlays."
   (when (and (not jinx--timer)
              (not completion-in-region-mode) ;; Corfu completion
              (get-buffer-window)) ;; Buffer visible
-      (setq jinx--timer
-            (run-with-idle-timer jinx-delay
-                                 nil #'jinx--timer-handler))))
+    (setq jinx--timer
+          (run-with-idle-timer jinx-delay
+                               nil #'jinx--timer-handler))))
 
 (defun jinx--load-module ()
   "Compile and load dynamic module."
@@ -615,17 +615,17 @@ If VISIBLE is non-nil, only include visible overlays."
             (lambda ()
               (minibuffer-with-setup-hook
                   (lambda ()
-                      (let ((message-log-max nil)
-                            (inhibit-message t)
-                            (map (define-keymap :parent (current-local-map)
-                                   "SPC" #'self-insert-command)))
-                        (dotimes (i 9)
-                          (define-key map (vector (+ ?1 i)) #'jinx--correct-select))
-                        (use-local-map map)
-                        (when (and (eq completing-read-function #'completing-read-default)
-                                   (not (bound-and-true-p vertico-mode))
-                                   (not (bound-and-true-p icomplete-mode)))
-                          (minibuffer-completion-help))))
+                    (let ((message-log-max nil)
+                          (inhibit-message t)
+                          (map (define-keymap :parent (current-local-map)
+                                 "SPC" #'self-insert-command)))
+                      (dotimes (i 9)
+                        (define-key map (vector (+ ?1 i)) #'jinx--correct-select))
+                      (use-local-map map)
+                      (when (and (eq completing-read-function #'completing-read-default)
+                                 (not (bound-and-true-p vertico-mode))
+                                 (not (bound-and-true-p icomplete-mode)))
+                        (minibuffer-completion-help))))
                 (or (completing-read (format "Correct ‘%s’%s: " word (or info ""))
                                      (jinx--suggestion-table word)
                                      nil nil nil t word)
