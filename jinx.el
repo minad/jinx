@@ -472,6 +472,11 @@ If VISIBLE is non-nil, only include visible overlays."
     (let ((default-directory
            (file-name-directory (locate-library "jinx.el" t)))
           (module (file-name-with-extension "jinx-mod" module-file-suffix)))
+
+      (let ((located-module (locate-library module)))
+            (when located-module
+              (setq module located-module)))
+
       (unless (file-exists-p module)
         (let ((command
                `("cc" "-I." "-O2" "-Wall" "-Wextra" "-fPIC" "-shared"
