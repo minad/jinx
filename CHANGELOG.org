@@ -4,9 +4,15 @@
 
 * Development
 
-- Add quick selection keys to correction UI.
-- Try to locate =jinx-mod.so= first on the =load-path=, before attempting to compile
-  it. This is helpful if the module is packed and installed separately.
+- Add =jinx-correct-map= bound in the =jinx-correct= minibuffer.
+- Add navigation keys to correction UI. The commands =jinx-correct-next= and
+  =jinx-correct-previous= are bound to the keys =M-n= and =M-p= in the
+  =jinx-correct-map= respectively.
+- Add quick selection keys to correction UI. The command =jinx-correct-select= is
+  bound to the keys =1= to =9= in the =jinx-correct-map=.
+- Try to locate the native module =jinx-mod.so= first on the =load-path= before
+  attempting to compile it. This is useful if the module is packed and installed
+  separately.
 
 * Version 0.6 (2023-04-17)
 

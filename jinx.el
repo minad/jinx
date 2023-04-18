@@ -190,6 +190,15 @@ checking."
 (defvar-keymap jinx-mode-map
   :doc "Keymap used when Jinx is active.")
 
+(defvar-keymap jinx-correct-map
+  :doc "Keymap active in the correction minibuffer."
+  "SPC" #'self-insert-command
+  "M-n" #'jinx-correct-next
+  "M-p" #'jinx-correct-previous
+  "M-$" #'jinx-correct-next)
+(dotimes (i 9)
+  (define-key jinx-correct-map (vector (+ ?1 i)) #'jinx-correct-select))
+
 (easy-menu-define jinx-mode-menu jinx-mode-map
   "Menu used when Jinx is active."
   '("Jinx"
@@ -544,25 +553,11 @@ If VISIBLE is non-nil, only include visible overlays."
           (when (jinx--word-valid-p (overlay-start ov))
             (delete-overlay ov)))))))
 
-(defun jinx--correct-select ()
-  "Quick selection key for corrections."
-  (interactive)
-  (let ((word (nth (- last-input-event ?1)
-                   (all-completions "" minibuffer-completion-table))))
-    (when (and word (not (string-match-p "\\`[@#*]" word)))
-      (delete-minibuffer-contents)
-      (insert word)
-      (exit-minibuffer))))
-
 (defun jinx--correct-setup ()
   "Setup minibuffer for correction."
   (let ((message-log-max nil)
-        (inhibit-message t)
-        (map (define-keymap :parent (current-local-map)
-               "SPC" #'self-insert-command)))
-    (dotimes (i 9)
-      (define-key map (vector (+ ?1 i)) #'jinx--correct-select))
-    (use-local-map map)
+        (inhibit-message t))
+    (use-local-map (make-composed-keymap (list jinx-correct-map) (current-local-map)))
     (when (and (eq completing-read-function #'completing-read-default)
                (not (bound-and-true-p vertico-mode))
                (not (bound-and-true-p icomplete-mode)))
@@ -628,8 +623,8 @@ If VISIBLE is non-nil, only include visible overlays."
                    (annotation-function . jinx--correct-annotation))
       (complete-with-action action word str pred))))
 
-(defun jinx--correct (overlay &optional recenter info)
-  "Correct word at OVERLAY with optional RECENTER and prompt INFO."
+(defun jinx--correct (overlay recenter info)
+  "Correct word at OVERLAY, maybe RECENTER and show prompt INFO."
   (let* ((word (buffer-substring-no-properties
                 (overlay-start overlay) (overlay-end overlay)))
          (selected
@@ -719,25 +714,53 @@ If prefix argument ALL non-nil correct all misspellings."
   (cl-letf (((symbol-function #'jinx--timer-handler) #'ignore) ;; Inhibit
             (old-point (and (not all) (point-marker))))
     (unwind-protect
-        (if (not all)
-            (jinx--correct
-             (or (car (jinx--get-overlays (window-start) (window-end) 'visible))
-                 (progn
-                   (jinx--force-check-region (window-start) (window-end))
-                   (car (jinx--get-overlays (window-start) (window-end) 'visible)))
-                 (user-error "No misspelling in visible text")))
-          (push-mark)
-          (jinx--force-check-region (point-min) (point-max))
-          (let* ((overlays (or (jinx--get-overlays (point-min) (point-max))
-                               (user-error "No misspellings in whole buffer")))
-                 (count (length overlays)))
-            (cl-loop for ov in overlays for idx from 1
-                     if (overlay-buffer ov) do ;; Could be already deleted
-                     (jinx--correct ov 'recenter
-                                    (format " (%d of %d, RET to skip)"
-                                            idx count)))))
+          (let* ((overlays
+                  (if all
+                      (progn
+                        (jinx--force-check-region (point-min) (point-max))
+                        (or (jinx--get-overlays (point-min) (point-max))
+                            (user-error "No misspellings in whole buffer")))
+                    (or (jinx--get-overlays (window-start) (window-end) 'visible)
+                        (progn
+                          (jinx--force-check-region (window-start) (window-end))
+                          (jinx--get-overlays (window-start) (window-end) 'visible))
+                        (user-error "No misspelling in visible text"))))
+                 (count (length overlays))
+                 (idx 0))
+            (when all
+              (push-mark))
+            (while (when-let ((ov (nth idx overlays)))
+                     (let ((skip
+                            (catch 'jinx--correct
+                              (when (overlay-buffer ov)
+                                (jinx--correct
+                                 ov all
+                                 (and all (format " (%d of %d)" (1+ idx) count)))))))
+                       (cond
+                        ((integerp skip) (setq idx (mod (+ idx count skip) count)))
+                        ((or all (not (overlay-buffer ov))) (cl-incf idx)))))))
       (when old-point (goto-char old-point))
       (jit-lock-refontify))))
+
+(defun jinx-correct-select ()
+  "Quick selection key for corrections."
+  (interactive)
+  (let ((word (nth (- last-input-event ?1)
+                   (all-completions "" minibuffer-completion-table))))
+    (when (and word (not (string-match-p "\\`[@#*]" word)))
+      (delete-minibuffer-contents)
+      (insert word)
+      (exit-minibuffer))))
+
+(defun jinx-correct-next ()
+  "Skip to next misspelling."
+  (interactive)
+  (throw 'jinx--correct 1))
+
+(defun jinx-correct-previous ()
+  "Skip to next misspelling."
+  (interactive)
+  (throw 'jinx--correct -1))
 
 ;;;###autoload
 (define-minor-mode jinx-mode
