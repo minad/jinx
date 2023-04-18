@@ -499,67 +499,7 @@ If VISIBLE is non-nil, only include visible overlays."
           (setq mod-file (expand-file-name mod-name))))
       (module-load mod-file))))
 
-(defun jinx--annotate-suggestion (word)
-  "Annotate WORD during completion."
-  (get-text-property 0 'jinx--annotation word))
-
-(defun jinx--group-suggestion (word transform)
-  "Group WORD during completion, TRANSFORM candidate if non-nil."
-  (if transform
-      word
-    (get-text-property 0 'jinx--group word)))
-
-(defun jinx--suggestions (word)
-  "Retrieve suggestions for WORD."
-  (delete-dups
-   (nconc
-    (cl-loop
-     with idx = 1
-     for dict in jinx--dicts nconc
-     (let* ((suggs (jinx--mod-suggest dict word))
-            (desc (jinx--mod-describe dict))
-            (group (format "Suggestions from dictionary ‘%s’ (%s)"
-                           (car desc) (cdr desc))))
-       (dolist (sugg suggs suggs)
-         (add-text-properties
-          0 (length sugg)
-          (list 'jinx--group group
-                'jinx--annotation (and (< idx 10) (format " (%s)" idx)))
-          sugg)
-         (cl-incf idx))))
-    (cl-loop
-     for dict in jinx--dicts for idx from 1 nconc
-     (let* ((at (propertize (make-string idx ?@)
-                            'face 'jinx-accept
-                            'rear-nonsticky t))
-            (desc (jinx--mod-describe dict))
-            (group "Accept and save word")
-            (ann (format " [Personal dictionary ‘%s’]" (car desc))))
-       (list (propertize (concat at word)
-                         'jinx--group group 'jinx--annotation ann)
-             (propertize (concat at (downcase word))
-                         'jinx--group group 'jinx--annotation ann))))
-    (list
-     (propertize (concat #("*" 0 1 (face jinx-accept rear-nonsticky t)) word)
-                 'jinx--group "Accept and save word"
-                 'jinx--annotation " [File]")
-     (propertize (concat #("#" 0 1 (face jinx-accept rear-nonsticky t)) word)
-                 'jinx--group "Accept and save word"
-                 'jinx--annotation " [Session]")))))
-
-(defun jinx--suggestion-table (word)
-  "Completion table for WORD suggestions."
-  (setq word (jinx--suggestions word))
-  (lambda (str pred action)
-    (if (eq action 'metadata)
-        '(metadata (display-sort-function . identity)
-                   (cycle-sort-function . identity)
-                   (category . jinx)
-                   (group-function . jinx--group-suggestion)
-                   (annotation-function . jinx--annotate-suggestion))
-      (complete-with-action action word str pred))))
-
-(defun jinx--with-highlight (overlay recenter fun)
+(defun jinx--correct-highlight (overlay recenter fun)
   "Highlight and show OVERLAY during FUN, optionally RECENTER."
   (declare (indent 2))
   (let (restore)
@@ -628,18 +568,78 @@ If VISIBLE is non-nil, only include visible overlays."
                (not (bound-and-true-p icomplete-mode)))
       (minibuffer-completion-help))))
 
+(defun jinx--correct-suggestions (word)
+  "Retrieve suggestions for WORD."
+  (delete-dups
+   (nconc
+    (cl-loop
+     with idx = 1
+     for dict in jinx--dicts nconc
+     (let* ((suggs (jinx--mod-suggest dict word))
+            (desc (jinx--mod-describe dict))
+            (group (format "Suggestions from dictionary ‘%s’ (%s)"
+                           (car desc) (cdr desc))))
+       (dolist (sugg suggs suggs)
+         (add-text-properties
+          0 (length sugg)
+          (list 'jinx--group group
+                'jinx--annotation (and (< idx 10) (format " (%s)" idx)))
+          sugg)
+         (cl-incf idx))))
+    (cl-loop
+     for dict in jinx--dicts for idx from 1 nconc
+     (let* ((at (propertize (make-string idx ?@)
+                            'face 'jinx-accept
+                            'rear-nonsticky t))
+            (desc (jinx--mod-describe dict))
+            (group "Accept and save word")
+            (ann (format " [Personal dictionary ‘%s’]" (car desc))))
+       (list (propertize (concat at word)
+                         'jinx--group group 'jinx--annotation ann)
+             (propertize (concat at (downcase word))
+                         'jinx--group group 'jinx--annotation ann))))
+    (list
+     (propertize (concat #("*" 0 1 (face jinx-accept rear-nonsticky t)) word)
+                 'jinx--group "Accept and save word"
+                 'jinx--annotation " [File]")
+     (propertize (concat #("#" 0 1 (face jinx-accept rear-nonsticky t)) word)
+                 'jinx--group "Accept and save word"
+                 'jinx--annotation " [Session]")))))
+
+(defun jinx--correct-annotation (word)
+  "Annotate WORD during completion."
+  (get-text-property 0 'jinx--annotation word))
+
+(defun jinx--correct-group (word transform)
+  "Group WORD during completion, TRANSFORM candidate if non-nil."
+  (if transform
+      word
+    (get-text-property 0 'jinx--group word)))
+
+(defun jinx--correct-table (word)
+  "Completion table for WORD suggestions."
+  (setq word (jinx--correct-suggestions word))
+  (lambda (str pred action)
+    (if (eq action 'metadata)
+        '(metadata (display-sort-function . identity)
+                   (cycle-sort-function . identity)
+                   (category . jinx)
+                   (group-function . jinx--correct-group)
+                   (annotation-function . jinx--correct-annotation))
+      (complete-with-action action word str pred))))
+
 (defun jinx--correct (overlay &optional recenter info)
   "Correct word at OVERLAY with optional RECENTER and prompt INFO."
   (let* ((word (buffer-substring-no-properties
                 (overlay-start overlay) (overlay-end overlay)))
          (selected
-          (jinx--with-highlight overlay recenter
+          (jinx--correct-highlight overlay recenter
             (lambda ()
               (minibuffer-with-setup-hook
                   #'jinx--correct-setup
                 (or (completing-read
                      (format "Correct ‘%s’%s: " word (or info ""))
-                     (jinx--suggestion-table word)
+                     (jinx--correct-table word)
                      nil nil nil t word)
                     word))))))
     (if (string-match-p "\\`[@#*]" selected)
