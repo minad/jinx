@@ -730,15 +730,16 @@ If prefix argument ALL non-nil correct all misspellings."
             (when all
               (push-mark))
             (while (when-let ((ov (nth idx overlays)))
-                     (let ((skip
-                            (catch 'jinx--correct
-                              (when (overlay-buffer ov)
-                                (jinx--correct
-                                 ov all
-                                 (and all (format " (%d of %d)" (1+ idx) count)))))))
+                     (let* ((deleted (not (overlay-buffer ov)))
+                            (skip
+                             (catch 'jinx--correct
+                               (unless deleted
+                                 (jinx--correct
+                                  ov all
+                                  (and all (format " (%d of %d)" (1+ idx) count)))))))
                        (cond
                         ((integerp skip) (setq idx (mod (+ idx count skip) count)))
-                        ((or all (not (overlay-buffer ov))) (cl-incf idx)))))))
+                        ((or all deleted) (cl-incf idx)))))))
       (when old-point (goto-char old-point))
       (jit-lock-refontify))))
 
