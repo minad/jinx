@@ -508,9 +508,9 @@ If VISIBLE is non-nil, only include visible overlays."
           (setq mod-file (expand-file-name mod-name))))
       (module-load mod-file))))
 
-(defun jinx--correct-highlight (overlay recenter fun)
-  "Highlight and show OVERLAY during FUN, optionally RECENTER."
-  (declare (indent 2))
+(defun jinx--correct-highlight (overlay fun)
+  "Highlight and show OVERLAY during FUN."
+  (declare (indent 1))
   (let (restore)
     (goto-char (overlay-end overlay))
     (unwind-protect
@@ -534,7 +534,6 @@ If VISIBLE is non-nil, only include visible overlays."
                           (overlay-put ov 'invisible nil)
                           (lambda () (overlay-put ov 'invisible inv)))
                         restore)))))
-          (when recenter (recenter))
           (let ((hl (make-overlay (overlay-start overlay) (overlay-end overlay))))
             (overlay-put hl 'face 'jinx-highlight)
             (overlay-put hl 'window (selected-window))
@@ -628,8 +627,9 @@ If VISIBLE is non-nil, only include visible overlays."
   (let* ((word (buffer-substring-no-properties
                 (overlay-start overlay) (overlay-end overlay)))
          (selected
-          (jinx--correct-highlight overlay recenter
+          (jinx--correct-highlight overlay
             (lambda ()
+              (when recenter (recenter))
               (minibuffer-with-setup-hook
                   #'jinx--correct-setup
                 (or (completing-read
