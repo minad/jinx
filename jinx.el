@@ -4,11 +4,13 @@
 
 ;; Author: Daniel Mendler <mail@daniel-mendler.de>
 ;; Maintainer: Daniel Mendler <mail@daniel-mendler.de>
-;; Package-Requires: ((emacs "27.1") (compat "29.1.4.0"))
 ;; Created: 2023
 ;; Version: 0.6
+;; Package-Requires: ((emacs "27.1") (compat "29.1.4.0"))
 ;; Homepage: https://github.com/minad/jinx
 ;; Keywords: convenience, wp
+
+;; This file is part of GNU Emacs.
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,9 +32,9 @@
 ;; the buffer.  For efficiency, Jinx highlights misspellings lazily,
 ;; recognizes window boundaries and text folding, if any.  For
 ;; example, when unfolding or scrolling, only the newly visible part
-;; of the text is checked, if it has not been checked before.  Each
-;; misspelling can then be corrected from a list of dictionary words
-;; presented as completion candidates in a list.
+;; of the text is checked if it has not been checked before.  Each
+;; misspelling can be corrected from a list of dictionary words
+;; presented as a completion menu.
 
 ;; Installing Jinx is straight-forward and configuring takes not much
 ;; intervention.  Jinx can safely co-exist with Emacs's built-in

@@ -16,9 +16,8 @@ Jinx is a fast just-in-time spell-checker for Emacs. Jinx highlights misspelled
 words in the text of the visible portion of the buffer. For efficiency, Jinx
 highlights misspellings lazily, recognizes window boundaries and text folding,
 if any. For example, when unfolding or scrolling, only the newly visible part of
-the text is checked, if it has not been checked before. Each misspelling can
-then be corrected from a list of dictionary words presented as completion
-candidates in a list.
+the text is checked if it has not been checked before. Each misspelling can be
+corrected from a list of dictionary words presented as a completion menu.
 
 Installing Jinx is straight-forward and configuring takes not much intervention.
 Jinx can safely co-exist with Emacs's built-in spell-checker.
@@ -68,9 +67,7 @@ command, =jinx-mode=, for activating for specific modes.
 Jinx autoloads the commands =jinx-correct= and =jinx-languages=. Invoking
 =jinx-correct= corrects the misspellings. Binding =jinx-correct= to =M-$= chord takes
 over that chord from Emacs's default assignment to =ispell word=. Since Jinx is
-independent of the Emacs's Ispell package, =M-$= can be re-used. The =use-package=
-definition above shows that. The same reassignment using regular keymap is shown
-below:
+independent of the Emacs's Ispell package, =M-$= can be re-used.
 
 #+begin_src emacs-lisp
   (keymap-global-set "<remap> <ispell-word>" #'jinx-correct)
@@ -78,6 +75,12 @@ below:
 
 - =M-$= triggers correction for the misspelled word next to point.
 - =C-u M-$= triggers correction for the entire buffer.
+
+Suggested corrections are displayed via a completion menu. You can press digit
+keys to quickly select a suggestion. Furthermore the menu offers options to save
+the word temporarily for the current session, in the personal dictionary or in
+the file-local variables. Note that you can enter arbitrary input at the
+correction prompt in order to make the correction.
 
 A sample configuration with the popular =use-package= macro is shown here:
 
