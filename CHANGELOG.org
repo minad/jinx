@@ -5,6 +5,8 @@
 * Development
 
 - Add quick selection keys to correction UI.
+- Try to locate =jinx-mod.so= first on the =load-path=, before attempting to compile
+  it. This is helpful if the module is packed and installed separately.
 
 * Version 0.6 (2023-04-17)
 
