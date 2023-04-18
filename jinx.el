@@ -469,29 +469,33 @@ If VISIBLE is non-nil, only include visible overlays."
   (unless (fboundp #'jinx--mod-dict)
     (unless module-file-suffix
       (error "Jinx: Dynamic modules are not supported"))
-    (let ((default-directory
-           (file-name-directory (locate-library "jinx.el" t)))
-          (module (file-name-with-extension "jinx-mod" module-file-suffix)))
-      (unless (file-exists-p module)
-        (let ((command
-               `("cc" "-I." "-O2" "-Wall" "-Wextra" "-fPIC" "-shared"
-                 "-o" ,module ,(file-name-with-extension module ".c")
-                 ,@(split-string-and-unquote
-                    (condition-case nil
-                        (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
-                      (error "-I/usr/include/enchant-2 -lenchant-2"))))))
+    (let* ((mod-name (file-name-with-extension "jinx-mod" module-file-suffix))
+           (mod-file (locate-library mod-name t)))
+      (unless mod-file
+        (let* ((c-name (file-name-with-extension mod-name ".c"))
+               (default-directory (file-name-directory
+                                   (or (locate-library c-name t)
+                                       (error "Jinx: %s not found" c-name))))
+               (command
+                `("cc" "-I." "-O2" "-Wall" "-Wextra" "-fPIC" "-shared"
+                  "-o" ,mod-name ,c-name
+                  ,@(split-string-and-unquote
+                     (condition-case nil
+                         (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
+                       (error "-I/usr/include/enchant-2 -lenchant-2"))))))
           (with-current-buffer (get-buffer-create "*jinx module compilation*")
             (let ((inhibit-read-only t))
               (erase-buffer)
               (compilation-mode)
               (insert (string-join command " ") "\n")
               (if (equal 0 (apply #'call-process (car command) nil (current-buffer) t (cdr command)))
-                  (insert (message "Jinx: %s compiled successfully" module))
-                (let ((msg (format "Jinx: Compilation of %s failed" module)))
+                  (insert (message "Jinx: %s compiled successfully" mod-name))
+                (let ((msg (format "Jinx: Compilation of %s failed" mod-name)))
                   (insert msg)
                   (pop-to-buffer (current-buffer))
-                  (error msg)))))))
-      (module-load (expand-file-name module)))))
+                  (error msg)))))
+          (setq mod-file (expand-file-name mod-name))))
+      (module-load mod-file))))
 
 (defun jinx--annotate-suggestion (word)
   "Annotate WORD during completion."
