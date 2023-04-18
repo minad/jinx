@@ -614,6 +614,20 @@ If VISIBLE is non-nil, only include visible overlays."
       (insert word)
       (exit-minibuffer))))
 
+(defun jinx--correct-setup ()
+  "Setup minibuffer for correction."
+  (let ((message-log-max nil)
+        (inhibit-message t)
+        (map (define-keymap :parent (current-local-map)
+               "SPC" #'self-insert-command)))
+    (dotimes (i 9)
+      (define-key map (vector (+ ?1 i)) #'jinx--correct-select))
+    (use-local-map map)
+    (when (and (eq completing-read-function #'completing-read-default)
+               (not (bound-and-true-p vertico-mode))
+               (not (bound-and-true-p icomplete-mode)))
+      (minibuffer-completion-help))))
+
 (defun jinx--correct (overlay &optional recenter info)
   "Correct word at OVERLAY with optional RECENTER and prompt INFO."
   (let* ((word (buffer-substring-no-properties
@@ -622,21 +636,11 @@ If VISIBLE is non-nil, only include visible overlays."
           (jinx--with-highlight overlay recenter
             (lambda ()
               (minibuffer-with-setup-hook
-                  (lambda ()
-                    (let ((message-log-max nil)
-                          (inhibit-message t)
-                          (map (define-keymap :parent (current-local-map)
-                                 "SPC" #'self-insert-command)))
-                      (dotimes (i 9)
-                        (define-key map (vector (+ ?1 i)) #'jinx--correct-select))
-                      (use-local-map map)
-                      (when (and (eq completing-read-function #'completing-read-default)
-                                 (not (bound-and-true-p vertico-mode))
-                                 (not (bound-and-true-p icomplete-mode)))
-                        (minibuffer-completion-help))))
-                (or (completing-read (format "Correct ‘%s’%s: " word (or info ""))
-                                     (jinx--suggestion-table word)
-                                     nil nil nil t word)
+                  #'jinx--correct-setup
+                (or (completing-read
+                     (format "Correct ‘%s’%s: " word (or info ""))
+                     (jinx--suggestion-table word)
+                     nil nil nil t word)
                     word))))))
     (if (string-match-p "\\`[@#*]" selected)
         (let* ((new-word (replace-regexp-in-string "\\`[@#*]+" "" selected))
