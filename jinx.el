@@ -596,7 +596,7 @@ If VISIBLE is non-nil, only include visible overlays."
      (propertize (concat #("*" 0 1 (face jinx-accept rear-nonsticky t)) word)
                  'jinx--group "Accept and save word"
                  'jinx--annotation " [File]")
-     (propertize (concat #("#" 0 1 (face jinx-accept rear-nonsticky t)) word)
+     (propertize (concat #("+" 0 1 (face jinx-accept rear-nonsticky t)) word)
                  'jinx--group "Accept and save word"
                  'jinx--annotation " [Session]")))))
 
@@ -637,12 +637,12 @@ If VISIBLE is non-nil, only include visible overlays."
                      (jinx--correct-table word)
                      nil nil nil t word)
                     word))))))
-    (if (string-match-p "\\`[@#*]" selected)
-        (let* ((new-word (replace-regexp-in-string "\\`[@#*]+" "" selected))
+    (if (string-match-p "\\`[@+*]" selected)
+        (let* ((new-word (replace-regexp-in-string "\\`[@+*]+" "" selected))
                (idx (- (length selected) (length new-word) 1)))
           (when (equal new-word "") (setq new-word word))
           (cond
-           ((string-prefix-p "#" selected)
+           ((string-prefix-p "+" selected)
             (add-to-list 'jinx--session-words new-word))
            ((string-prefix-p "*" selected)
             (add-to-list 'jinx--session-words new-word)
@@ -747,7 +747,7 @@ If prefix argument ALL non-nil correct all misspellings."
   (interactive)
   (let ((word (nth (- last-input-event ?1)
                    (all-completions "" minibuffer-completion-table))))
-    (when (and word (not (string-match-p "\\`[@#*]" word)))
+    (when (and word (not (string-match-p "\\`[@+*]" word)))
       (delete-minibuffer-contents)
       (insert word)
       (exit-minibuffer))))

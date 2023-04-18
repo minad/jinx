@@ -4,6 +4,7 @@
 
 * Development
 
+- =jinx-correct=: Use =+= as prefix to add word to the current session.
 - Add =jinx-correct-map= bound in the =jinx-correct= minibuffer.
 - Add navigation keys to correction UI. The commands =jinx-correct-next= and
   =jinx-correct-previous= are bound to the keys =M-n= and =M-p= in the
