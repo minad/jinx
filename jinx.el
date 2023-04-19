@@ -321,15 +321,16 @@ FLAG must be t or nil."
 (defun jinx--check-pending (start end)
   "Check pending visible region between START and END."
   (let ((pos start)
-        (skip (and (symbolp real-last-command)
-                   (string-match-p "self-insert-command\\'"
-                                   (symbol-name real-last-command))
-                   (point))))
+        (retry (and (eq (window-buffer) (current-buffer))
+                    (symbolp real-last-command)
+                    (string-match-p "self-insert-command\\'"
+                                    (symbol-name real-last-command))
+                    (window-point))))
     (while (< pos end)
       (let* ((from (jinx--find-visible-pending pos end t))
              (to (jinx--find-visible-pending from end nil)))
         (if (< from to)
-            (setq pos (jinx--check-region from to skip))
+            (setq pos (jinx--check-region from to retry))
           (setq pos to))))))
 
 (defun jinx--force-check-region (start end)
