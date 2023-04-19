@@ -738,7 +738,7 @@ If prefix argument ALL non-nil correct all misspellings."
                                   ov all
                                   (and all (format " (%d of %d)" (1+ idx) count)))))))
                        (cond
-                        ((integerp skip) (setq idx (mod (+ idx count skip) count)))
+                        ((integerp skip) (setq idx (mod (+ idx skip) count)))
                         ((or all deleted) (cl-incf idx)))))))
       (when old-point (goto-char old-point))
       (jit-lock-refontify))))
@@ -753,15 +753,15 @@ If prefix argument ALL non-nil correct all misspellings."
       (insert word)
       (exit-minibuffer))))
 
-(defun jinx-correct-next ()
-  "Skip to next misspelling."
-  (interactive)
-  (throw 'jinx--correct 1))
+(defun jinx-correct-next (n)
+  "Skip to Nth next misspelling."
+  (interactive "p")
+  (throw 'jinx--correct n))
 
-(defun jinx-correct-previous ()
-  "Skip to next misspelling."
-  (interactive)
-  (throw 'jinx--correct -1))
+(defun jinx-correct-previous (n)
+  "Skip to Nth previous misspelling."
+  (interactive "p")
+  (throw 'jinx--correct (- n)))
 
 ;;;###autoload
 (define-minor-mode jinx-mode
