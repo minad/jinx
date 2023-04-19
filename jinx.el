@@ -306,30 +306,31 @@ Predicate may return a position to skip forward.")
 This function is a modification hook for the overlay."
   (delete-overlay overlay))
 
-(defun jinx--find-visible-pending (start end flag)
-  "Find (in)visible and (non-)pending region between START and END.
-FLAG must be t or nil."
+(defun jinx--find-pending (start end visible flag)
+  "Find pending region between START and END.
+If VISIBLE is non-nil, find only visible regions.
+If FLAG is non-nil, find pending regions, otherwise non-pending."
   (while (and (< start end)
               (eq flag
                   (not (and (get-text-property start 'jinx--pending)
-                            (not (invisible-p start))))))
+                            (or (not visible) (not (invisible-p start)))))))
     (setq start (next-single-char-property-change
                  start 'jinx--pending nil
-                 (next-single-char-property-change start 'invisible nil end))))
+                 (if visible
+                     (next-single-char-property-change start 'invisible nil end)
+                   end))))
   start)
 
-(defun jinx--check-pending (start end)
-  "Check pending visible region between START and END."
-  (let ((pos start)
-        (skip (and (symbolp real-last-command)
-                   (string-match-p "self-insert-command\\'"
-                                   (symbol-name real-last-command))
-                   (point))))
+(defun jinx--check-pending (start end visible retry)
+  "Check pending visible region between START and END.
+RETRY word at given position if non-nil.
+If VISIBLE is non-nil check visible text only."
+  (let ((pos start))
     (while (< pos end)
-      (let* ((from (jinx--find-visible-pending pos end t))
-             (to (jinx--find-visible-pending from end nil)))
+      (let* ((from (jinx--find-pending pos end visible t))
+             (to (jinx--find-pending from end visible nil)))
         (if (< from to)
-            (setq pos (jinx--check-region from to skip))
+            (setq pos (jinx--check-region from to retry))
           (setq pos to))))))
 
 (defun jinx--force-check-region (start end)
@@ -337,11 +338,11 @@ FLAG must be t or nil."
   (with-delayed-message (1 "Fontifying...")
     (jit-lock-fontify-now))
   (with-delayed-message (1 "Checking...")
-    (jinx--check-region start end)))
+    (jinx--check-pending start end nil nil)))
 
-(defun jinx--check-region (start end &optional retry)
+(defun jinx--check-region (start end retry)
   "Check region between START and END.
-Optionally RETRY word at given position.  Return updated END
+RETRY word at given position if non-nil.  Return updated END
 position."
   (let ((st (syntax-table)) case-fold-search
         retry-start retry-end)
@@ -457,7 +458,12 @@ If VISIBLE is non-nil, only include visible overlays."
       (when-let ((buffer (window-buffer win))
                  ((buffer-local-value 'jinx-mode buffer)))
         (with-current-buffer buffer
-          (jinx--check-pending (window-start win) (window-end win)))))))
+          (jinx--check-pending (window-start win) (window-end win) t
+                               (and (eq (selected-window) win)
+                                    (symbolp real-last-command)
+                                    (string-match-p "self-insert-command\\'"
+                                                    (symbol-name real-last-command))
+                                    (window-point win))))))))
 
 (defun jinx--reschedule (&rest _)
   "Restart the global idle timer."
