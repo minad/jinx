@@ -16,8 +16,9 @@ Jinx is a fast just-in-time spell-checker for Emacs. Jinx highlights misspelled
 words in the text of the visible portion of the buffer. For efficiency, Jinx
 highlights misspellings lazily, recognizes window boundaries and text folding,
 if any. For example, when unfolding or scrolling, only the newly visible part of
-the text is checked if it has not been checked before. Each misspelling can be
-corrected from a list of dictionary words presented as a completion menu.
+the text is checked, if it has not been checked before. Each misspelling can
+then be corrected from a list of dictionary words presented as completion
+candidates in a list.
 
 Installing Jinx is straight-forward and configuring takes not much intervention.
 Jinx can safely co-exist with Emacs's built-in spell-checker.
@@ -46,9 +47,39 @@ Jinx requires =libenchant=. Enchant library is a required dependency for Jinx to
 compile its module at install time. If =pkg-config= is available when installing
 Jinx, Jinx will use =pkg-config= to locate =libenchant=.
 
-On Debian or Ubuntu, install the packages =libenchant-2-dev= and =pkg-config=. On
-Fedora or RHEL, install the package =enchant2-devel=. On Mac, install =enchant2= and
-=pkgconfig=.
+** Debian / Ubuntu
+
+- Install =libenchant-2-dev= and =pkg-config=.
+
+** Fedora / RHEL
+
+- Linux: install =enchant2-devel=.
+- Mac: install =enchant2= and =pkgconfig=.
+
+** Nix / NixOS
+
+- Nix-based solution: (without Home-Manager)
+
+#+begin_src nix
+environment.systemPackages = with pkgs; [
+  emacs.pkgs.withPackages (epkgs: (with epkgs.elpaPackages; [
+    # ... <- your other emacs-nix packages
+    jinx
+  ]))
+];
+#+end_src
+
+- Alternative, [[https://nix-community.github.io/home-manager/options.html#opt-programs.emacs.enable][Home-Manager]] solution:
+
+#+begin_src nix
+programs.emacs = {
+  enable = true;
+  extraPackages = epkgs: with epkgs; [
+    # ... <- your other emacs-nix packages
+    jinx
+  ];
+};
+#+end_src
 
 * Using Jinx
 
@@ -67,7 +98,9 @@ command, =jinx-mode=, for activating for specific modes.
 Jinx autoloads the commands =jinx-correct= and =jinx-languages=. Invoking
 =jinx-correct= corrects the misspellings. Binding =jinx-correct= to =M-$= chord takes
 over that chord from Emacs's default assignment to =ispell word=. Since Jinx is
-independent of the Emacs's Ispell package, =M-$= can be re-used.
+independent of the Emacs's Ispell package, =M-$= can be re-used. The =use-package=
+definition above shows that. The same reassignment using regular keymap is shown
+below:
 
 #+begin_src emacs-lisp
   (keymap-global-set "<remap> <ispell-word>" #'jinx-correct)
@@ -75,13 +108,6 @@ independent of the Emacs's Ispell package, =M-$= can be re-used.
 
 - =M-$= triggers correction for the misspelled word next to point.
 - =C-u M-$= triggers correction for the entire buffer.
-
-Suggested corrections are displayed via a completion menu. You can press digit
-keys to quickly select a suggestion. Furthermore the menu offers options to save
-the word temporarily for the current session, in the personal dictionary or in
-the file-local variables. Note that you can enter arbitrary input at the
-correction prompt in order to make the correction. By pressing =M-n= (=M-p=) again
-in the correction menu, you can skip to the next (previous) misspelling.
 
 A sample configuration with the popular =use-package= macro is shown here:
 
@@ -106,24 +132,22 @@ spell checkers. See the [[https://abiword.github.io/enchant/src/enchant.html][En
 * Alternative spell-checking packages
 
 There exist multiple alternative spell-checking packages for Emacs, most
-famously the builtin ispell.el and flyspell.el packages. The main advantages of
-Jinx are its automatic checking of the visible text, its sharp focus on
-performance and the ability to easily use multiple dictionaries at once. The
-following three alternative packages come closest to the behavior of Jinx.
+famously the builtin ispell.el and flyspell.el packages. The following three
+packages come closest to the behavior of Jinx.
 
 - [[https://github.com/astoff/jit-spell][jit-spell]]: Jinx UI borrows ideas from Augusto Stoffel's Jit-spell. Jit-spell
   uses the less efficient Ispell process communication instead Jinx's calling
   native API. Since Jit-spell highlights misspellings in the entire buffer and
-  does not confine to just the visible text, Jit-spell affected load and latency
-  negatively in my tests ([[https://github.com/astoff/jit-spell/issues/9][issue on github]]).
+  does not confine to just the visible text, Jit-spell affects the load and
+  latency negatively ([[https://github.com/astoff/jit-spell/issues/9][issue on github]]).
 
-- [[https://codeberg.org/ideasman42/emacs-spell-fu][spell-fu]]: The idea to check words just in the visible text came from Campbell
-  Barton's spell-fu package. Spell-fu is fast but incurs high memory overhead on
-  account of its dictionary in a hash table. For languages with compound words
-  and inflected word forms, this overhead magnifies ([[https://codeberg.org/ideasman42/emacs-spell-fu/issues/40][issue on codeberg]]). By
-  accessing the Enchant API directly, Jinx avoids any overhead. Jinx also
-  benefits from the advanced spell-checker algorithms of Enchant (affixation,
-  compound words, etc.).
+- [[https://codeberg.org/ideasman42/emacs-spell-fu][spell-fu]]: The idea to highlight misspellings just in the visible text portion
+  of the buffer came from Campbell Barton's spell-fu package. Spell-fu is fast
+  but incurs high memory overhead on account of its dictionary in a hash table.
+  For languages with compound words and inflected word forms, this overhead
+  magnifies ([[https://codeberg.org/ideasman42/emacs-spell-fu/issues/40][issue on codeberg]]). By accessing the Enchant API directly, Jinx
+  avoids such an overhead. Jinx also benefits from the advanced spell-checker
+  algorithms of Enchant (affixation, compound words, etc.).
 
 - flyspell: Flyspell is Emacs's built-in package. Flyspell highlights
   misspellings while typing. Only the word under the cursor is spell-checked.
