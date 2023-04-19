@@ -4,11 +4,14 @@
 
 * Development
 
+- Push =undo-boundary= before correcting a word, such that corrections are not
+  undone in a single step.
 - =jinx-correct=: Use =+= as prefix to add word to the current session.
 - Add =jinx-correct-map= bound in the =jinx-correct= minibuffer.
 - Add navigation keys to correction UI. The commands =jinx-correct-next= and
   =jinx-correct-previous= are bound to the keys =M-n= and =M-p= in the
-  =jinx-correct-map= respectively.
+  =jinx-correct-map= respectively. The commands accept prefix arguments to skip
+  over a number of misspellings.
 - Add quick selection keys to correction UI. The command =jinx-correct-select= is
   bound to the keys =1= to =9= in the =jinx-correct-map=.
 - Try to locate the native module =jinx-mod.so= first on the =load-path= before
