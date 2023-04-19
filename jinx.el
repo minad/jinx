@@ -660,6 +660,7 @@ If VISIBLE is non-nil, only include visible overlays."
       (when-let (((not (equal selected word)))
                  (start (overlay-start overlay))
                  (end (overlay-end overlay)))
+        (undo-boundary)
         (delete-overlay overlay)
         (goto-char end)
         (insert-before-markers selected)
