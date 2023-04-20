@@ -704,8 +704,11 @@ With prefix argument GLOBAL non-nil change the languages globally."
       (setq-default jinx-languages langs))
      (t
       (setq-local jinx-languages langs)
-      (when (y-or-n-p "Save `jinx-languages' as file-local variable? ")
-        (add-file-local-variable 'jinx-languages jinx-languages))))
+      (when (or (assq 'jinx-languages file-local-variables-alist)
+                (and buffer-file-name
+                     (y-or-n-p "Save `jinx-languages' as file-local variable? ")))
+        (add-file-local-variable 'jinx-languages jinx-languages)
+        (setf (alist-get 'jinx-languages file-local-variables-alist) jinx-languages))))
     (jinx--load-dicts)
     (jinx--cleanup)))
 
