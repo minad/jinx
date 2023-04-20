@@ -4,6 +4,9 @@
 
 * Development
 
+- Bugfixes
+- =jinx-languages=: Only ask in file-backed buffers if file-local variable should
+  be saved.
 - Push =undo-boundary= before correcting a word, such that corrections are not
   undone in a single step.
 - =jinx-correct=: Use =+= as prefix to add word to the current session.
