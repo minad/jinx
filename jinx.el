@@ -335,9 +335,11 @@ FLAG must be t or nil."
 
 (defun jinx--force-check-region (start end)
   "Enforce spell-check of region between START and END."
-  (with-delayed-message (1 "Fontifying...")
+  ;; FIXME `with-delayed-message' is broken in combination with
+  ;; `inhibit-message'. Report this as a bug.
+  (progn ;; with-delayed-message (1 "Fontifying...")
     (jit-lock-fontify-now))
-  (with-delayed-message (1 "Checking...")
+  (progn ;; with-delayed-message (1 "Checking...")
     (jinx--check-region start end)))
 
 (defun jinx--check-region (start end &optional retry)
