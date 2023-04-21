@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 0.7 (2023-04-21)
 
 - Bugfixes
 - =jinx-languages=: Only ask in file-backed buffers if file-local variable should
