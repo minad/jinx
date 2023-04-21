@@ -195,7 +195,8 @@ checking."
   "SPC" #'self-insert-command
   "M-n" #'jinx-correct-next
   "M-p" #'jinx-correct-previous
-  "M-$" #'jinx-correct-previous)
+  "M-$" #'jinx-correct-previous
+  "0 <t>" #'jinx-correct-select)
 (dotimes (i 9)
   (define-key jinx-correct-map (vector (+ ?1 i)) #'jinx-correct-select))
 
@@ -578,7 +579,8 @@ If VISIBLE is non-nil, only include visible overlays."
          (add-text-properties
           0 (length sugg)
           (list 'jinx--group group
-                'jinx--annotation (and (< idx 10) (format " (%s)" idx)))
+                'jinx--annotation (cond ((< idx 10) (format " (%s)" idx))
+                                        ((< idx 20) (format " (0%s)" (- idx 9)))))
           sugg)
          (cl-incf idx))))
     (cl-loop
@@ -751,12 +753,16 @@ If prefix argument ALL non-nil correct all misspellings."
 (defun jinx-correct-select ()
   "Quick selection key for corrections."
   (interactive)
-  (let ((word (nth (- last-input-event ?1)
-                   (all-completions "" minibuffer-completion-table))))
-    (when (and word (not (string-match-p "\\`[@+*]" word)))
-      (delete-minibuffer-contents)
-      (insert word)
-      (exit-minibuffer))))
+  (let* ((keys (this-command-keys-vector))
+         (word (nth (if (eq (aref keys 0) ?0)
+                        (- (aref keys 1) ?1 -9)
+                      (- (aref keys 0) ?1))
+                    (all-completions "" minibuffer-completion-table))))
+    (when (or (not word) (string-match-p "\\`[@+*]" word))
+      (user-error "Invalid select key `%s'" (key-description keys)))
+    (delete-minibuffer-contents)
+    (insert word)
+    (exit-minibuffer)))
 
 (defun jinx-correct-next (n)
   "Skip to Nth next misspelling."
