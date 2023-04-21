@@ -195,7 +195,7 @@ checking."
   "SPC" #'self-insert-command
   "M-n" #'jinx-correct-next
   "M-p" #'jinx-correct-previous
-  "M-$" #'jinx-correct-next)
+  "M-$" #'jinx-correct-previous)
 (dotimes (i 9)
   (define-key jinx-correct-map (vector (+ ?1 i)) #'jinx-correct-select))
 
@@ -409,9 +409,7 @@ If VISIBLE is non-nil, only include visible overlays."
     (setq overlays
           (sort overlays
                 (lambda (a b) (< (overlay-start a) (overlay-start b)))))
-    (while (and (cdr overlays)
-                (> (abs (- (overlay-end (car overlays)) pt))
-                   (abs (- (overlay-start (cadr overlays)) pt))))
+    (while (and (cdr overlays) (<= (overlay-start (cadr overlays)) pt))
       (push (pop overlays) before))
     (nconc overlays (nreverse before))))
 
