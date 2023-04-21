@@ -193,9 +193,9 @@ checking."
 (defvar-keymap jinx-correct-map
   :doc "Keymap active in the correction minibuffer."
   "SPC" #'self-insert-command
+  "M-$" #'jinx-correct-next
   "M-n" #'jinx-correct-next
-  "M-p" #'jinx-correct-previous
-  "M-$" #'jinx-correct-next)
+  "M-p" #'jinx-correct-previous)
 (dotimes (i 9)
   (define-key jinx-correct-map (vector (+ ?1 i)) #'jinx-correct-select))
 
@@ -560,6 +560,9 @@ If VISIBLE is non-nil, only include visible overlays."
   (let ((message-log-max nil)
         (inhibit-message t))
     (use-local-map (make-composed-keymap (list jinx-correct-map) (current-local-map)))
+    (let ((ov (make-overlay (point-min) (point-min))))
+      (overlay-put ov 'before-string
+                   (substitute-command-keys (propertize "RET Skip\n\\[jinx-correct-next] Next\n\\[jinx-correct-previous] Previous\n0-9 Select\n" 'face 'default))))
     (when (and (eq completing-read-function #'completing-read-default)
                (not (bound-and-true-p vertico-mode))
                (not (bound-and-true-p icomplete-mode)))
