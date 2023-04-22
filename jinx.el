@@ -256,6 +256,9 @@ Predicate may return a position to skip forward.")
 (defvar-local jinx--session-words nil
   "List of words accepted in this session.")
 
+(defvar jinx--keys "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  "Quick select keys used by `jinx-correct-select'.")
+
 ;;;; Declarations for the bytecode compiler
 
 (defvar jinx-mode)
@@ -576,43 +579,49 @@ If VISIBLE is non-nil, only include visible overlays."
 
 (defun jinx--correct-suggestions (word)
   "Retrieve suggestions for WORD."
-  (delete-dups
-   (nconc
+  (nconc
+   (cl-loop
+    with idx = 1
+    with ht = (make-hash-table :test #'equal)
+    for dict in jinx--dicts
+    for desc = (jinx--mod-describe dict)
+    for group = (format "Suggestions from dictionary ‘%s’ (%s)" (car desc) (cdr desc))
+    nconc
     (cl-loop
-     with idx = 1
-     for dict in jinx--dicts nconc
-     (let* ((suggs (jinx--mod-suggest dict word))
-            (desc (jinx--mod-describe dict))
-            (group (format "Suggestions from dictionary ‘%s’ (%s)"
-                           (car desc) (cdr desc))))
-       (dolist (sugg suggs suggs)
-         (add-text-properties
-          0 (length sugg)
-          (list 'jinx--group group
-                'jinx--prefix
-                (cond ((< idx 10) (format #("%d " 0 3 (face jinx-key)) idx))
-                      ((< idx 19) (format #("0%d " 0 4 (face jinx-key)) (- idx 9)))))
-          sugg)
-         (cl-incf idx))))
-    (cl-loop
-     for dict in jinx--dicts for idx from 1 nconc
-     (let* ((at (propertize (make-string idx ?@)
-                            'face 'jinx-accept
-                            'rear-nonsticky t))
-            (desc (jinx--mod-describe dict))
-            (group "Accept and save word")
-            (ann (format #(" [Personal ‘%s’]" 0 16 (face jinx-annotation)) (car desc))))
+     for sugg in (jinx--mod-suggest dict word)
+     if (not (gethash sugg ht)) collect
+     (progn
+       (add-text-properties
+        0 (length sugg)
+        (list 'jinx--group group
+              'jinx--prefix
+              (cond ((< idx 10)
+                     (format #("%d " 0 3 (face jinx-key)) idx))
+                    ((< (- idx 10) (length jinx--keys))
+                     (format #("0%c " 0 4 (face jinx-key)) (aref jinx--keys (- idx 10))))))
+        sugg)
+       (cl-incf idx)
+       sugg)))
+   (cl-loop
+    for dict in jinx--dicts for idx from 1 nconc
+    (let* ((at (propertize (make-string idx ?@)
+                           'face 'jinx-accept
+                           'rear-nonsticky t))
+           (desc (jinx--mod-describe dict))
+           (group "Accept and save word")
+           (ann (format #(" [Personal ‘%s’]" 0 16 (face jinx-annotation)) (car desc))))
+      (delete-consecutive-dups
        (list (propertize (concat at word)
                          'jinx--group group 'jinx--suffix ann)
              (propertize (concat at (downcase word))
-                         'jinx--group group 'jinx--suffix ann))))
-    (list
-     (propertize (concat #("*" 0 1 (face jinx-accept rear-nonsticky t)) word)
-                 'jinx--group "Accept and save word"
-                 'jinx--suffix #(" [File]" 0 7 (face jinx-annotation)))
-     (propertize (concat #("+" 0 1 (face jinx-accept rear-nonsticky t)) word)
-                 'jinx--group "Accept and save word"
-                 'jinx--suffix #(" [Session]" 0 10 (face jinx-annotation)))))))
+                         'jinx--group group 'jinx--suffix ann)))))
+   (list
+    (propertize (concat #("*" 0 1 (face jinx-accept rear-nonsticky t)) word)
+                'jinx--group "Accept and save word"
+                'jinx--suffix #(" [File]" 0 7 (face jinx-annotation)))
+    (propertize (concat #("+" 0 1 (face jinx-accept rear-nonsticky t)) word)
+                'jinx--group "Accept and save word"
+                'jinx--suffix #(" [Session]" 0 10 (face jinx-annotation))))))
 
 (defun jinx--correct-affixation (cands)
   "Affixate CANDS during completion."
@@ -776,7 +785,7 @@ If prefix argument ALL non-nil correct all misspellings."
   (interactive)
   (let* ((keys (this-command-keys-vector))
          (word (nth (if (eq (aref keys 0) ?0)
-                        (- (aref keys 1) ?1 -9)
+                        (+ 9 (or (seq-position jinx--keys (aref keys 1)) 999))
                       (- (aref keys 0) ?1))
                     (all-completions "" minibuffer-completion-table))))
     (when (or (not word) (string-match-p "\\`[@+*]" word))
