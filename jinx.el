@@ -52,7 +52,9 @@
 ;;; Code:
 
 (require 'compat)
-(eval-when-compile (require 'cl-lib))
+(eval-when-compile
+  (require 'cl-lib)
+  (require 'subr-x))
 
 ;;;; Customization
 
@@ -83,8 +85,16 @@
   "Face used to highlight current misspelling during correction.")
 
 (defface jinx-accept
-  '((t :inherit font-lock-negation-char-face))
+  '((t :inherit font-lock-builtin-face))
   "Face used for the accept action during correction.")
+
+(defface jinx-key
+  '((t :inherit completions-annotations))
+  "Face used for the select key during correction.")
+
+(defface jinx-annotation
+  '((t :inherit completions-annotations))
+  "Face used for the annotation during correction.")
 
 (defcustom jinx-languages
   (replace-regexp-in-string
@@ -529,7 +539,7 @@ If VISIBLE is non-nil, only include visible overlays."
             (dolist (ov (overlays-in (pos-bol) (pos-eol)))
               (let ((inv (overlay-get ov 'invisible)))
                 (when (and (invisible-p inv) (overlay-get ov 'isearch-open-invisible))
-                  (push (if-let (fun (overlay-get ov 'isearch-open-invisible-temporary))
+                  (push (if-let ((fun (overlay-get ov 'isearch-open-invisible-temporary)))
                             (progn
                               (funcall fun ov nil)
                               (lambda () (funcall fun ov t)))
@@ -579,8 +589,9 @@ If VISIBLE is non-nil, only include visible overlays."
          (add-text-properties
           0 (length sugg)
           (list 'jinx--group group
-                'jinx--annotation (cond ((< idx 10) (format " (%s)" idx))
-                                        ((< idx 20) (format " (0%s)" (- idx 9)))))
+                'jinx--prefix
+                (cond ((< idx 10) (format #("%d " 0 3 (face jinx-key)) idx))
+                      ((< idx 20) (format #("0%d " 0 4 (face jinx-key)) (- idx 9)))))
           sugg)
          (cl-incf idx))))
     (cl-loop
@@ -590,22 +601,31 @@ If VISIBLE is non-nil, only include visible overlays."
                             'rear-nonsticky t))
             (desc (jinx--mod-describe dict))
             (group "Accept and save word")
-            (ann (format " [Personal dictionary ‘%s’]" (car desc))))
+            (ann (format #(" [Personal ‘%s’]" 0 16 (face jinx-annotation)) (car desc))))
        (list (propertize (concat at word)
-                         'jinx--group group 'jinx--annotation ann)
+                         'jinx--group group 'jinx--suffix ann)
              (propertize (concat at (downcase word))
-                         'jinx--group group 'jinx--annotation ann))))
+                         'jinx--group group 'jinx--suffix ann))))
     (list
      (propertize (concat #("*" 0 1 (face jinx-accept rear-nonsticky t)) word)
                  'jinx--group "Accept and save word"
-                 'jinx--annotation " [File]")
+                 'jinx--suffix #(" [File]" 0 7 (face jinx-annotation)))
      (propertize (concat #("+" 0 1 (face jinx-accept rear-nonsticky t)) word)
                  'jinx--group "Accept and save word"
-                 'jinx--annotation " [Session]")))))
+                 'jinx--suffix #(" [Session]" 0 10 (face jinx-annotation)))))))
 
-(defun jinx--correct-annotation (word)
-  "Annotate WORD during completion."
-  (get-text-property 0 'jinx--annotation word))
+(defun jinx--correct-affixation (cands)
+  "Affixate CANDS during completion."
+  (cl-loop for cand in cands collect
+           (list cand
+                 (or (get-text-property 0 'jinx--prefix cand) "")
+                 (or (get-text-property 0 'jinx--suffix cand) ""))))
+
+(defun jinx--correct-annotation (cand)
+  "Annotate CAND during completion."
+  (if-let ((prefix (get-text-property 0 'jinx--prefix cand)))
+      (format #(" (%s)" 0 5 (face jinx-key)) (string-trim prefix))
+    (get-text-property 0 'jinx--suffix cand)))
 
 (defun jinx--correct-group (word transform)
   "Group WORD during completion, TRANSFORM candidate if non-nil."
@@ -622,6 +642,7 @@ If VISIBLE is non-nil, only include visible overlays."
                    (cycle-sort-function . identity)
                    (category . jinx)
                    (group-function . jinx--correct-group)
+                   (affixation-function . jinx--correct-affixation)
                    (annotation-function . jinx--correct-annotation))
       (complete-with-action action word str pred))))
 
