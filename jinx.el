@@ -591,7 +591,7 @@ If VISIBLE is non-nil, only include visible overlays."
           (list 'jinx--group group
                 'jinx--prefix
                 (cond ((< idx 10) (format #("%d " 0 3 (face jinx-key)) idx))
-                      ((< idx 20) (format #("0%d " 0 4 (face jinx-key)) (- idx 9)))))
+                      ((< idx 19) (format #("0%d " 0 4 (face jinx-key)) (- idx 9)))))
           sugg)
          (cl-incf idx))))
     (cl-loop
