@@ -601,6 +601,7 @@ If VISIBLE is non-nil, only include visible overlays."
                      (format #("0%c " 0 4 (face jinx-key)) (aref jinx--keys (- idx 10))))))
         sugg)
        (cl-incf idx)
+       (puthash sugg t ht)
        sugg)))
    (cl-loop
     for dict in jinx--dicts for idx from 1 nconc
