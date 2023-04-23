@@ -93,9 +93,9 @@ the file-local variables. Note that you can enter arbitrary input at the
 correction prompt in order to make the correction. By pressing =M-n= (=M-p=) again
 in the correction menu, you can skip to the next (previous) misspelling.
 
-The completion menu is compatible with all popular completion UIs: default
-completion, Icomplete, Vertico, Ivy and Helm. In case you use Vertico I suggest
-that you tweak the completion display via =vertico-multiform-mode= for the
+The completion menu is compatible with all popular completion UIs: Vertico, Mct,
+Icomplete, Ivy, Helm and of course default completion. In case you use Vertico I
+suggest that you tweak the completion display via =vertico-multiform-mode= for the
 completion category =jinx=. You can for example use the grid display such that
 more suggestions fit on the screen.
 
