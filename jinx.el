@@ -810,6 +810,7 @@ If prefix argument ALL non-nil correct all misspellings."
   "Enchanted Spell Checker."
   :lighter (:eval (concat " Jinx[" jinx-languages "]"))
   :group 'jinx
+  :keymap jinx-mode-map
   (cond
    (jinx-mode
     (jinx--load-module)
