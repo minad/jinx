@@ -73,15 +73,8 @@ independent of the Emacs's Ispell package, =M-$= can be re-used.
 (keymap-global-set "<remap> <ispell-word>" #'jinx-correct)
 #+end_src
 
-- =M-$= triggers correction for the misspelled word next to point.
+- =M-$= triggers correction for the misspelled word before point.
 - =C-u M-$= triggers correction for the entire buffer.
-
-Suggested corrections are displayed via a completion menu. You can press digit
-keys to quickly select a suggestion. Furthermore the menu offers options to save
-the word temporarily for the current session, in the personal dictionary or in
-the file-local variables. Note that you can enter arbitrary input at the
-correction prompt in order to make the correction. By pressing =M-n= (=M-p=) again
-in the correction menu, you can skip to the next (previous) misspelling.
 
 A sample configuration with the popular =use-package= macro is shown here:
 
@@ -91,9 +84,20 @@ A sample configuration with the popular =use-package= macro is shown here:
   :bind ([remap ispell-word] . jinx-correct))
 #+end_src
 
-In case you use my [[https://github.com/minad/vertico][Vertico]] completion UI I suggest that you tweak the completion
-display via =vertico-multiform-mode= for the completion category =jinx=. You can for
-example use the grid display such that more suggestions fit on the screen.
+* Correction UI
+
+Suggested corrections are displayed as a completion menu. You can press digit
+keys to quickly select a suggestion. Furthermore the menu offers options to save
+the word temporarily for the current session, in the personal dictionary or in
+the file-local variables. Note that you can enter arbitrary input at the
+correction prompt in order to make the correction. By pressing =M-n= (=M-p=) again
+in the correction menu, you can skip to the next (previous) misspelling.
+
+The completion menu is compatible with all popular completion UIs: default
+completion, Icomplete, Vertico, Ivy and Helm. In case you use Vertico I suggest
+that you tweak the completion display via =vertico-multiform-mode= for the
+completion category =jinx=. You can for example use the grid display such that
+more suggestions fit on the screen.
 
 #+begin_src emacs-lisp
 (add-to-list 'vertico-multiform-categories
