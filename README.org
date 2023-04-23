@@ -109,8 +109,8 @@ more suggestions fit on the screen.
 
 Enchant uses different backends for different languages (to be spell-checked).
 The backends are ordered as specified in the configuration file
-=~/.config/enchant/enchant.ordering=. For most languages, Enchant uses Hunspell by
-default.
+=~/.config/enchant/enchant.ordering=. For English, Enhant uses Aspell by default
+and for most other languages Hunspell is preferred.
 
 Depending on the backend the personal dictionary will be taken from different
 locations, e.g., =~/.aspell.LANG.pws= or =~/.config/enchant/=. It is possible to
