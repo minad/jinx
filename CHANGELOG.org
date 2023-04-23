@@ -7,6 +7,7 @@
 - =jinx-correct=: Consistently move backward to the previous misspelling. In order
   to move backward further, press =M-$= again (or =M-p=). Move forward with =M-n=.
 - =jinx-correct-select=: Support more than 10 quick keys.
+- Add =jinx-faces= customization group.
 
 * Version 0.7 (2023-04-21)
 

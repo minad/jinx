@@ -70,32 +70,6 @@
   "Idle timer delay."
   :type 'float)
 
-(defface jinx-misspelled
-  '((((class color) (min-colors 88) (background dark)
-      (supports :underline (:style wave)))
-     :underline (:style wave :color "#d2b580"))
-    (((class color) (min-colors 88) (background light)
-      (supports :underline (:style wave)))
-     :underline (:style wave :color "#5f4400"))
-    (t :underline t :inherit error))
-  "Face used for misspelled words.")
-
-(defface jinx-highlight
-  '((t :inherit isearch))
-  "Face used to highlight current misspelling during correction.")
-
-(defface jinx-accept
-  '((t :inherit font-lock-builtin-face))
-  "Face used for the accept action during correction.")
-
-(defface jinx-key
-  '((t :inherit completions-annotations))
-  "Face used for the select key during correction.")
-
-(defface jinx-annotation
-  '((t :inherit completions-annotations))
-  "Face used for the annotation during correction.")
-
 (defcustom jinx-languages
   (replace-regexp-in-string
    "\\..*\\'" ""
@@ -188,6 +162,39 @@ checking."
 
 ;;;###autoload
 (put 'jinx-local-words 'safe-local-variable #'stringp)
+
+;;;; Faces
+
+(defgroup jinx-faces nil
+  "Faces used by Jinx."
+  :group 'jinx
+  :group 'faces)
+
+(defface jinx-misspelled
+  '((((class color) (min-colors 88) (background dark)
+      (supports :underline (:style wave)))
+     :underline (:style wave :color "#d2b580"))
+    (((class color) (min-colors 88) (background light)
+      (supports :underline (:style wave)))
+     :underline (:style wave :color "#5f4400"))
+    (t :underline t :inherit error))
+  "Face used for misspelled words.")
+
+(defface jinx-highlight
+  '((t :inherit isearch))
+  "Face used to highlight current misspelling during correction.")
+
+(defface jinx-accept
+  '((t :inherit font-lock-builtin-face))
+  "Face used for the accept action during correction.")
+
+(defface jinx-key
+  '((t :inherit completions-annotations))
+  "Face used for the select key during correction.")
+
+(defface jinx-annotation
+  '((t :inherit completions-annotations))
+  "Face used for the annotation during correction.")
 
 ;;;; Keymaps
 
