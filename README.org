@@ -56,12 +56,12 @@ Jinx has two modes: the command, =global-jinx-mode= activates globally; and the
 command, =jinx-mode=, for activating for specific modes.
 
 #+begin_src emacs-lisp
-  ;; Alternative 1: Enable Jinx globally
-  (add-hook 'emacs-startup-hook #'global-jinx-mode)
+;; Alternative 1: Enable Jinx globally
+(add-hook 'emacs-startup-hook #'global-jinx-mode)
 
-  ;; Alternative 2: Enable Jinx per mode
-  (dolist (hook '(text-mode-hook prog-mode-hook conf-mode-hook))
-    (add-hook hook #'jinx-mode))
+;; Alternative 2: Enable Jinx per mode
+(dolist (hook '(text-mode-hook prog-mode-hook conf-mode-hook))
+  (add-hook hook #'jinx-mode))
 #+end_src
 
 Jinx autoloads the commands =jinx-correct= and =jinx-languages=. Invoking
@@ -70,7 +70,7 @@ over that chord from Emacs's default assignment to =ispell word=. Since Jinx is
 independent of the Emacs's Ispell package, =M-$= can be re-used.
 
 #+begin_src emacs-lisp
-  (keymap-global-set "<remap> <ispell-word>" #'jinx-correct)
+(keymap-global-set "<remap> <ispell-word>" #'jinx-correct)
 #+end_src
 
 - =M-$= triggers correction for the misspelled word next to point.
@@ -86,9 +86,19 @@ in the correction menu, you can skip to the next (previous) misspelling.
 A sample configuration with the popular =use-package= macro is shown here:
 
 #+begin_src emacs-lisp
-  (use-package jinx
-    :hook (emacs-startup . global-jinx-mode)
-    :bind ([remap ispell-word] . jinx-correct))
+(use-package jinx
+  :hook (emacs-startup . global-jinx-mode)
+  :bind ([remap ispell-word] . jinx-correct))
+#+end_src
+
+In case you use my [[https://github.com/minad/vertico][Vertico]] completion UI I suggest that you tweak the completion
+display via =vertico-multiform-mode= for the completion category =jinx=. You can for
+example use the grid display such that more suggestions fit on the screen.
+
+#+begin_src emacs-lisp
+(add-to-list 'vertico-multiform-categories
+             '(jinx grid (vertico-grid-annotate . 25)))
+(vertico-multiform-mode 1)
 #+end_src
 
 * Enchant backends and personal dictionaries
