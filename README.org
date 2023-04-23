@@ -38,7 +38,7 @@ in =jinx-camel-modes= composite words in camelCase and PascalCase are accepted.
 
 #+html: <img src="https://github.com/minad/jinx/blob/screenshots/screenshot.png?raw=true">
 
-* Installing Jinx
+* Installation
 
 Jinx can be installed from GNU ELPA and MELPA directly or with =package-install=.
 
@@ -50,7 +50,7 @@ On Debian or Ubuntu, install the packages =libenchant-2-dev= and =pkg-config=. O
 Fedora or RHEL, install the package =enchant2-devel=. On Mac, install =enchant2= and
 =pkgconfig=.
 
-* Using Jinx
+* Configuration
 
 Jinx has two modes: the command, =global-jinx-mode= activates globally; and the
 command, =jinx-mode=, for activating for specific modes.
@@ -84,7 +84,7 @@ A sample configuration with the popular =use-package= macro is shown here:
   :bind ([remap ispell-word] . jinx-correct))
 #+end_src
 
-* Correction UI
+* Correcting words
 
 Suggested corrections are displayed as a completion menu. You can press digit
 keys to quickly select a suggestion. Furthermore the menu offers options to save
