@@ -184,9 +184,9 @@ checking."
   '((t :inherit isearch))
   "Face used to highlight current misspelling during correction.")
 
-(defface jinx-accept
+(defface jinx-save
   '((t :inherit font-lock-builtin-face))
-  "Face used for the accept action during correction.")
+  "Face used for the save actions during correction.")
 
 (defface jinx-key
   '((t :inherit completions-annotations))
@@ -263,8 +263,15 @@ Predicate may return a position to skip forward.")
 (defvar-local jinx--session-words nil
   "List of words accepted in this session.")
 
-(defvar jinx--keys "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  "Quick select keys used by `jinx-correct-select'.")
+(defvar jinx--select-keys
+  "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  "Quick select keys used by `jinx-correct'.")
+
+(defvar jinx--save-keys
+  `((?@ . ,#'jinx--save-personal)
+    (?* . ,#'jinx--save-file)
+    (?+ . ,#'jinx--save-session))
+  "Keys for save actions used by `jinx-correct'.")
 
 ;;;; Declarations for the bytecode compiler
 
@@ -604,32 +611,14 @@ If VISIBLE is non-nil, only include visible overlays."
               'jinx--prefix
               (cond ((< idx 10)
                      (format #("%d " 0 3 (face jinx-key)) idx))
-                    ((< (- idx 10) (length jinx--keys))
-                     (format #("0%c " 0 4 (face jinx-key)) (aref jinx--keys (- idx 10))))))
+                    ((< (- idx 10) (length jinx--select-keys))
+                     (format #("0%c " 0 4 (face jinx-key)) (aref jinx--select-keys (- idx 10))))))
         sugg)
        (cl-incf idx)
        (puthash sugg t ht)
        sugg)))
-   (cl-loop
-    for dict in jinx--dicts for idx from 1 nconc
-    (let* ((at (propertize (make-string idx ?@)
-                           'face 'jinx-accept
-                           'rear-nonsticky t))
-           (desc (jinx--mod-describe dict))
-           (group "Accept and save word")
-           (ann (format #(" [Personal ‘%s’]" 0 16 (face jinx-annotation)) (car desc))))
-      (delete-consecutive-dups
-       (list (propertize (concat at word)
-                         'jinx--group group 'jinx--suffix ann)
-             (propertize (concat at (downcase word))
-                         'jinx--group group 'jinx--suffix ann)))))
-   (list
-    (propertize (concat #("*" 0 1 (face jinx-accept rear-nonsticky t)) word)
-                'jinx--group "Accept and save word"
-                'jinx--suffix #(" [File]" 0 7 (face jinx-annotation)))
-    (propertize (concat #("+" 0 1 (face jinx-accept rear-nonsticky t)) word)
-                'jinx--group "Accept and save word"
-                'jinx--suffix #(" [Session]" 0 10 (face jinx-annotation))))))
+   (cl-loop for (key . fun) in jinx--save-keys nconc
+            (funcall fun nil key word))))
 
 (defun jinx--correct-affixation (cands)
   "Affixate CANDS during completion."
@@ -667,7 +656,7 @@ If VISIBLE is non-nil, only include visible overlays."
   "Correct word at OVERLAY, maybe RECENTER and show prompt INFO."
   (let* ((word (buffer-substring-no-properties
                 (overlay-start overlay) (overlay-end overlay)))
-         (selected
+         (choice
           (jinx--correct-highlight overlay
             (lambda ()
               (when recenter (recenter))
@@ -677,34 +666,19 @@ If VISIBLE is non-nil, only include visible overlays."
                      (format "Correct ‘%s’%s: " word (or info ""))
                      (jinx--correct-table word)
                      nil nil nil t word)
-                    word))))))
-    (if (string-match-p "\\`[@+*]" selected)
-        (let* ((new-word (replace-regexp-in-string "\\`[@+*]+" "" selected))
-               (idx (- (length selected) (length new-word) 1)))
-          (when (equal new-word "") (setq new-word word))
-          (cond
-           ((string-prefix-p "+" selected)
-            (add-to-list 'jinx--session-words new-word))
-           ((string-prefix-p "*" selected)
-            (add-to-list 'jinx--session-words new-word)
-            (setq jinx-local-words
-                  (string-join
-                   (sort (delete-dups
-                          (cons new-word (split-string jinx-local-words)))
-                         #'string<)
-                   " "))
-            (add-file-local-variable 'jinx-local-words jinx-local-words))
-           (t (jinx--mod-add (or (nth idx jinx--dicts)
-                                 (user-error "Invalid dictionary"))
-                             new-word)))
+                    word)))))
+         (len (length choice)))
+    (if-let ((save (and (> len 0) (assq (aref choice 0) jinx--save-keys))))
+        (progn
+          (funcall (cdr save) 'save (car save) (if (> len 1) (substring choice 1) word))
           (jinx--recheck-overlays))
-      (when-let (((not (equal selected word)))
+      (when-let (((not (equal choice word)))
                  (start (overlay-start overlay))
                  (end (overlay-end overlay)))
         (undo-boundary)
         (delete-overlay overlay)
         (goto-char end)
-        (insert-before-markers selected)
+        (insert-before-markers choice)
         (delete-region start end)))))
 
 (defun jinx--load-dicts ()
@@ -721,6 +695,60 @@ If VISIBLE is non-nil, only include visible overlays."
   (modify-syntax-entry ?% "_" jinx--syntax-table)
   (modify-syntax-entry ?' "w" jinx--syntax-table)
   (modify-syntax-entry ?. "." jinx--syntax-table))
+
+;;;; Save functions
+
+(defun jinx--save-personal (save key word)
+  "Save WORD in personal dictionary.
+If SAVE is non-nil save, otherwise format candidate given action KEY."
+  (if save
+      (let ((idx (seq-position word key (lambda (x y) (not (equal x y))))))
+        (jinx--mod-add (or (nth idx jinx--dicts)
+                           (user-error "Invalid dictionary"))
+                       (substring word idx)))
+    (cl-loop
+     for dict in jinx--dicts for idx from 1 nconc
+     (let* ((at (propertize (make-string idx key) 'face 'jinx-save 'rear-nonsticky t))
+            (desc (jinx--mod-describe dict))
+            (group "Accept and save word")
+            (ann (format #(" [Personal ‘%s’]" 0 16 (face jinx-annotation)) (car desc))))
+       (delete-consecutive-dups
+        (list (propertize (concat at word)
+                          'jinx--group group 'jinx--suffix ann)
+              (propertize (concat at (downcase word))
+                          'jinx--group group 'jinx--suffix ann)))))))
+
+(defun jinx--save-file (save key word)
+  "Save WORD in file-local variable.
+If SAVE is non-nil save, otherwise format candidate given action KEY."
+  (if save
+      (progn
+        (add-to-list 'jinx--session-words word)
+        (setq jinx-local-words
+              (string-join
+               (sort (delete-dups
+                      (cons word (split-string jinx-local-words)))
+                     #'string<)
+               " "))
+        (add-file-local-variable 'jinx-local-words jinx-local-words))
+    (list
+     (propertize
+      (concat (propertize (char-to-string key) 'face 'jinx-save 'rear-nonsticky t)
+              word)
+      'jinx--group "Accept and save word"
+      'jinx--suffix #(" [File]" 0 7 (face jinx-annotation))))))
+
+(defun jinx--save-session (save key word)
+  "Save WORD for the current session.
+If SAVE is non-nil save, otherwise format candidate given action KEY."
+  (if save
+      (add-to-list 'jinx--session-words word)
+    (list
+     (propertize
+      (concat (propertize (char-to-string key)'face 'jinx-save 'rear-nonsticky t)
+              word)
+      'jinx--group "Accept and save word"
+      'jinx--suffix #(" [Session]" 0 10 (face jinx-annotation))))))
 
 ;;;; Public commands
 
@@ -793,7 +821,7 @@ If prefix argument ALL non-nil correct all misspellings."
   (interactive)
   (let* ((keys (this-command-keys-vector))
          (word (nth (if (eq (aref keys 0) ?0)
-                        (+ 9 (or (seq-position jinx--keys (aref keys 1)) 999))
+                        (+ 9 (or (seq-position jinx--select-keys (aref keys 1)) 999))
                       (- (aref keys 0) ?1))
                     (all-completions "" minibuffer-completion-table))))
     (unless (and word (get-text-property 0 'jinx--prefix word))
@@ -831,8 +859,7 @@ If prefix argument ALL non-nil correct all misspellings."
           jinx--include-faces (jinx--mode-list jinx-include-faces)
           jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
           jinx--camel (or (eq jinx-camel-modes t)
-                          (cl-loop for m in jinx-camel-modes
-                                   thereis (derived-mode-p m)))
+                          (seq-some #'derived-mode-p jinx-camel-modes))
           jinx--session-words (split-string jinx-local-words))
     (jinx--load-dicts)
     (add-hook 'window-state-change-hook #'jinx--reschedule nil t)

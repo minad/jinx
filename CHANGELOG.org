@@ -8,6 +8,7 @@
   to move backward further, press =M-$= again (or =M-p=). Move forward with =M-n=.
 - =jinx-correct-select=: Support more than 10 quick keys.
 - Add =jinx-faces= customization group.
+- Add configurable save actions via =jinx--save-keys=.
 
 * Version 0.7 (2023-04-21)
 
