@@ -618,7 +618,7 @@ If VISIBLE is non-nil, only include visible overlays."
        (puthash sugg t ht)
        sugg)))
    (cl-loop for (key . fun) in jinx--save-keys nconc
-            (funcall fun nil key word))))
+            (ensure-list (funcall fun nil key word)))))
 
 (defun jinx--correct-affixation (cands)
   "Affixate CANDS during completion."
@@ -698,6 +698,15 @@ If VISIBLE is non-nil, only include visible overlays."
 
 ;;;; Save functions
 
+(defun jinx--save-action (key word ann)
+  "Format save action given KEY, WORD and ANN."
+  (propertize
+   (concat (propertize (if (stringp key) key (char-to-string key))
+                       'face 'jinx-save 'rear-nonsticky t)
+           word)
+   'jinx--group "Accept and save word"
+   'jinx--suffix (format #(" [%s]" 0 5 (face jinx-annotation)) ann)))
+
 (defun jinx--save-personal (save key word)
   "Save WORD in personal dictionary.
 If SAVE is non-nil save, otherwise format candidate given action KEY."
@@ -707,16 +716,12 @@ If SAVE is non-nil save, otherwise format candidate given action KEY."
                            (user-error "Invalid dictionary"))
                        (substring word idx)))
     (cl-loop
-     for dict in jinx--dicts for idx from 1 nconc
-     (let* ((at (propertize (make-string idx key) 'face 'jinx-save 'rear-nonsticky t))
-            (desc (jinx--mod-describe dict))
-            (group "Accept and save word")
-            (ann (format #(" [Personal ‘%s’]" 0 16 (face jinx-annotation)) (car desc))))
-       (delete-consecutive-dups
-        (list (propertize (concat at word)
-                          'jinx--group group 'jinx--suffix ann)
-              (propertize (concat at (downcase word))
-                          'jinx--group group 'jinx--suffix ann)))))))
+     for dict in jinx--dicts for idx from 1
+     for at = (make-string idx key)
+     for ann = (format "Personal ‘%s’" (car (jinx--mod-describe dict))) nconc
+     (delete-consecutive-dups
+      (list (jinx--save-action at word ann)
+            (jinx--save-action at (downcase word) ann))))))
 
 (defun jinx--save-file (save key word)
   "Save WORD in file-local variable.
@@ -731,24 +736,14 @@ If SAVE is non-nil save, otherwise format candidate given action KEY."
                      #'string<)
                " "))
         (add-file-local-variable 'jinx-local-words jinx-local-words))
-    (list
-     (propertize
-      (concat (propertize (char-to-string key) 'face 'jinx-save 'rear-nonsticky t)
-              word)
-      'jinx--group "Accept and save word"
-      'jinx--suffix #(" [File]" 0 7 (face jinx-annotation))))))
+    (jinx--save-action key word "File")))
 
 (defun jinx--save-session (save key word)
   "Save WORD for the current session.
 If SAVE is non-nil save, otherwise format candidate given action KEY."
   (if save
       (add-to-list 'jinx--session-words word)
-    (list
-     (propertize
-      (concat (propertize (char-to-string key)'face 'jinx-save 'rear-nonsticky t)
-              word)
-      'jinx--group "Accept and save word"
-      'jinx--suffix #(" [Session]" 0 10 (face jinx-annotation))))))
+    (jinx--save-action key word "Session")))
 
 ;;;; Public commands
 
