@@ -796,7 +796,7 @@ If prefix argument ALL non-nil correct all misspellings."
                         (+ 9 (or (seq-position jinx--keys (aref keys 1)) 999))
                       (- (aref keys 0) ?1))
                     (all-completions "" minibuffer-completion-table))))
-    (when (or (not word) (string-match-p "\\`[@+*]" word))
+    (unless (and word (get-text-property 0 'jinx--prefix word))
       (user-error "Invalid select key `%s'" (key-description keys)))
     (delete-minibuffer-contents)
     (insert word)
