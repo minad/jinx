@@ -512,12 +512,15 @@ If VISIBLE is non-nil, only include visible overlays."
     (let* ((mod-name (file-name-with-extension "jinx-mod" module-file-suffix))
            (mod-file (locate-library mod-name t)))
       (unless mod-file
-        (let* ((c-name (file-name-with-extension mod-name ".c"))
+        (let* ((cc (or (getenv "CC")
+                       (seq-find #'executable-find '("gcc" "clang" "cc"))
+                       (error "Jinx: No C compiler found")))
+               (c-name (file-name-with-extension mod-name ".c"))
                (default-directory (file-name-directory
                                    (or (locate-library c-name t)
                                        (error "Jinx: %s not found" c-name))))
                (command
-                `("cc" "-I." "-O2" "-Wall" "-Wextra" "-fPIC" "-shared"
+                `(,cc "-I." "-O2" "-Wall" "-Wextra" "-fPIC" "-shared"
                   "-o" ,mod-name ,c-name
                   ,@(split-string-and-unquote
                      (condition-case nil
