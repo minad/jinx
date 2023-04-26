@@ -9,6 +9,7 @@
 - =jinx-correct-select=: Support more than 10 quick keys.
 - Add =jinx-faces= customization group.
 - Add configurable save actions via =jinx--save-keys=.
+- Detect C compiler via $CC or =executable-find=.
 
 * Version 0.7 (2023-04-21)
 
