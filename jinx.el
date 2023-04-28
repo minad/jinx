@@ -364,15 +364,6 @@ FLAG must be t or nil."
             (setq pos (jinx--check-region from to retry))
           (setq pos to))))))
 
-(defun jinx--force-check-region (start end)
-  "Enforce spell-check of region between START and END."
-  ;; FIXME `with-delayed-message' is broken in combination with
-  ;; `inhibit-message'. Report this as a bug.
-  (progn ;; with-delayed-message (1 "Fontifying...")
-    (jit-lock-fontify-now))
-  (progn ;; with-delayed-message (1 "Checking...")
-    (jinx--check-region start end)))
-
 (defun jinx--check-region (start end &optional retry)
   "Check region between START and END.
 Optionally RETRY word at given position.  Return updated END
@@ -443,6 +434,22 @@ If VISIBLE is non-nil, only include visible overlays."
     (while (and (cdr overlays) (<= (overlay-start (cadr overlays)) pt))
       (push (pop overlays) before))
     (nconc overlays (nreverse before))))
+
+(cl-defun jinx--force-overlays (start end &key visible check)
+  "Return misspelled word overlays between START and END, enforce checking.
+If VISIBLE is non-nil, only include visible overlays.
+If CHECK is non-nil, always check first."
+  (or (and (not check) (jinx--get-overlays start end visible))
+      (progn
+        ;; FIXME `with-delayed-message' is broken in combination with
+        ;; `inhibit-message'. Report this as a bug.
+        (progn ;; with-delayed-message (1 "Fontifying...")
+          (jit-lock-fontify-now))
+        (progn ;; with-delayed-message (1 "Checking...")
+          (jinx--check-region start end))
+        (jinx--get-overlays start end visible))
+      (user-error (if visible "No misspelling in visible text"
+                    "No misspelling in whole buffer"))))
 
 (defun jinx--delete-overlays (start end)
   "Delete overlays between START and END."
@@ -794,15 +801,8 @@ If prefix argument ALL non-nil correct all misspellings."
     (unwind-protect
           (let* ((overlays
                   (if all
-                      (progn
-                        (jinx--force-check-region (point-min) (point-max))
-                        (or (jinx--get-overlays (point-min) (point-max))
-                            (user-error "No misspelling in whole buffer")))
-                    (or (jinx--get-overlays (window-start) (window-end) 'visible)
-                        (progn
-                          (jinx--force-check-region (window-start) (window-end))
-                          (jinx--get-overlays (window-start) (window-end) 'visible))
-                        (user-error "No misspelling in visible text"))))
+                      (jinx--force-overlays (point-min) (point-max) :check t)
+                    (jinx--force-overlays (window-start) (window-end) :visible t)))
                  (count (length overlays))
                  (idx 0))
             (when all
@@ -841,12 +841,8 @@ If prefix argument ALL non-nil correct all misspellings."
   (unless (= n 0)
     (if (minibufferp)
         (throw 'jinx--goto n)
-      (let ((ov (or (jinx--get-overlays (point-min) (point-max))
-                    (progn
-                      (jinx--force-check-region (point-min) (point-max))
-                      (jinx--get-overlays (point-min) (point-max)))
-                    (user-error "No misspelling in whole buffer"))))
-        (goto-char (1- (overlay-end (nth (mod n (length ov)) ov))))))))
+      (let ((overlays (jinx--force-overlays (point-min) (point-max))))
+        (goto-char (overlay-end (nth (mod n (length overlays)) overlays)))))))
 
 (defun jinx-goto-previous (n)
   "Go to to Nth previous misspelling."
