@@ -841,8 +841,10 @@ If prefix argument ALL non-nil correct all misspellings."
   (unless (= n 0)
     (if (minibufferp)
         (throw 'jinx--goto n)
-      (let ((overlays (jinx--force-overlays (point-min) (point-max))))
-        (goto-char (overlay-end (nth (mod n (length overlays)) overlays)))))))
+      (let ((ov (jinx--force-overlays (point-min) (point-max))))
+        (unless (or (> n 0) (<= (overlay-start (car ov)) (point) (overlay-end (car ov))))
+          (cl-incf n))
+        (goto-char (overlay-end (nth (mod n (length ov)) ov)))))))
 
 (defun jinx-previous (n)
   "Go to to Nth previous misspelling."
