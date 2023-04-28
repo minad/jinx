@@ -86,12 +86,13 @@ A sample configuration with the popular =use-package= macro is shown here:
 
 * Correcting words
 
-Suggested corrections are displayed as a completion menu. You can press digit
-keys to quickly select a suggestion. Furthermore the menu offers options to save
-the word temporarily for the current session, in the personal dictionary or in
-the file-local variables. Note that you can enter arbitrary input at the
-correction prompt in order to make the correction. By pressing =M-n= (=M-p=) again
-in the correction menu, you can skip to the next (previous) misspelling.
+After invoking the command =jinx-correct=, suggested corrections are displayed as
+a completion menu. You can press digit keys to quickly select a suggestion.
+Furthermore the menu offers options to save the word temporarily for the current
+session, in the personal dictionary or in the file-local variables. Note that
+you can enter arbitrary input at the correction prompt in order to make the
+correction. The keys =M-n= (=M-p=) are bound to =jinx-next= and =jinx-previous= and
+allow you to move the next (previous) misspelling.
 
 The completion menu is compatible with all popular completion UIs: Vertico, Mct,
 Icomplete, Ivy, Helm and of course default completion. In case you use Vertico I
