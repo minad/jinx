@@ -26,8 +26,8 @@ Jinx's high performance and low resource usage comes from directly calling the
 widely-used API of the Enchant library (see [[https://abiword.github.io/enchant/][libenchant]]). Jinx automatically
 compiles =jinx-mod.c= and loads the dynamic module at startup. By binding directly
 to the native Enchant API, Jinx avoids the slower backend process communication
-with Aspell. Thanks to the Enchant API, this method is widely used by other text
-editors and supports [[https://nuspell.github.io/][Nuspell]], [[http://hunspell.github.io/][Hunspell]], [[http://aspell.net/][Aspell]] and a few lesser known backends.
+with Aspell. Enchant is widely used by other text editors and supports [[https://nuspell.github.io/][Nuspell]],
+[[http://hunspell.github.io/][Hunspell]], [[http://aspell.net/][Aspell]] and a few language-specific backends.
 
 Jinx supports spell-checking multiple languages in the same buffer. See the
 =jinx-languages= variable to customize for multiple languages. Jinx can flexibly
@@ -118,9 +118,9 @@ are used. On non-Linux operating systems Enchant may also integrate with the
 spell-checker provided by the operating system.
 
 Depending on the backend the personal dictionary will be taken from different
-locations, e.g., =~/.aspell.LANG.pws= or =~/.config/enchant/=. It is possible to
-symlink different personal dictionaries such that they are shared by different
-spell checkers. See the [[https://abiword.github.io/enchant/src/enchant.html][Enchant manual]] for details.
+locations, e.g., =~/.aspell.LANG.pws= or =~/.config/enchant/LANG.dic=. It is
+possible to symlink different personal dictionaries such that they are shared by
+different spell checkers. See the [[https://abiword.github.io/enchant/src/enchant.html][Enchant manual]] for details.
 
 * Alternative spell-checking packages
 
