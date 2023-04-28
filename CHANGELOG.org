@@ -2,6 +2,13 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Development
+
+- Rename =jinx-correct-next/previous= to =jinx-goto-next/previous=. The commands can
+  be used outside the minibuffer.
+- Bind =M-n= and =M-p= to =jinx-goto-next/previous= in =jinx-misspelled-map=.
+- Bind =M-$= to =jinx-correct= in the =jinx-misspelled-map=.
+
 * Version 0.8 (2023-04-28)
 
 - =jinx-correct=: Consistently move backward to the previous misspelling. In order

@@ -200,7 +200,10 @@ checking."
 
 (defvar-keymap jinx-misspelled-map
   :doc "Keymap attached to misspelled words."
-  "<mouse-1>" #'jinx-correct)
+  "<mouse-1>" #'jinx-correct
+  "M-n" #'jinx-goto-next
+  "M-p" #'jinx-goto-previous
+  "M-$" #'jinx-correct)
 
 (fset 'jinx-misspelled-map jinx-misspelled-map)
 
@@ -210,9 +213,9 @@ checking."
 (defvar-keymap jinx-correct-map
   :doc "Keymap active in the correction minibuffer."
   "SPC" #'self-insert-command
-  "M-n" #'jinx-correct-next
-  "M-p" #'jinx-correct-previous
-  "M-$" #'jinx-correct-previous
+  "M-n" #'jinx-goto-next
+  "M-p" #'jinx-goto-previous
+  "M-$" #'jinx-goto-previous
   "0 <t>" #'jinx-correct-select)
 (dotimes (i 9)
   (define-key jinx-correct-map (vector (+ ?1 i)) #'jinx-correct-select))
@@ -794,7 +797,7 @@ If prefix argument ALL non-nil correct all misspellings."
                       (progn
                         (jinx--force-check-region (point-min) (point-max))
                         (or (jinx--get-overlays (point-min) (point-max))
-                            (user-error "No misspellings in whole buffer")))
+                            (user-error "No misspelling in whole buffer")))
                     (or (jinx--get-overlays (window-start) (window-end) 'visible)
                         (progn
                           (jinx--force-check-region (window-start) (window-end))
@@ -807,7 +810,7 @@ If prefix argument ALL non-nil correct all misspellings."
             (while (when-let ((ov (nth idx overlays)))
                      (let* ((deleted (not (overlay-buffer ov)))
                             (skip
-                             (catch 'jinx--correct
+                             (catch 'jinx--goto
                                (unless deleted
                                  (jinx--correct
                                   ov all
@@ -832,15 +835,23 @@ If prefix argument ALL non-nil correct all misspellings."
     (insert word)
     (exit-minibuffer)))
 
-(defun jinx-correct-next (n)
-  "Skip to Nth next misspelling."
+(defun jinx-goto-next (n)
+  "Go to to Nth next misspelling."
   (interactive "p")
-  (throw 'jinx--correct n))
+  (unless (= n 0)
+    (if (minibufferp)
+        (throw 'jinx--goto n)
+      (let ((ov (or (jinx--get-overlays (point-min) (point-max))
+                    (progn
+                      (jinx--force-check-region (point-min) (point-max))
+                      (jinx--get-overlays (point-min) (point-max)))
+                    (user-error "No misspelling in whole buffer"))))
+        (goto-char (1- (overlay-end (nth (mod n (length ov)) ov))))))))
 
-(defun jinx-correct-previous (n)
-  "Skip to Nth previous misspelling."
+(defun jinx-goto-previous (n)
+  "Go to to Nth previous misspelling."
   (interactive "p")
-  (throw 'jinx--correct (- n)))
+  (jinx-goto-next (- n)))
 
 ;;;###autoload
 (define-minor-mode jinx-mode
