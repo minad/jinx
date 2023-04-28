@@ -216,9 +216,9 @@ checking."
   "M-n" #'jinx-next
   "M-p" #'jinx-previous
   "M-$" #'jinx-previous
-  "0 <t>" #'jinx--correct-select)
+  "0 <t>" #'jinx-correct-select)
 (dotimes (i 9)
-  (define-key jinx-correct-map (vector (+ ?1 i)) #'jinx--correct-select))
+  (define-key jinx-correct-map (vector (+ ?1 i)) #'jinx-correct-select))
 
 (easy-menu-define jinx-mode-menu jinx-mode-map
   "Menu used when Jinx is active."
@@ -821,7 +821,7 @@ If prefix argument ALL non-nil correct all misspellings."
       (when old-point (goto-char old-point))
       (jit-lock-refontify))))
 
-(defun jinx--correct-select ()
+(defun jinx-correct-select ()
   "Quick selection key for corrections."
   (interactive)
   (let* ((keys (this-command-keys-vector))

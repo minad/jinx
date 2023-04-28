@@ -8,7 +8,6 @@
   used outside the minibuffer.
 - Bind =M-n= and =M-p= to =jinx-next/previous= in =jinx-misspelled-map=.
 - Bind =M-$= to =jinx-correct= in the =jinx-misspelled-map=.
-- Make =jinx--correct-select= private (implementation detail).
 
 * Version 0.8 (2023-04-28)
 
