@@ -201,8 +201,8 @@ checking."
 (defvar-keymap jinx-misspelled-map
   :doc "Keymap attached to misspelled words."
   "<mouse-1>" #'jinx-correct
-  "M-n" #'jinx-goto-next
-  "M-p" #'jinx-goto-previous
+  "M-n" #'jinx-next
+  "M-p" #'jinx-previous
   "M-$" #'jinx-correct)
 
 (fset 'jinx-misspelled-map jinx-misspelled-map)
@@ -213,9 +213,9 @@ checking."
 (defvar-keymap jinx-correct-map
   :doc "Keymap active in the correction minibuffer."
   "SPC" #'self-insert-command
-  "M-n" #'jinx-goto-next
-  "M-p" #'jinx-goto-previous
-  "M-$" #'jinx-goto-previous
+  "M-n" #'jinx-next
+  "M-p" #'jinx-previous
+  "M-$" #'jinx-previous
   "0 <t>" #'jinx-correct-select)
 (dotimes (i 9)
   (define-key jinx-correct-map (vector (+ ?1 i)) #'jinx-correct-select))
@@ -835,7 +835,7 @@ If prefix argument ALL non-nil correct all misspellings."
     (insert word)
     (exit-minibuffer)))
 
-(defun jinx-goto-next (n)
+(defun jinx-next (n)
   "Go to to Nth next misspelling."
   (interactive "p")
   (unless (= n 0)
@@ -844,10 +844,10 @@ If prefix argument ALL non-nil correct all misspellings."
       (let ((overlays (jinx--force-overlays (point-min) (point-max))))
         (goto-char (overlay-end (nth (mod n (length overlays)) overlays)))))))
 
-(defun jinx-goto-previous (n)
+(defun jinx-previous (n)
   "Go to to Nth previous misspelling."
   (interactive "p")
-  (jinx-goto-next (- n)))
+  (jinx-next (- n)))
 
 ;;;###autoload
 (define-minor-mode jinx-mode
