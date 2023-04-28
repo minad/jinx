@@ -245,6 +245,27 @@ Predicate may return a position to skip forward.")
 (defvar jinx--timer nil
   "Global timer to check pending regions.")
 
+(defvar jinx--base-syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?$ "_" st)
+    (modify-syntax-entry ?% "_" st)
+    ;; Exclude emojis
+    (modify-syntax-entry '(#x2150 . #x2bff) "_" st)    ;; Number Forms - Misc. Arrows
+    (modify-syntax-entry '(#xfe00 . #xfe0f) "_" st)    ;; Variation Selectors
+    (modify-syntax-entry '(#x1f000 . #x1fbff) "_" st)  ;; Mahjong - Legacy Computing
+    st)
+  "Base syntax table for spell checking.")
+
+(defvar jinx--select-keys
+  "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  "Quick select keys used by `jinx-correct'.")
+
+(defvar jinx--save-keys
+  `((?@ . ,#'jinx--save-personal)
+    (?* . ,#'jinx--save-file)
+    (?+ . ,#'jinx--save-session))
+  "Keys for save actions used by `jinx-correct'.")
+
 (defvar-local jinx--exclude-faces nil
   "List of excluded faces.")
 
@@ -265,16 +286,6 @@ Predicate may return a position to skip forward.")
 
 (defvar-local jinx--session-words nil
   "List of words accepted in this session.")
-
-(defvar jinx--select-keys
-  "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  "Quick select keys used by `jinx-correct'.")
-
-(defvar jinx--save-keys
-  `((?@ . ,#'jinx--save-personal)
-    (?* . ,#'jinx--save-file)
-    (?+ . ,#'jinx--save-session))
-  "Keys for save actions used by `jinx-correct'.")
 
 ;;;; Declarations for the bytecode compiler
 
@@ -698,14 +709,12 @@ If CHECK is non-nil, always check first."
   "Load dictionaries and setup syntax table."
   (setq jinx--dicts (delq nil (mapcar #'jinx--mod-dict
                                       (split-string jinx-languages)))
-        jinx--syntax-table (make-syntax-table))
+        jinx--syntax-table (make-syntax-table jinx--base-syntax-table))
   (unless jinx--dicts
     (message "Jinx: No dictionaries available for %S" jinx-languages))
   (dolist (dict jinx--dicts)
     (cl-loop for c across (jinx--mod-wordchars dict) do
              (modify-syntax-entry c "w" jinx--syntax-table)))
-  (modify-syntax-entry ?$ "_" jinx--syntax-table)
-  (modify-syntax-entry ?% "_" jinx--syntax-table)
   (modify-syntax-entry ?' "w" jinx--syntax-table)
   (modify-syntax-entry ?. "." jinx--syntax-table))
 
