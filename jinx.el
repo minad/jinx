@@ -250,9 +250,9 @@ Predicate may return a position to skip forward.")
     (modify-syntax-entry ?$ "_" st)
     (modify-syntax-entry ?% "_" st)
     (modify-syntax-entry '(#x80 . #x9f) "_" st)        ;; Control characters
-    (modify-syntax-entry '(#x1cf00 . #x1d7ff) "_" st)  ;; Znamenny Musical - Math. Alpha.
     (modify-syntax-entry '(#x2150 . #x2bff) "_" st)    ;; Number Forms - Misc. Arrows
     (modify-syntax-entry '(#xfe00 . #xfe0f) "_" st)    ;; Variation Selectors
+    (modify-syntax-entry '(#x1cf00 . #x1d7ff) "_" st)  ;; Znamenny Musical - Math. Alpha.
     (modify-syntax-entry '(#x1ee00 . #x1fbff) "_" st)  ;; Arabic Math. - Legacy Computing
     st)
   "Base syntax table for spell checking.")
