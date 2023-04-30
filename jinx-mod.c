@@ -26,6 +26,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 int plugin_is_GPL_compatible;
 
 static EnchantBroker* broker = 0;
+static emacs_value Qt, Qnil;
 
 static EnchantBroker* jinx_broker(void) {
     return broker ? broker : (broker = enchant_broker_init());
@@ -50,8 +51,8 @@ static char* jinx_cstr(emacs_env* env, emacs_value val) {
     char* str = malloc(size);
     if (!str) {
         env->non_local_exit_signal(env,
-                                   env->intern (env, "memory-full"),
-                                   env->intern (env, "nil"));
+                                   env->intern(env, "memory-full"),
+                                   Qnil);
         return 0;
     }
     if (!env->copy_string_contents(env, val, str, &size)) {
@@ -80,7 +81,7 @@ static emacs_value jinx_dict(emacs_env* env, ptrdiff_t jinx_unused(nargs),
     EnchantDict* dict = str ? enchant_broker_request_dict(jinx_broker(), str) : 0;
     return dict
         ? env->make_user_ptr(env, jinx_free_dict, dict)
-        : env->intern(env, "nil");
+        : Qnil;
 }
 
 static void jinx_describe_cb(const char* const lang_tag,
@@ -98,7 +99,7 @@ static emacs_value jinx_describe(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                                  emacs_value args[], void* jinx_unused(data)) {
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
     if (!dict)
-        return env->intern(env, "nil");
+        return Qnil;
     void* data[] = { env, 0 };
     enchant_dict_describe(dict, jinx_describe_cb, data);
     return data[1];
@@ -118,7 +119,7 @@ static void jinx_langs_cb(const char* const lang_tag,
 static emacs_value jinx_langs(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                               emacs_value jinx_unused(args[]),
                               void* jinx_unused(data)) {
-    void* data[] = { env, env->intern(env, "nil") };
+    void* data[] = { env, Qnil };
     enchant_broker_list_dicts(jinx_broker(), jinx_langs_cb, data);
     return data[1];
 }
@@ -127,8 +128,7 @@ static emacs_value jinx_check(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                               emacs_value args[], void* jinx_unused(data)) {
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
     jinx_autofree char* str = jinx_cstr(env, args[1]);
-    return env->intern(env, !dict || !str || enchant_dict_check(dict, str, -1)
-                       ? "nil" : "t");
+    return !dict || !str || enchant_dict_check(dict, str, -1) ? Qnil : Qt;
 }
 
 static emacs_value jinx_add(emacs_env* env, ptrdiff_t jinx_unused(nargs),
@@ -137,7 +137,7 @@ static emacs_value jinx_add(emacs_env* env, ptrdiff_t jinx_unused(nargs),
     jinx_autofree char* str = jinx_cstr(env, args[1]);
     if (dict && str)
         enchant_dict_add(dict, str, -1);
-    return env->intern(env, "nil");
+    return Qnil;
 }
 
 static emacs_value jinx_wordchars(emacs_env* env, ptrdiff_t jinx_unused(nargs),
@@ -151,14 +151,14 @@ static emacs_value jinx_wordchars(emacs_env* env, ptrdiff_t jinx_unused(nargs),
             return str;
         env->non_local_exit_clear(env);
     }
-    return env->intern(env, "nil");
+    return Qnil;
 }
 
 static emacs_value jinx_suggest(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                                 emacs_value args[], void* jinx_unused(data)) {
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
     jinx_autofree char* str = jinx_cstr(env, args[1]);
-    emacs_value list = env->intern(env, "nil");
+    emacs_value list = Qnil;
     size_t count = 0;
     char** suggs = str && dict ? enchant_dict_suggest(dict, str, -1, &count) : 0;
     if (suggs) {
@@ -175,6 +175,8 @@ int emacs_module_init(struct emacs_runtime *runtime) {
     emacs_env* env = runtime->get_environment(runtime);
     if ((size_t)env->size < sizeof (*env))
         return 2;
+    Qt = env->make_global_ref(env, env->intern(env, "t"));
+    Qnil = env->make_global_ref(env, env->intern(env, "nil"));
     jinx_defun(env, "jinx--mod-suggest", 2, 2, jinx_suggest);
     jinx_defun(env, "jinx--mod-check", 2, 2, jinx_check);
     jinx_defun(env, "jinx--mod-add", 2, 2, jinx_add);
