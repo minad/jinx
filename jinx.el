@@ -36,9 +36,9 @@
 ;; misspelling can be corrected from a list of dictionary words
 ;; presented as a completion menu.
 
-;; Installing Jinx is straight-forward and configuring takes not much
-;; intervention.  Jinx can safely co-exist with Emacs's built-in
-;; spell-checker.
+;; Installing Jinx is straight-forward and configuring should not need
+;; much intervention. Jinx can be used completely on its own, but can
+;; also safely co-exist with Emacs's built-in spell-checker Ispell.
 
 ;; Jinx's high performance and low resource usage comes from directly
 ;; calling the widely-used API of the Enchant library (see
