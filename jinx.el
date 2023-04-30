@@ -303,13 +303,13 @@ Predicate may return a position to skip forward.")
 
 ;;;; Overlay properties
 
-(put 'jinx 'evaporate             t)
-(put 'jinx 'face                  'jinx-misspelled)
-(put 'jinx 'mouse-face            '(jinx-misspelled jinx-highlight))
-(put 'jinx 'modification-hooks    (list #'jinx--overlay-modified))
-(put 'jinx 'insert-in-front-hooks (list #'jinx--overlay-modified))
-(put 'jinx 'insert-behind-hooks   (list #'jinx--overlay-modified))
-(put 'jinx 'keymap                'jinx-misspelled-map)
+(put 'jinx-overlay 'evaporate             t)
+(put 'jinx-overlay 'face                  'jinx-misspelled)
+(put 'jinx-overlay 'mouse-face            '(jinx-misspelled jinx-highlight))
+(put 'jinx-overlay 'modification-hooks    (list #'jinx--overlay-modified))
+(put 'jinx-overlay 'insert-in-front-hooks (list #'jinx--overlay-modified))
+(put 'jinx-overlay 'insert-behind-hooks   (list #'jinx--overlay-modified))
+(put 'jinx-overlay 'keymap                'jinx-misspelled-map)
 
 ;;;; Predicates
 
@@ -424,7 +424,7 @@ position."
                         ('nil
                          (if (and retry (<= word-start retry subword-end))
                              (setq retry-start word-start retry-end subword-end retry nil)
-                           (overlay-put (make-overlay word-start subword-end) 'category 'jinx))))
+                           (overlay-put (make-overlay word-start subword-end) 'category 'jinx-overlay))))
                       (setq word-start subword-end)))))
               (remove-list-of-text-properties start end '(jinx--pending))
               (when retry-start
