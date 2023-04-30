@@ -437,7 +437,7 @@ position."
 If VISIBLE is non-nil, only include visible overlays."
   (let ((pt (point)) before overlays)
     (dolist (ov (overlays-in start end))
-      (when (and (eq (overlay-get ov 'category) 'jinx)
+      (when (and (eq (overlay-get ov 'category) 'jinx-overlay)
                  (not (and visible (invisible-p (overlay-start ov)))))
         (push ov overlays)))
     (setq overlays
@@ -466,7 +466,7 @@ If CHECK is non-nil, always check first."
 (defun jinx--delete-overlays (start end)
   "Delete overlays between START and END."
   (dolist (ov (overlays-in start end))
-    (when (eq 'jinx (overlay-get ov 'category))
+    (when (eq (overlay-get ov 'category) 'jinx-overlay)
       (delete-overlay ov))))
 
 (defun jinx--cleanup ()
@@ -601,7 +601,7 @@ If CHECK is non-nil, always check first."
     (save-restriction
       (widen)
       (dolist (ov (overlays-in (point-min) (point-max)))
-        (when (eq (overlay-get ov 'category) 'jinx)
+        (when (eq (overlay-get ov 'category) 'jinx-overlay)
           (goto-char (overlay-end ov))
           (when (jinx--word-valid-p (overlay-start ov))
             (delete-overlay ov)))))))
