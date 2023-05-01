@@ -198,14 +198,23 @@ checking."
 
 ;;;; Keymaps
 
-(defvar-keymap jinx-misspelled-map
+(defvar-keymap jinx-overlay-map
   :doc "Keymap attached to misspelled words."
   "<mouse-1>" #'jinx-correct
   "M-n" #'jinx-next
   "M-p" #'jinx-previous
   "M-$" #'jinx-correct)
 
-(fset 'jinx-misspelled-map jinx-misspelled-map)
+(fset 'jinx-overlay-map jinx-overlay-map)
+
+(defvar-keymap jinx-repeat-map
+  :doc "Repeat keymap for navigation commands."
+  :repeat (:enter (jinx-next jinx-previous))
+  "M-n" #'jinx-next
+  "M-p" #'jinx-previous
+  "n" #'jinx-next
+  "p" #'jinx-previous
+  "$" #'jinx-correct)
 
 (defvar-keymap jinx-mode-map
   :doc "Keymap used when Jinx is active.")
@@ -309,7 +318,7 @@ Predicate may return a position to skip forward.")
 (put 'jinx-overlay 'modification-hooks    (list #'jinx--overlay-modified))
 (put 'jinx-overlay 'insert-in-front-hooks (list #'jinx--overlay-modified))
 (put 'jinx-overlay 'insert-behind-hooks   (list #'jinx--overlay-modified))
-(put 'jinx-overlay 'keymap                'jinx-misspelled-map)
+(put 'jinx-overlay 'keymap                'jinx-overlay-map)
 
 ;;;; Predicates
 
