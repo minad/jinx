@@ -209,7 +209,7 @@ checking."
 
 (defvar-keymap jinx-repeat-map
   :doc "Repeat keymap for navigation commands."
-  :repeat (:enter (jinx-next jinx-previous))
+  :repeat (:exit (jinx-correct))
   "M-n" #'jinx-next
   "M-p" #'jinx-previous
   "n" #'jinx-next
@@ -816,6 +816,7 @@ If prefix argument ALL non-nil correct all misspellings."
   (interactive "*P")
   (unless jinx-mode (jinx-mode 1))
   (cl-letf (((symbol-function #'jinx--timer-handler) #'ignore) ;; Inhibit
+            (repeat-mode nil) ;; No repeating of jinx-next and jinx-previous
             (old-point (and (not all) (point-marker))))
     (unwind-protect
           (let* ((overlays
