@@ -9,6 +9,7 @@
 - Bind =M-n= and =M-p= to =jinx-next/previous= in =jinx-misspelled-map=.
 - Bind =M-$= to =jinx-correct= in the =jinx-misspelled-map=.
 - 🪄 Make sure that Emojis are not marked as misspelled 🧙🏼‍♀️.
+- Rename category of Jinx overlays to =jinx-overlay=.
 
 * Version 0.8 (2023-04-28)
 
