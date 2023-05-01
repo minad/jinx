@@ -89,25 +89,32 @@ A sample configuration with the popular =use-package= macro is shown here:
 * Correcting misspellings
 
 After invoking the command =jinx-correct=, suggested corrections are displayed as
-a completion menu. You can press digit keys to quickly select a suggestion.
-Furthermore the menu offers options to save the word temporarily for the current
-session, in the personal dictionary or in the file-local variables. Note that
-you can enter arbitrary input at the correction prompt in order to make the
-correction. The keys =M-n= (=M-p=) are bound to =jinx-next= and =jinx-previous= and
-allow you to move the next (previous) misspelling from inside the =jinx-correct=
-prompt.
+a completion menu. You can press the displayed digit keys to quickly select a
+suggestion. Furthermore the menu offers options to save the word temporarily for
+the current session, in the personal dictionary or in the file-local variables.
+
+Note that you can enter arbitrary input at the correction prompt in order to
+make the correction or to store a modified word in the personal dictionary.
+For example if you typed =alotriomorpc=, the prompt offers you the option
+=@alotriomorpc= which would add this word to your personal dictionary upon
+selection. You can then correct the option to =@allotriomorphic= and add it to the
+dictionary.
 
 The completion menu is compatible with all popular completion UIs: Vertico, Mct,
 Icomplete, Ivy, Helm and of course default completion. In case you use Vertico I
 suggest that you tweak the completion display via =vertico-multiform-mode= for the
 completion category =jinx=. You can for example use the grid display such that
-more suggestions fit on the screen.
+more suggestions fit on the screen and enable annotations.
 
 #+begin_src emacs-lisp
 (add-to-list 'vertico-multiform-categories
              '(jinx grid (vertico-grid-annotate . 25)))
 (vertico-multiform-mode 1)
 #+end_src
+
+While inside the =jinx-correct= prompt, the keys =M-n= and =M-p= are bound to
+=jinx-next= and =jinx-previous= respectively and allow you to move the next and
+previous misspelled word.
 
 * Navigating between misspellings
 
@@ -117,10 +124,10 @@ navigate to the next and previous misspelling respectively.
 
 These commands can also be used outside the minibuffer context. While the
 commands are not bound globally by default, they are available as =M-n= and =M-p= if
-point is placed on top of a misspelled word overlay. If you want you can also
-bind them in the =jinx-mode-map=, such that they are always available independent
-of point placement. If =repeat-mode= from Emacs 28 is enabled, the movement can be
-repeated with the keys =n= and =p=.
+point is placed on top of a misspelled word overlay. If you want you can add
+them and other commands to the =jinx-mode-map=, such that they are always
+available independent of point placement. If =repeat-mode= from Emacs 28 is
+enabled, the movement can be repeated with the keys =n= and =p=.
 
 * Enchant backends and personal dictionaries
 
