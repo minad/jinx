@@ -216,9 +216,6 @@ checking."
   "p" #'jinx-previous
   "$" #'jinx-correct)
 
-(defvar-keymap jinx-mode-map
-  :doc "Keymap used when Jinx is active.")
-
 (defvar-keymap jinx-correct-map
   :doc "Keymap active in the correction minibuffer."
   "SPC" #'self-insert-command
@@ -228,6 +225,9 @@ checking."
   "0 <t>" #'jinx-correct-select)
 (dotimes (i 9)
   (define-key jinx-correct-map (vector (+ ?1 i)) #'jinx-correct-select))
+
+(defvar-keymap jinx-mode-map
+  :doc "Keymap used when Jinx is active.")
 
 (easy-menu-define jinx-mode-menu jinx-mode-map
   "Menu used when Jinx is active."
