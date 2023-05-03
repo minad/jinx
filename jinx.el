@@ -499,7 +499,7 @@ If CHECK is non-nil, always check first."
 (defun jinx--get-org-language ()
   "Get language from Org #+language keyword."
   (when (and (not (local-variable-p 'jinx-languages))
-             (derived-mode-p 'org-mode))
+             (derived-mode-p #'org-mode))
     (save-excursion
       (save-match-data
         (goto-char (point-min))
@@ -887,7 +887,7 @@ If prefix argument ALL non-nil correct all misspellings."
           jinx--include-faces (jinx--mode-list jinx-include-faces)
           jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
           jinx--camel (or (eq jinx-camel-modes t)
-                          (seq-some #'derived-mode-p jinx-camel-modes))
+                          (apply #'derived-mode-p jinx-camel-modes))
           jinx--session-words (split-string jinx-local-words))
     (jinx--load-dicts)
     (add-hook 'window-state-change-hook #'jinx--reschedule nil t)
@@ -913,7 +913,7 @@ If prefix argument ALL non-nil correct all misspellings."
   (when (and (not (or noninteractive
                       buffer-read-only
                       (eq (aref (buffer-name) 0) ?\s)))
-             (seq-some #'derived-mode-p jinx-include-modes))
+             (apply #'derived-mode-p jinx-include-modes))
     (jinx-mode 1)))
 
 (provide 'jinx)
