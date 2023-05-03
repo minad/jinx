@@ -135,7 +135,12 @@ Set to t to enable camelCase everywhere."
     (emacs-lisp-mode
      font-lock-constant-face font-lock-warning-face)
     (message-mode
-     message-header-name))
+     message-header-cc
+     message-header-name
+     message-header-newsgroups
+     message-header-other
+     message-header-to
+     message-header-xheader))
   "Alist of faces per major mode.
 These faces mark regions which should be excluded in spell
 checking."
