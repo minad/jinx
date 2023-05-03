@@ -106,20 +106,16 @@ Set to t to enable camelCase everywhere."
   '((markdown-mode
      markdown-code-face markdown-html-attr-name-face
      markdown-html-attr-value-face markdown-html-tag-name-face
-     markdown-inline-code-face markdown-link-face
-     markdown-markup-face markdown-plain-url-face
-     markdown-reference-face markdown-url-face)
+     markdown-inline-code-face markdown-link-face markdown-markup-face
+     markdown-plain-url-face markdown-reference-face markdown-url-face)
     (org-mode
-     org-block org-block-begin-line org-block-end-line
-     org-code org-cite org-cite-key org-date org-footnote
-     org-formula org-latex-and-related org-link org-meta-line
-     org-property-value org-ref-cite-face org-special-keyword
-     org-tag org-todo org-todo-keyword-done
-     org-todo-keyword-habt org-todo-keyword-kill
-     org-todo-keyword-outd org-todo-keyword-todo
-     org-todo-keyword-wait org-verbatim
-     org-modern-tag org-modern-date-active
-     org-modern-date-inactive)
+     org-block org-block-begin-line org-block-end-line org-code org-cite
+     org-cite-key org-date org-footnote org-formula org-latex-and-related
+     org-link org-meta-line org-property-value org-ref-cite-face
+     org-special-keyword org-tag org-todo org-todo-keyword-done
+     org-todo-keyword-habt org-todo-keyword-kill org-todo-keyword-outd
+     org-todo-keyword-todo org-todo-keyword-wait org-verbatim org-modern-tag
+     org-modern-date-active org-modern-date-inactive)
     (tex-mode
      tex-math font-latex-math-face font-latex-sedate-face
      font-latex-verbatim-face font-lock-function-name-face
@@ -128,19 +124,14 @@ Set to t to enable camelCase everywhere."
      font-lock-function-name-face font-lock-keyword-face
      font-lock-variable-name-face)
     (rst-mode
-     rst-literal rst-external rst-directive rst-definition
-     rst-reference)
+     rst-literal rst-external rst-directive rst-definition rst-reference)
     (sgml-mode
      font-lock-function-name-face font-lock-variable-name-face)
     (emacs-lisp-mode
      font-lock-constant-face font-lock-warning-face)
     (message-mode
-     message-header-cc
-     message-header-name
-     message-header-newsgroups
-     message-header-other
-     message-header-to
-     message-header-xheader))
+     message-header-cc message-header-name message-header-newsgroups
+     message-header-other message-header-to message-header-xheader))
   "Alist of faces per major mode.
 These faces mark regions which should be excluded in spell
 checking."
