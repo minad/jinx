@@ -72,7 +72,8 @@ over that key from the default assignment to =ispell-word=. Since Jinx is
 independent of the Ispell package, =M-$= can be re-used.
 
 #+begin_src emacs-lisp
-(keymap-global-set "<remap> <ispell-word>" #'jinx-correct)
+(keymap-global-set "M-$" #'jinx-correct)
+(keymap-global-set "C-M-$" #'jinx-languages)
 #+end_src
 
 - =M-$= triggers correction for the misspelled word before point.
@@ -83,7 +84,8 @@ A sample configuration with the popular =use-package= macro is shown here:
 #+begin_src emacs-lisp
 (use-package jinx
   :hook (emacs-startup . global-jinx-mode)
-  :bind ([remap ispell-word] . jinx-correct))
+  :bind (("M-$" . jinx-correct)
+         ("C-M-$" . jinx-languages)))
 #+end_src
 
 * Correcting misspellings
