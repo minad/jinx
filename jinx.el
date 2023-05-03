@@ -185,7 +185,7 @@ checking."
   "Face used to highlight current misspelling during correction.")
 
 (defface jinx-save
-  '((t :inherit font-lock-builtin-face))
+  '((t :inherit font-lock-negation-char-face))
   "Face used for the save actions during correction.")
 
 (defface jinx-key
