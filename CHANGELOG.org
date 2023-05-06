@@ -12,6 +12,7 @@
 - Add =jinx-repeat-map=.
 - Rename category of Jinx overlays to =jinx-overlay=.
 - Rename =jinx-misspelled-map= to =jinx-overlay-map=.
+- Add many more language modes to =jinx-camel-modes=.
 
 * Version 0.8 (2023-04-28)
 
