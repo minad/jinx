@@ -94,7 +94,7 @@ checking."
   :type '(alist :key-type symbol :value-type (repeat face)))
 
 (defcustom jinx-camel-modes
-  '(java-mode js-mode java-ts-mode javascript-ts-mode ruby-mode ruby-ts-mode
+  '(java-mode java-ts-mode js-mode js-ts-mode ruby-mode ruby-ts-mode
     rust-mode rust-ts-mode haskell-mode kotlin-mode swift-mode csharp-mode
     csharp-ts-mode objc-mode typescript-ts-mode typescript-mode python-mode
     python-ts-mode dart-mode go-mode go-ts-mode scala-mode groovy-mode)
