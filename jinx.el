@@ -349,6 +349,11 @@ Predicate may return a position to skip forward.")
 
 ;;;; Internal functions
 
+(defun jinx--in-base-buffer (&rest app)
+  "Apply APP in `buffer-base-buffer', as required by `jit-lock' functions."
+  (with-current-buffer (or (buffer-base-buffer) (current-buffer))
+    (apply app)))
+
 (defun jinx--overlay-modified (overlay &rest _)
   "Delete modified OVERLAY.
 This function is a modification hook for the overlay."
@@ -461,8 +466,7 @@ If CHECK is non-nil, always check first."
         ;; FIXME `with-delayed-message' is broken in combination with
         ;; `inhibit-message'. Report this as a bug.
         (progn ;; with-delayed-message (1 "Fontifying...")
-          (with-current-buffer (or (buffer-base-buffer) (current-buffer))
-            (jit-lock-fontify-now)))
+          (jinx--in-base-buffer #'jit-lock-fontify-now))
         (progn ;; with-delayed-message (1 "Checking...")
           (jinx--check-region start end))
         (jinx--get-overlays start end visible))
@@ -482,7 +486,7 @@ If CHECK is non-nil, always check first."
       (widen)
       (jinx--delete-overlays (point-min) (point-max))
       (remove-list-of-text-properties (point-min) (point-max) '(jinx--pending))
-      (jit-lock-refontify))))
+      (jinx--in-base-buffer #'jit-lock-refontify))))
 
 (defun jinx--mark-pending (start end)
   "Mark region between START and END as pending."
@@ -836,7 +840,7 @@ If prefix argument ALL non-nil correct all misspellings."
                         ((integerp skip) (setq idx (mod (+ idx skip) count)))
                         ((or all deleted) (cl-incf idx)))))))
       (when old-point (goto-char old-point))
-      (jit-lock-refontify))))
+      (jinx--in-base-buffer #'jit-lock-refontify))))
 
 (defun jinx-correct-select ()
   "Quick selection key for corrections."
