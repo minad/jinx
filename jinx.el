@@ -87,7 +87,13 @@
                font-lock-doc-face
                font-lock-string-face)
     (conf-mode font-lock-comment-face
-               font-lock-string-face))
+               font-lock-string-face)
+    ;; yaml-mode and yaml-ts-mode are text-modes,
+    ;; while they should better be conf- or prog-modes.
+    (yaml-mode font-lock-comment-face
+               font-lock-string-face)
+    (yaml-ts-mode font-lock-comment-face
+                  font-lock-string-face))
   "Alist of faces per major mode.
 These faces mark regions which should be included in spell
 checking."
