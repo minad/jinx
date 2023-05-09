@@ -42,7 +42,7 @@ Ruby or Rust are listed in =jinx-camel-modes=. For these modes composite words i
 
 * Installation
 
-Jinx can be installed from GNU ELPA and MELPA directly or with =package-install=.
+Jinx can be installed from GNU ELPA or MELPA directly with =package-install=.
 
 Jinx requires =libenchant=. Enchant library is a required dependency for Jinx to
 compile its module at install time. If =pkg-config= is available when installing
