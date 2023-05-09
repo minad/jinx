@@ -461,7 +461,8 @@ If CHECK is non-nil, always check first."
         ;; FIXME `with-delayed-message' is broken in combination with
         ;; `inhibit-message'. Report this as a bug.
         (progn ;; with-delayed-message (1 "Fontifying...")
-          (jit-lock-fontify-now))
+          (with-current-buffer (or (buffer-base-buffer) (current-buffer))
+            (jit-lock-fontify-now)))
         (progn ;; with-delayed-message (1 "Checking...")
           (jinx--check-region start end))
         (jinx--get-overlays start end visible))
