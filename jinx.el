@@ -295,6 +295,7 @@ Predicate may return a position to skip forward.")
 
 ;;;; Declarations for the bytecode compiler
 
+(defvar repeat-mode)
 (defvar jinx-mode)
 (declare-function jinx--mod-check nil)
 (declare-function jinx--mod-add nil)
@@ -816,29 +817,29 @@ With prefix argument GLOBAL change the languages globally."
 If prefix argument ALL non-nil correct all misspellings."
   (interactive "*P")
   (unless jinx-mode (jinx-mode 1))
-  (cl-letf (((symbol-function #'jinx--timer-handler) #'ignore) ;; Inhibit
-            (repeat-mode nil) ;; No repeating of jinx-next and jinx-previous
-            (old-point (and (not all) (point-marker))))
+  (cl-letf* (((symbol-function #'jinx--timer-handler) #'ignore) ;; Inhibit
+             (repeat-mode nil) ;; No repeating of jinx-next and jinx-previous
+             (old-point (and (not all) (point-marker)))
+             (overlays
+              (if all
+                  (jinx--force-overlays (point-min) (point-max) :check t)
+                (jinx--force-overlays (window-start) (window-end) :visible t)))
+             (count (length overlays))
+             (idx 0))
+    (when all
+      (push-mark))
     (unwind-protect
-          (let* ((overlays
-                  (if all
-                      (jinx--force-overlays (point-min) (point-max) :check t)
-                    (jinx--force-overlays (window-start) (window-end) :visible t)))
-                 (count (length overlays))
-                 (idx 0))
-            (when all
-              (push-mark))
-            (while (when-let ((ov (nth idx overlays)))
-                     (let* ((deleted (not (overlay-buffer ov)))
-                            (skip
-                             (catch 'jinx--goto
-                               (unless deleted
-                                 (jinx--correct
-                                  ov all
-                                  (and all (format " (%d of %d)" (1+ idx) count)))))))
-                       (cond
-                        ((integerp skip) (setq idx (mod (+ idx skip) count)))
-                        ((or all deleted) (cl-incf idx)))))))
+        (while (when-let ((ov (nth idx overlays)))
+                 (let* ((deleted (not (overlay-buffer ov)))
+                        (skip
+                         (catch 'jinx--goto
+                           (unless deleted
+                             (jinx--correct
+                              ov all
+                              (and all (format " (%d of %d)" (1+ idx) count)))))))
+                   (cond
+                    ((integerp skip) (setq idx (mod (+ idx skip) count)))
+                    ((or all deleted) (cl-incf idx))))))
       (when old-point (goto-char old-point))
       (jinx--in-base-buffer #'jit-lock-refontify))))
 
