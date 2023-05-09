@@ -464,12 +464,11 @@ If VISIBLE is non-nil, only include visible overlays.
 If CHECK is non-nil, always check first."
   (or (and (not check) (jinx--get-overlays start end visible))
       (progn
-        ;; FIXME `with-delayed-message' is broken in combination with
-        ;; `inhibit-message'. Report this as a bug.
-        (progn ;; with-delayed-message (1 "Fontifying...")
-          (jinx--in-base-buffer #'jit-lock-fontify-now))
-        (progn ;; with-delayed-message (1 "Checking...")
-          (jinx--check-region start end))
+        (let (set-message-function) ;; bug#63253: Broken `with-delayed-message'
+          (with-delayed-message (1 "Fontifying...")
+            (jinx--in-base-buffer #'jit-lock-fontify-now))
+          (with-delayed-message (1 "Checking...")
+            (jinx--check-region start end)))
         (jinx--get-overlays start end visible))
       (user-error (if visible "No misspelling in visible text"
                     "No misspelling in whole buffer"))))
