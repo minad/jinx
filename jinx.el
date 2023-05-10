@@ -757,7 +757,7 @@ If SAVE is non-nil save, otherwise format candidate given action KEY."
     (cl-loop
      for dict in jinx--dicts for idx from 1
      for at = (make-string idx key)
-     for ann = (format "Personal ‘%s’" (car (jinx--mod-describe dict))) nconc
+     for ann = (format "Personal:%s" (car (jinx--mod-describe dict))) nconc
      (delete-consecutive-dups
       (list (jinx--save-action at word ann)
             (jinx--save-action at (downcase word) ann))))))
