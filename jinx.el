@@ -922,6 +922,7 @@ If prefix argument ALL non-nil correct all misspellings."
   "Turn `jinx-mode' on."
   (when (and (not (or noninteractive
                       buffer-read-only
+                      (buffer-base-buffer) ;; Do not enable in indirect buffers
                       (eq (aref (buffer-name) 0) ?\s)))
              (apply #'derived-mode-p jinx-include-modes))
     (jinx-mode 1)))
