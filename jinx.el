@@ -885,6 +885,9 @@ If prefix argument ALL non-nil correct all misspellings."
   :group 'jinx
   :keymap jinx-mode-map
   (cond
+   ((buffer-base-buffer) ;; Do not enable in indirect buffers
+    (when jinx-mode
+      (jinx-mode -1)))
    (jinx-mode
     (jinx--load-module)
     (let ((enable-local-variables :safe))
