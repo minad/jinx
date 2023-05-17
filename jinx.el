@@ -861,6 +861,7 @@ If prefix argument ALL non-nil correct all misspellings."
     (delete-minibuffer-contents)
     (insert word)
     (exit-minibuffer)))
+(put #'jinx-correct-select 'completion-predicate #'ignore)
 
 (defun jinx-next (n)
   "Go to to Nth next misspelling."
