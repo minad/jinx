@@ -117,11 +117,12 @@ Set to t to enable camelCase everywhere."
     (org-mode
      org-block org-block-begin-line org-block-end-line org-code org-cite
      org-cite-key org-date org-footnote org-formula org-latex-and-related
-     org-link org-meta-line org-property-value org-ref-cite-face
+     org-link org-macro org-meta-line org-property-value org-ref-cite-face
      org-special-keyword org-tag org-todo org-todo-keyword-done
      org-todo-keyword-habt org-todo-keyword-kill org-todo-keyword-outd
-     org-todo-keyword-todo org-todo-keyword-wait org-verbatim org-modern-tag
-     org-modern-date-active org-modern-date-inactive)
+     org-todo-keyword-todo org-todo-keyword-wait org-verbatim
+     ;; org-modern
+     org-modern-tag org-modern-date-active org-modern-date-inactive)
     (tex-mode
      tex-math font-latex-math-face font-latex-sedate-face
      font-latex-verbatim-face font-lock-function-name-face
