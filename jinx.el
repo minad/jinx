@@ -473,7 +473,7 @@ If CHECK is non-nil, always check first."
       (progn
         (let (set-message-function) ;; bug#63253: Broken `with-delayed-message'
           (with-delayed-message (1 "Fontifying...")
-            (jinx--in-base-buffer #'jit-lock-fontify-now))
+            (jinx--in-base-buffer #'jit-lock-fontify-now start end))
           (with-delayed-message (1 "Checking...")
             (jinx--check-region start end)))
         (jinx--get-overlays start end visible))
