@@ -423,11 +423,11 @@ position."
                   ;; No quote or apostrophe at start or end
                   (while (and (< word-start word-end)
                               (let ((c (char-after word-start)))
-                                (or (= c 39) (= c 8217))))
+                                (or (= c ?') (= c ?’))))
                     (cl-incf word-start))
                   (while (and (< word-start word-end)
                               (let ((c (char-before word-end)))
-                                (or (= c 39) (= c 8217))))
+                                (or (= c ?') (= c ?’))))
                     (cl-decf word-end))
                   (while (< word-start word-end)
                     (let ((subword-end word-end))
@@ -734,6 +734,7 @@ If CHECK is non-nil, always check first."
     (cl-loop for c across (jinx--mod-wordchars dict) do
              (modify-syntax-entry c "w" jinx--syntax-table)))
   (modify-syntax-entry ?' "w" jinx--syntax-table)
+  (modify-syntax-entry ?’ "w" jinx--syntax-table)
   (modify-syntax-entry ?. "." jinx--syntax-table))
 
 ;;;; Save functions
