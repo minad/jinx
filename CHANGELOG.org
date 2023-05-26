@@ -13,6 +13,8 @@
 - Rename category of Jinx overlays to =jinx-overlay=.
 - Rename =jinx-misspelled-map= to =jinx-overlay-map=.
 - Add many more language modes to =jinx-camel-modes=.
+- Run =jinx-mode-hook= before spell checker setup, such that local variables can
+  be updated in time.
 
 * Version 0.8 (2023-04-28)
 

@@ -507,8 +507,8 @@ If CHECK is non-nil, always check first."
   (cl-loop for (mode . vals) in list
            if (or (eq mode t) (derived-mode-p mode)) append vals))
 
-(defun jinx--get-org-language ()
-  "Get language from Org #+language keyword."
+(defun jinx--use-org-language ()
+  "Use language from Org #+language keyword."
   (when (and (not (local-variable-p 'jinx-languages))
              (derived-mode-p #'org-mode))
     (save-excursion
@@ -516,6 +516,7 @@ If CHECK is non-nil, always check first."
         (goto-char (point-min))
         (when (re-search-forward "^ *#\\+language: +\\([a-z_]+\\) *$" nil t)
           (setq-local jinx-languages (match-string-no-properties 1)))))))
+(add-hook 'jinx-mode-hook #'jinx--use-org-language)
 
 (defun jinx--timer-handler ()
   "Global timer handler, checking the pending regions in all windows."
@@ -727,9 +728,18 @@ If CHECK is non-nil, always check first."
     (insert-before-markers word)
     (delete-region start end)))
 
-(defun jinx--load-dicts ()
-  "Load dictionaries and setup syntax table."
-  (setq jinx--dicts (delq nil (mapcar #'jinx--mod-dict
+(defun jinx--setup ()
+  "Setup internal state and load dictionaries."
+  (setq jinx--exclude-regexp
+        (when-let ((regexps (jinx--mode-list jinx-exclude-regexps)))
+          (mapconcat (lambda (r) (format "\\(?:%s\\)" r))
+                     regexps "\\|"))
+        jinx--include-faces (jinx--mode-list jinx-include-faces)
+        jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
+        jinx--camel (or (eq jinx-camel-modes t)
+                        (apply #'derived-mode-p jinx-camel-modes))
+        jinx--session-words (split-string jinx-local-words)
+        jinx--dicts (delq nil (mapcar #'jinx--mod-dict
                                       (split-string jinx-languages)))
         jinx--syntax-table (make-syntax-table jinx--base-syntax-table))
   (unless jinx--dicts
@@ -819,7 +829,7 @@ With prefix argument GLOBAL change the languages globally."
                    (y-or-n-p "Save `jinx-languages' as file-local variable? ")))
       (add-file-local-variable 'jinx-languages jinx-languages)
       (setf (alist-get 'jinx-languages file-local-variables-alist) jinx-languages))))
-  (jinx--load-dicts)
+  (jinx--setup)
   (jinx--cleanup))
 
 ;;;###autoload
@@ -891,25 +901,13 @@ If prefix argument ALL non-nil correct all misspellings."
   :lighter (:eval (concat " Jinx[" jinx-languages "]"))
   :group 'jinx
   :keymap jinx-mode-map
+  :after-hook (when jinx-mode (jinx--setup))
   (cond
    ((buffer-base-buffer) ;; Do not enable in indirect buffers
-    (when jinx-mode
-      (jinx-mode -1)))
+    (when jinx-mode (jinx-mode -1)))
    (jinx-mode
     (jinx--load-module)
-    (let ((enable-local-variables :safe))
-      (hack-local-variables))
-    (jinx--get-org-language)
-    (setq jinx--exclude-regexp
-          (when-let ((regexps (jinx--mode-list jinx-exclude-regexps)))
-            (mapconcat (lambda (r) (format "\\(?:%s\\)" r))
-                       regexps "\\|"))
-          jinx--include-faces (jinx--mode-list jinx-include-faces)
-          jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
-          jinx--camel (or (eq jinx-camel-modes t)
-                          (apply #'derived-mode-p jinx-camel-modes))
-          jinx--session-words (split-string jinx-local-words))
-    (jinx--load-dicts)
+    (let ((enable-local-variables :safe)) (hack-local-variables))
     (add-hook 'window-state-change-hook #'jinx--reschedule nil t)
     (add-hook 'window-scroll-functions #'jinx--reschedule nil t)
     (add-hook 'post-command-hook #'jinx--reschedule nil t)
