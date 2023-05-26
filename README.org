@@ -45,12 +45,14 @@ Ruby or Rust are listed in =jinx-camel-modes=. For these modes composite words i
 Jinx can be installed from GNU ELPA or MELPA directly with =package-install=.
 
 Jinx requires =libenchant=. Enchant library is a required dependency for Jinx to
-compile its module at install time. If =pkg-config= is available when installing
-Jinx, Jinx will use =pkg-config= to locate =libenchant=. Depending on your operating
-system and Linux distribution you have to install different packages:
+compile its module at install time. If =pkgconf= or =pkg-config= is available when
+installing Jinx, Jinx will use it to locate =libenchant=. Depending on your
+operating system and Linux distribution you have to install different packages:
 
-- Debian or Ubuntu: =libenchant-2-dev=, =pkg-config=
-- Fedora or RHEL: =enchant2-devel=
+- Debian or Ubuntu: =libenchant-2-dev=, =pkgconf= or =pkg-config=
+- Guix: =enchant=, =pkgconf=
+- Arch: =enchant=, =pkgconf=
+- Fedora or RHEL: =enchant2-devel=, =pkgconf=
 - Mac: =enchant2=, =pkgconfig=
 
 * Configuration
