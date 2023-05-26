@@ -830,7 +830,7 @@ If prefix argument ALL non-nil correct all misspellings."
   (unless jinx-mode (jinx-mode 1))
   (cl-letf* (((symbol-function #'jinx--timer-handler) #'ignore) ;; Inhibit
              (repeat-mode nil) ;; No repeating of jinx-next and jinx-previous
-             (old-point (and (not all) (point-marker)))
+             (old-point (point-marker))
              (overlays
               (if all
                   (jinx--force-overlays (point-min) (point-max) :check t)
@@ -851,9 +851,9 @@ If prefix argument ALL non-nil correct all misspellings."
                    (cond
                     ((integerp skip) (setq idx (mod (+ idx skip) count)))
                     ((or all deleted) (cl-incf idx))))))
-      (when old-point (goto-char old-point))
       (if all
           (jinx--in-base-buffer #'jit-lock-refontify)
+        (goto-char old-point)
         (jinx--in-base-buffer #'jit-lock-refontify (window-start) (window-end))))))
 
 (defun jinx-correct-select ()
