@@ -852,7 +852,7 @@ If prefix argument ALL non-nil correct all misspellings."
                     ((integerp skip) (setq idx (mod (+ idx skip) count)))
                     ((or all deleted) (cl-incf idx))))))
       (when old-point (goto-char old-point))
-      (jinx--in-base-buffer #'jit-lock-refontify))))
+      (jinx--in-base-buffer #'jit-lock-refontify (window-start) (window-end)))))
 
 (defun jinx-correct-select ()
   "Quick selection key for corrections."
