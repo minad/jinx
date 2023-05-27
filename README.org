@@ -52,6 +52,7 @@ operating system and Linux distribution you have to install different packages:
 - Debian or Ubuntu: =libenchant-2-dev=, =pkgconf=
 - Guix: =enchant=, =pkgconf=
 - Arch: =enchant=, =pkgconf=
+- Gentoo: =enchant=, =pkgconf=
 - Void: =enchant2-devel=, =pkgconf=
 - Fedora or RHEL: =enchant2-devel=, =pkgconf=
 - FreeBSD, OpenBSD: =enchant2=, =pkgconf=
