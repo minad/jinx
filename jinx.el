@@ -694,14 +694,15 @@ If CHECK is non-nil, always check first."
                    (annotation-function . jinx--correct-annotation))
       (complete-with-action action word str pred))))
 
-(defun jinx--correct (overlay recenter info)
-  "Correct word at OVERLAY, maybe RECENTER and show prompt INFO."
+(defun jinx--correct (overlay info)
+  "Correct word at OVERLAY, maybe show prompt INFO."
   (let* ((word (buffer-substring-no-properties
                 (overlay-start overlay) (overlay-end overlay)))
          (choice
           (jinx--correct-highlight overlay
             (lambda ()
-              (when recenter (recenter))
+              (when (or (< (point) (window-start)) (> (point) (window-end nil t)))
+                (recenter))
               (minibuffer-with-setup-hook
                   #'jinx--correct-setup
                 (or (completing-read
@@ -846,8 +847,7 @@ If prefix argument ALL non-nil correct all misspellings."
                          (catch 'jinx--goto
                            (unless deleted
                              (jinx--correct
-                              ov all
-                              (and all (format " (%d of %d)" (1+ idx) count)))))))
+                              ov (and all (format " (%d of %d)" (1+ idx) count)))))))
                    (cond
                     ((integerp skip) (setq idx (mod (+ idx skip) count)))
                     ((or all deleted) (cl-incf idx))))))
