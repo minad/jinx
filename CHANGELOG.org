@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 0.9 (2023-07-02)
 
 - 🪄 Make sure that Emojis are not marked as misspelled 🧙🏼‍♀️.
 - Rename =jinx-correct-next/previous= to =jinx-next/previous=. The commands can be
