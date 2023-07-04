@@ -811,6 +811,7 @@ With prefix argument GLOBAL change the languages globally."
            (user-error "No languages selected"))
        " "))
     current-prefix-arg))
+  (unless jinx-mode (jinx-mode 1))
   (cond
    (global
     (kill-local-variable 'jinx-languages)
