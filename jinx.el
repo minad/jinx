@@ -845,15 +845,15 @@ If prefix argument ALL non-nil correct all misspellings."
       (push-mark))
     (unwind-protect
         (while (when-let ((ov (nth idx overlays)))
-                 (let* ((deleted (not (overlay-buffer ov)))
-                        (skip
-                         (catch 'jinx--goto
-                           (unless deleted
-                             (jinx--correct
-                              ov (and all (format " (%d of %d)" (1+ idx) count)))))))
-                   (cond
-                    ((integerp skip) (setq idx (mod (+ idx skip) count)))
-                    ((or all deleted) (cl-incf idx))))))
+                 (if (not (overlay-buffer ov))
+                     (cl-incf idx) ;; Skip deleted overlay
+                   (let ((skip
+                          (catch 'jinx--goto
+                            (jinx--correct
+                             ov (and all (format " (%d of %d)" (1+ idx) count))))))
+                     (cond
+                      ((integerp skip) (setq idx (mod (+ idx skip) count)))
+                      (all (cl-incf idx)))))))
       (unless all
         (goto-char old-point)))))
 
