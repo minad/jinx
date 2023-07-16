@@ -168,9 +168,8 @@ following three alternative packages come closest to the behavior of Jinx.
 
 - [[https://github.com/astoff/jit-spell][jit-spell]]: Jinx UI borrows ideas from Augusto Stoffel's Jit-spell. Jit-spell
   uses the less efficient Ispell process communication instead Jinx's calling
-  native API. Since Jit-spell highlights misspellings in the entire buffer and
-  does not confine to just the visible text, Jit-spell affected load and latency
-  negatively in my tests ([[https://github.com/astoff/jit-spell/issues/9][issue on Github]]).
+  a native API. Since Jit-spell does not restrict spell checking to the visible text only, it may enqueue the entire buffer too eagerly for checking. This can happen when scrolling around or when stealth font locking is enabled. For this reason, Jit-spell affected load and latency
+  in my tests ([[https://github.com/astoff/jit-spell/issues/9][issue on Github]]).
 
 - [[https://codeberg.org/ideasman42/emacs-spell-fu][spell-fu]]: The idea to check words just in the visible text came from Campbell
   Barton's spell-fu package. Spell-fu is fast but incurs high memory overhead on
