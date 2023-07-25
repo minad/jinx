@@ -49,14 +49,10 @@ compile its module at install time. If =pkgconf= or =pkg-config= is available wh
 installing Jinx, Jinx will use it to locate =libenchant=. Depending on your
 operating system and Linux distribution you have to install different packages:
 
-- Debian or Ubuntu: =libenchant-2-dev=, =pkgconf=
-- Guix: =enchant=, =pkgconf=
-- Arch: =enchant=, =pkgconf=
-- Gentoo: =enchant=, =pkgconf=
-- Void: =enchant2-devel=, =pkgconf=
-- Fedora or RHEL: =enchant2-devel=, =pkgconf=
-- FreeBSD, OpenBSD: =enchant2=, =pkgconf=
-- Mac: =enchant2=, =pkgconf=
+- Debian, Ubuntu: =libenchant-2-dev=, =pkgconf=
+- Guix, Arch, Gentoo: =enchant=, =pkgconf=
+- Void, Fedora: =enchant2-devel=, =pkgconf=
+- FreeBSD, OpenBSD, Mac: =enchant2=, =pkgconf=
 
 * Configuration
 
