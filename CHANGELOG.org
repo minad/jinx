@@ -2,6 +2,11 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Development
+
+- Allow capitalized form of a word if non-capitalized word is stored in the
+  session word list.
+
 * Version 0.9 (2023-07-02)
 
 - 🪄 Make sure that Emojis are not marked as misspelled 🧙🏼‍♀️.

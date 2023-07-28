@@ -352,8 +352,15 @@ Predicate may return a position to skip forward.")
 
 (defun jinx--word-valid-p (start)
   "Return non-nil if word at START is valid."
-  (let ((word (buffer-substring-no-properties start (point))))
+  (let ((word (buffer-substring-no-properties start (point)))
+        case-fold-search)
     (or (member word jinx--session-words)
+        ;; Allow capitalized words
+        (and (string-match-p "\\`[[:upper:]]" word)
+             (cl-loop
+              for w in jinx--session-words
+              thereis (and (eq t (compare-strings word 0 1   w 0 1   t))
+                           (eq t (compare-strings word 1 nil w 1 nil nil)))))
         (cl-loop for dict in jinx--dicts
                  thereis (jinx--mod-check dict word)))))
 
