@@ -8,6 +8,7 @@
   session word list.
 - Replace =jinx-excluded-modes= with =global-jinx-modes=, the Emacs 28 convention
   for globalized minor modes.
+- =jinx-correct=: Offer session words as suggestions.
 
 * Version 0.9 (2023-07-02)
 
