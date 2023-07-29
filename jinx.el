@@ -162,6 +162,11 @@ checking."
   "List of modes included by `global-jinx-mode'."
   :type '(repeat symbol))
 
+(defcustom jinx-max-distance-for-suggestion
+  3
+  "Maximum edit distance for session words to be included in suggestions."
+  :type 'integer)
+
 (defvar-local jinx-local-words ""
   "File-local words, as a string separated by whitespace.")
 
@@ -642,34 +647,51 @@ If CHECK is non-nil, always check first."
                (not (bound-and-true-p icomplete-mode)))
       (minibuffer-completion-help))))
 
+(defun jinx--correct-suggestions-from-dict (word)
+  "Return suggestions for WORD from all dictionaries."
+  (cl-loop
+   with idx = 1
+   with ht = (make-hash-table :test #'equal)
+   for dict in jinx--dicts
+   for desc = (jinx--mod-describe dict)
+   for group = (format "Suggestions from dictionary ‘%s’ (%s)"
+                       (car desc) (cdr desc))
+   nconc
+   (cl-loop
+    for sugg in (jinx--mod-suggest dict word)
+    if (not (gethash sugg ht)) collect
+    (progn
+      (add-text-properties
+       0 (length sugg)
+       (list 'jinx--group group
+             'jinx--prefix
+             (cond ((< idx 10)
+                    (format #("%d " 0 3 (face jinx-key)) idx))
+                   ((< (- idx 10) (length jinx--select-keys))
+                    (format #("0%c " 0 4 (face jinx-key)) (aref jinx--select-keys (- idx 10))))))
+       sugg)
+      (cl-incf idx)
+      (puthash sugg t ht)
+      sugg))))
+
+(defun jinx--correct-suggestions-from-save-keys (word)
+  "Return suggestions for WORD from save keys."
+  (cl-loop for (key . fun) in jinx--save-keys nconc
+           (ensure-list (funcall fun nil key word))))
+
+(defun jinx--correct-suggestions-from-session-words (word)
+  "Return suggestions for WORD from session words."
+  (cl-loop
+   for session-word in jinx--session-words
+   if (<= (string-distance word session-word) jinx-max-distance-for-suggestion)
+   collect (propertize word 'jinx--group "Suggestions from session words")))
+
 (defun jinx--correct-suggestions (word)
   "Retrieve suggestions for WORD."
   (nconc
-   (cl-loop
-    with idx = 1
-    with ht = (make-hash-table :test #'equal)
-    for dict in jinx--dicts
-    for desc = (jinx--mod-describe dict)
-    for group = (format "Suggestions from dictionary ‘%s’ (%s)" (car desc) (cdr desc))
-    nconc
-    (cl-loop
-     for sugg in (jinx--mod-suggest dict word)
-     if (not (gethash sugg ht)) collect
-     (progn
-       (add-text-properties
-        0 (length sugg)
-        (list 'jinx--group group
-              'jinx--prefix
-              (cond ((< idx 10)
-                     (format #("%d " 0 3 (face jinx-key)) idx))
-                    ((< (- idx 10) (length jinx--select-keys))
-                     (format #("0%c " 0 4 (face jinx-key)) (aref jinx--select-keys (- idx 10))))))
-        sugg)
-       (cl-incf idx)
-       (puthash sugg t ht)
-       sugg)))
-   (cl-loop for (key . fun) in jinx--save-keys nconc
-            (ensure-list (funcall fun nil key word)))))
+   (jinx--correct-suggestions-from-local-words word)
+   (jinx--correct-suggestions-from-dict word)
+   (jinx--correct-suggestions-from-save-keys word)))
 
 (defun jinx--correct-affixation (cands)
   "Affixate CANDS during completion."
