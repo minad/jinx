@@ -108,13 +108,6 @@ checking."
 Set to t to enable camelCase everywhere."
   :type '(choice (const t) (repeat symbol)))
 
-(defcustom jinx-word-valid-predicates
-  (list
-   #'jinx--word-in-dict-p
-   #'jinx--word-in-session-words-p)
-  "List of predicates to check if a word is valid."
-  :type '(repeat function))
-
 (defcustom jinx-exclude-faces
   '((markdown-mode
      markdown-code-face markdown-html-attr-name-face
@@ -360,8 +353,8 @@ Predicate may return a position to skip forward.")
 (defun jinx--word-valid-p (start)
   "Return non-nil if word at START is valid."
   (let ((word (buffer-substring-no-properties start (point))))
-    (cl-loop for pred in jinx-word-valid-predicates
-             thereis (funcall pred word))))
+    (or (jinx--word-in-dict-p word)
+        (jinx--word-in-session-words-p word))))
 
 (defun jinx--word-in-dict-p (word)
   "Return non-nil if WORD is in a dictionary."
