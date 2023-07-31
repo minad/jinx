@@ -684,7 +684,7 @@ If CHECK is non-nil, always check first."
   (cl-loop
    for session-word in jinx--session-words
    if (<= (string-distance word session-word) jinx-max-distance-for-suggestion)
-   collect (propertize word 'jinx--group "Suggestions from session words")))
+   collect (propertize session-word 'jinx--group "Suggestions from session words")))
 
 (defun jinx--correct-suggestions (word)
   "Retrieve suggestions for WORD."
