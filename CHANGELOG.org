@@ -6,6 +6,8 @@
 
 - Allow capitalized form of a word if non-capitalized word is stored in the
   session word list.
+- Replace =jinx-excluded-modes= with =global-jinx-modes=, the Emacs 28 convention
+  for globalized minor modes.
 
 * Version 0.9 (2023-07-02)
 

@@ -157,11 +157,6 @@ checking."
   "List of excluded regexps per major mode."
   :type '(alist :key-type symbol :value-type (repeat regexp)))
 
-(defcustom jinx-include-modes
-  '(text-mode prog-mode conf-mode)
-  "List of modes included by `global-jinx-mode'."
-  :type '(repeat symbol))
-
 (defcustom jinx-max-distance-for-suggestion
   3
   "Maximum edit distance for session words to be included in suggestions."
@@ -361,11 +356,11 @@ Predicate may return a position to skip forward.")
         case-fold-search)
     (or (member word jinx--session-words)
         ;; Allow capitalized words
-        (and (string-match-p "\\`[[:upper:]]" word)
+        (and (string-match-p "\\`[[:upper:]][[:lower:]]+\\'" word)
              (cl-loop
               for w in jinx--session-words
-              thereis (and (eq t (compare-strings word 0 1   w 0 1   t))
-                           (eq t (compare-strings word 1 nil w 1 nil nil)))))
+              thereis (and (string-equal-ignore-case word w)
+                           (string-match-p "\\`[[:lower:]]+\\'" w))))
         (cl-loop for dict in jinx--dicts
                  thereis (jinx--mod-check dict word)))))
 
@@ -956,8 +951,16 @@ If prefix argument ALL non-nil correct all misspellings."
     (jit-lock-unregister #'jinx--mark-pending)
     (jinx--cleanup))))
 
+(defcustom global-jinx-modes '(text-mode prog-mode conf-mode)
+  "List of modes where Jinx should be enabled.
+The variable can either be t, nil or a list of t, nil, mode
+symbols or elements of the form (not modes)."
+  :type '(repeat sexp))
+
 ;;;###autoload
-(define-globalized-minor-mode global-jinx-mode jinx-mode jinx--on :group 'jinx)
+(define-globalized-minor-mode global-jinx-mode
+  jinx-mode jinx--on
+  :group 'jinx)
 
 (defun jinx--on ()
   "Turn `jinx-mode' on."
@@ -965,7 +968,14 @@ If prefix argument ALL non-nil correct all misspellings."
                       buffer-read-only
                       (buffer-base-buffer) ;; Do not enable in indirect buffers
                       (eq (aref (buffer-name) 0) ?\s)))
-             (apply #'derived-mode-p jinx-include-modes))
+             ;; TODO backport `easy-mmode--globalized-predicate-p'
+             (or (eq t global-jinx-modes)
+                 (eq t (cl-loop for p in global-jinx-modes thereis
+                                (pcase-exhaustive p
+                                  ('t t)
+                                  ('nil 0)
+                                  ((pred symbolp) (and (derived-mode-p p) t))
+                                  (`(not . ,m) (and (apply #'derived-mode-p m) 0)))))))
     (jinx-mode 1)))
 
 (put #'jinx-correct-select 'completion-predicate #'ignore)
