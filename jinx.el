@@ -934,16 +934,31 @@ If prefix argument ALL non-nil correct all misspellings."
     (jit-lock-unregister #'jinx--mark-pending)
     (jinx--cleanup))))
 
+(defcustom global-jinx-modes '(text-mode prog-mode conf-mode)
+  "List of modes where Jinx should be enabled.
+The variable can either be t, nil or a list of t, nil, mode
+symbols or elements of the form (not modes)."
+  :type '(repeat sexp))
+
 ;;;###autoload
-(define-globalized-minor-mode global-jinx-mode jinx-mode jinx--on :group 'jinx)
+(define-globalized-minor-mode global-jinx-mode
+  jinx-mode jinx--on
+  :group 'jinx)
 
 (defun jinx--on ()
   "Turn `jinx-mode' on."
-  (when (and (not (or noninteractive
-                      buffer-read-only
-                      (buffer-base-buffer) ;; Do not enable in indirect buffers
-                      (eq (aref (buffer-name) 0) ?\s)))
-             (apply #'derived-mode-p jinx-include-modes))
+  (unless (or noninteractive
+              buffer-read-only
+              (buffer-base-buffer) ;; Do not enable in indirect buffers
+              (eq (aref (buffer-name) 0) ?\s)
+              ;; TODO backport `easy-mmode--globalized-predicate-p'
+              (eq t global-jinx-modes)
+              (eq t (cl-loop for p in global-jinx-modes thereis
+                             (pcase-exhaustive p
+                               ('t t)
+                               ('nil 0)
+                               ((pred symbolp) (and (derived-mode-p p) t))
+                               (`(not . ,m) (and (apply #'derived-mode-p m) 0))))))
     (jinx-mode 1)))
 
 (put #'jinx-correct-select 'completion-predicate #'ignore)
