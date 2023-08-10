@@ -947,18 +947,18 @@ symbols or elements of the form (not modes)."
 
 (defun jinx--on ()
   "Turn `jinx-mode' on."
-  (unless (or noninteractive
-              buffer-read-only
-              (buffer-base-buffer) ;; Do not enable in indirect buffers
-              (eq (aref (buffer-name) 0) ?\s)
-              ;; TODO backport `easy-mmode--globalized-predicate-p'
-              (eq t global-jinx-modes)
-              (eq t (cl-loop for p in global-jinx-modes thereis
-                             (pcase-exhaustive p
-                               ('t t)
-                               ('nil 0)
-                               ((pred symbolp) (and (derived-mode-p p) t))
-                               (`(not . ,m) (and (apply #'derived-mode-p m) 0))))))
+  (when (and (not (or noninteractive
+                      buffer-read-only
+                      (buffer-base-buffer) ;; Do not enable in indirect buffers
+                      (eq (aref (buffer-name) 0) ?\s)))
+             ;; TODO backport `easy-mmode--globalized-predicate-p'
+             (or (eq t global-jinx-modes)
+                 (eq t (cl-loop for p in global-jinx-modes thereis
+                                (pcase-exhaustive p
+                                  ('t t)
+                                  ('nil 0)
+                                  ((pred symbolp) (and (derived-mode-p p) t))
+                                  (`(not . ,m) (and (apply #'derived-mode-p m) 0)))))))
     (jinx-mode 1)))
 
 (put #'jinx-correct-select 'completion-predicate #'ignore)
