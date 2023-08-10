@@ -157,11 +157,6 @@ checking."
   "List of excluded regexps per major mode."
   :type '(alist :key-type symbol :value-type (repeat regexp)))
 
-(defcustom jinx-include-modes
-  '(text-mode prog-mode conf-mode)
-  "List of modes included by `global-jinx-mode'."
-  :type '(repeat symbol))
-
 (defvar-local jinx-local-words ""
   "File-local words, as a string separated by whitespace.")
 
