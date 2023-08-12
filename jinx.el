@@ -641,49 +641,46 @@ If CHECK is non-nil, always check first."
                (not (bound-and-true-p icomplete-mode)))
       (minibuffer-completion-help))))
 
-(defun jinx--correct-suggestions-dicts (word)
-  "Return suggestions for WORD from all dictionaries."
-  (cl-loop with idx = 1
-           with ht = (make-hash-table :test #'equal)
-           for dict in jinx--dicts
-           for desc = (jinx--mod-describe dict)
-           for group = (format "Suggestions from dictionary ‘%s’ (%s)"
-                               (car desc) (cdr desc))
-           nconc
-           (cl-loop for sugg in (jinx--mod-suggest dict word)
-                    if (not (gethash sugg ht)) collect
-                    (progn
-                      (add-text-properties
-                       0 (length sugg)
-                       (list 'jinx--group group
-                             'jinx--prefix
-                             (cond ((< idx 10)
-                                    (format #("%d " 0 3 (face jinx-key))
-                                            idx))
-                                   ((< (- idx 10) (length jinx--select-keys))
-                                    (format #("0%c " 0 4 (face jinx-key))
-                                            (aref jinx--select-keys (- idx 10))))))
-                       sugg)
-                      (cl-incf idx)
-                      (puthash sugg t ht)
-                      sugg))))
-
-(defun jinx--correct-suggestions-save (word)
-  "Return save actions for WORD."
-  (cl-loop for (key . fun) in jinx--save-keys nconc
-           (ensure-list (funcall fun nil key word))))
-
-(defun jinx--correct-suggestions-session (word)
-  "Return suggestions for WORD from session words."
-  (cl-loop for w in jinx--session-words
-           if (<= (string-distance word w) jinx-suggestion-distance)
-           collect (propertize w 'jinx--group "Suggestions from session words")))
+(defun jinx--add-suggestion (list ht word group)
+  "Add suggestion WORD to LIST and HT.
+The word will be associated with GROUP and get a prefix key."
+  (unless (gethash word ht)
+    (add-text-properties
+     0 (length word)
+     (list 'jinx--group group
+           'jinx--prefix
+           (let ((idx (1+ (hash-table-count ht))))
+             (cond
+              ((< idx 10)
+               (format #("%d " 0 3 (face jinx-key))
+                       idx))
+              ((< (- idx 10) (length jinx--select-keys))
+               (format #("0%c " 0 4 (face jinx-key))
+                       (aref jinx--select-keys (- idx 10)))))))
+     word)
+    (push word list)
+    (puthash word t ht))
+  list)
 
 (defun jinx--correct-suggestions (word)
   "Retrieve suggestions for WORD."
-  (nconc (jinx--correct-suggestions-dicts word)
-         (jinx--correct-suggestions-session word)
-         (jinx--correct-suggestions-save word)))
+  (let ((ht (make-hash-table :test #'equal))
+        (list nil))
+    (dolist (dict jinx--dicts)
+      (let* ((desc (jinx--mod-describe dict))
+             (group (format "Suggestions from dictionary ‘%s’ (%s)"
+                            (car desc) (cdr desc))))
+        (dolist (w (jinx--mod-suggest dict word))
+          (setq list (jinx--add-suggestion list ht w group)))))
+    (dolist (w (sort (cl-loop for w in jinx--session-words
+                              for d = (string-distance word w)
+                              if (<= d jinx-suggestion-distance)
+                              collect (cons d w))
+                     #'car-less-than-car))
+      (setq list (jinx--add-suggestion list ht (cdr w) "Suggestions from session")))
+    (nconc (nreverse list)
+           (cl-loop for (key . fun) in jinx--save-keys nconc
+                    (ensure-list (funcall fun nil key word))))))
 
 (defun jinx--correct-affixation (cands)
   "Affixate CANDS during completion."
