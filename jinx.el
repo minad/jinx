@@ -497,8 +497,7 @@ If CHECK is non-nil, always check first."
 (defun jinx--cleanup ()
   "Cleanup all overlays and trigger fontification."
   (with-silent-modifications
-    (save-restriction
-      (widen)
+    (without-restriction
       (jinx--delete-overlays (point-min) (point-max))
       (remove-list-of-text-properties (point-min) (point-max) '(jinx--pending))
       (jinx--in-base-buffer #'jit-lock-refontify))))
@@ -623,8 +622,7 @@ If CHECK is non-nil, always check first."
 (defun jinx--recheck-overlays ()
   "Recheck all overlays in buffer after a dictionary update."
   (save-excursion
-    (save-restriction
-      (widen)
+    (without-restriction
       (dolist (ov (overlays-in (point-min) (point-max)))
         (when (eq (overlay-get ov 'category) 'jinx-overlay)
           (goto-char (overlay-end ov))
