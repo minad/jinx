@@ -751,6 +751,17 @@ If CHECK is non-nil, always check first."
   (modify-syntax-entry ?’ "w" jinx--syntax-table)
   (modify-syntax-entry ?. "." jinx--syntax-table))
 
+(defun jinx--bounds-of-word-at-point ()
+  "Return bounds of word at point as a cons cell.
+Using `jinx--syntax-table'."
+  (save-excursion
+    (save-match-data
+      (with-syntax-table jinx--syntax-table
+        (unless (looking-at-p "\\<")
+          (re-search-backward "\\<\\|^"))
+        (when (re-search-forward "\\<\\w+\\>" (pos-eol) t)
+          (cons (match-beginning 0) (match-end 0)))))))
+
 ;;;; Save functions
 
 (defun jinx--save-action (key word ann)
@@ -863,6 +874,33 @@ If prefix argument ALL non-nil correct all misspellings."
                       (all (cl-incf idx)))))))
       (unless all
         (goto-char old-point)))))
+
+;;;###autoload
+(defun jinx-correct-at-point (&optional beg end)
+  "Correct a word between BEG and END, defaults to the one at the cursor.
+Suggest corrections even if it's not misspelled."
+  (interactive)
+  (unless (and beg end)
+    (setf (cons beg end) (jinx--bounds-of-word-at-point)))
+  (unless jinx-mode
+    (jinx-mode 1))
+  (cl-letf* (((symbol-function #'jinx--timer-handler) #'ignore) ;; Inhibit
+             (repeat-mode nil) ;; No repeating of jinx-next and jinx-previous
+             (old-point (point-marker)))
+    (unwind-protect
+        (while (let ((skip
+                      (catch 'jinx--goto
+                        (if (and beg end)
+                            (let ((ov (make-overlay beg end)))
+                              (jinx--correct ov nil))
+                          (user-error "No word at point")))))
+                 ;; use jinx-next/previous to move among words
+                 (cond
+                  ((integerp skip)
+                   (forward-to-word skip)
+                   (setf (cons beg end) (jinx--bounds-of-word-at-point))
+                   t))))
+      (goto-char old-point))))
 
 (defun jinx-correct-select ()
   "Quick selection key for corrections."
