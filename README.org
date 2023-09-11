@@ -68,10 +68,10 @@ command, =jinx-mode=, for activating for specific modes.
   (add-hook hook #'jinx-mode))
 #+end_src
 
-The commands =jinx-correct= and =jinx-languages= are autoloaded. Invoking
-=jinx-correct= corrects the misspellings. Binding =jinx-correct= to =M-$= takes
-over that key from the default assignment to =ispell-word=. Since Jinx is
-independent of the Ispell package, =M-$= can be re-used.
+The commands =jinx-correct= and =jinx-languages= are marked as autoloads. Invoking
+=jinx-correct= corrects the misspellings. Binding =jinx-correct= to =M-$= takes over
+that key from the default assignment to =ispell-word=. Since Jinx is independent
+of the Ispell package, =M-$= can be re-used.
 
 #+begin_src emacs-lisp
 (keymap-global-set "M-$" #'jinx-correct)
@@ -80,7 +80,8 @@ independent of the Ispell package, =M-$= can be re-used.
 
 - =M-$= triggers correction for the misspelled word before point.
 - =C-u M-$= triggers correction for the entire buffer.
-- =C-u C-u M-$= forces correction of the word at point, even if it is not misspelled.
+- =C-u C-u M-$= forces correction of the word at point, even if it is not
+  misspelled.
 
 A sample configuration with the popular =use-package= macro is shown here:
 

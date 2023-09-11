@@ -903,8 +903,9 @@ Suggest corrections even if the word is not misspelled."
     (jinx--correct-guard
      (while (when-let ((skip (jinx--correct-overlay (make-overlay beg end) nil)))
               (forward-to-word skip)
-              (setf (cons beg end) (jinx--bounds-of-word))
-              beg)))))
+              (when-let ((bounds (jinx--bounds-of-word)))
+                (setf (cons beg end) bounds))
+              t)))))
 
 ;;;###autoload
 (defun jinx-correct (&optional arg)
