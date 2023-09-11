@@ -9,6 +9,7 @@
 - Replace =jinx-excluded-modes= with =global-jinx-modes=, the Emacs 28 convention
   for globalized minor modes.
 - =jinx-correct=: Offer session words as suggestions.
+- Add =jinx-correct-all=, =jinx-correct-nearest= and =jinx-correct-at-point=.
 
 * Version 0.9 (2023-07-02)
 
