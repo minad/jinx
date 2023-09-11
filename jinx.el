@@ -880,18 +880,16 @@ With prefix argument GLOBAL change the languages globally."
 (defun jinx-correct-nearest ()
   "Correct nearest misspelled word."
   (interactive "*")
-  (jinx--correct-guard
-   (let* ((old-point (point-marker))
-          (overlays (jinx--force-overlays (window-start) (window-end) :visible t))
-          (count (length overlays))
-          (idx 0))
-     (unwind-protect
-         (while (when-let ((ov (nth idx overlays)))
-                  (if (overlay-buffer ov)
-                      (when-let ((skip (jinx--correct-overlay ov nil)))
-                        (setq idx (mod (+ idx skip) count)))
-                    (cl-incf idx)))) ;; Skip deleted overlay
-       (goto-char old-point)))))
+  (save-excursion
+    (jinx--correct-guard
+     (let* ((overlays (jinx--force-overlays (window-start) (window-end) :visible t))
+            (count (length overlays))
+            (idx 0))
+       (while (when-let ((ov (nth idx overlays)))
+                (if (overlay-buffer ov)
+                    (when-let ((skip (jinx--correct-overlay ov nil)))
+                      (setq idx (mod (+ idx skip) count)))
+                  (cl-incf idx)))))))) ;; Skip deleted overlay
 
 ;;;###autoload
 (defun jinx-correct-at-point (&optional beg end)
@@ -901,14 +899,12 @@ Suggest corrections even if the word is not misspelled."
   (unless (and beg end)
     (setf (cons beg end) (or (jinx--bounds-of-word)
                              (user-error "No word at point"))))
-  (jinx--correct-guard
-   (let ((old-point (point-marker)))
-     (unwind-protect
-         (while (when-let ((skip (jinx--correct-overlay (make-overlay beg end) nil)))
-                  (forward-to-word skip)
-                  (setf (cons beg end) (jinx--bounds-of-word))
-                  beg))
-       (goto-char old-point)))))
+  (save-excursion
+    (jinx--correct-guard
+     (while (when-let ((skip (jinx--correct-overlay (make-overlay beg end) nil)))
+              (forward-to-word skip)
+              (setf (cons beg end) (jinx--bounds-of-word))
+              beg)))))
 
 ;;;###autoload
 (defun jinx-correct (&optional arg)
