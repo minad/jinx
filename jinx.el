@@ -776,7 +776,7 @@ The word will be associated with GROUP and get a prefix key."
       (with-syntax-table jinx--syntax-table
         (unless (looking-at-p "\\<")
           (re-search-backward "\\<\\|^"))
-        (when (re-search-forward "\\<\\w+\\>" (pos-eol) t)
+        (when (re-search-forward "\\<\\w+\\>" nil t)
           (cons (match-beginning 0) (match-end 0)))))))
 
 ;;;; Save functions
@@ -894,15 +894,6 @@ With prefix argument GLOBAL change the languages globally."
        (goto-char old-point)))))
 
 ;;;###autoload
-(defun jinx-correct (&optional arg)
-  "Correct nearest misspelled word or all misspellings.
-If prefix ARG is non-nil, all misspellings are corrected in a loop."
-  (interactive "*P")
-  (if arg
-      (jinx-correct-all)
-    (jinx-correct-nearest)))
-
-;;;###autoload
 (defun jinx-correct-at-point (&optional beg end)
   "Correct a word between BEG and END, by default the word under point.
 Suggest corrections even if the word is not misspelled."
@@ -918,6 +909,18 @@ Suggest corrections even if the word is not misspelled."
                   (setf (cons beg end) (jinx--bounds-of-word))
                   beg))
        (goto-char old-point)))))
+
+;;;###autoload
+(defun jinx-correct (&optional arg)
+  "Correct word depending on prefix ARG.
+- If prefix ARG is nil, correct nearest misspelling.
+- If prefix ARG is 4 (C-u pressed once), correct all misspellings.
+- If prefix ARG is 16 (C-u pressed twice), correct word at point."
+  (interactive "*P")
+  (pcase arg
+    ('nil (jinx-correct-nearest))
+    ('(16) (jinx-correct-at-point))
+    (_ (jinx-correct-all))))
 
 (defun jinx-correct-select ()
   "Quick selection key for corrections."
