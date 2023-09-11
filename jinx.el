@@ -718,7 +718,7 @@ The word will be associated with GROUP and get a prefix key."
                    (annotation-function . jinx--correct-annotation))
       (complete-with-action action suggestions str pred))))
 
-(defun jinx--correct-overlay (overlay info)
+(defun jinx--correct-overlay (overlay &optional info)
   "Correct word at OVERLAY, maybe show prompt INFO."
   (catch 'jinx--goto
     (let* ((word (buffer-substring-no-properties
@@ -870,11 +870,11 @@ With prefix argument GLOBAL change the languages globally."
           (count (length overlays))
           (idx 0))
      (push-mark)
-     (while (when-let ((ov (nth idx overlays)))
-              (if-let (((overlay-buffer ov))
-                       (skip (jinx--correct-overlay ov (format " (%d of %d)" (1+ idx) count))))
-                  (setq idx (mod (+ idx skip) count))
-                (cl-incf idx)))))))
+     (while-let ((ov (nth idx overlays)))
+       (if-let (((overlay-buffer ov))
+                (skip (jinx--correct-overlay ov (format " (%d of %d)" (1+ idx) count))))
+           (setq idx (mod (+ idx skip) count))
+         (cl-incf idx))))))
 
 ;;;###autoload
 (defun jinx-correct-nearest ()
@@ -885,27 +885,27 @@ With prefix argument GLOBAL change the languages globally."
      (let* ((overlays (jinx--force-overlays (window-start) (window-end) :visible t))
             (count (length overlays))
             (idx 0))
+       ;; Not using `while-let' is intentional here.
        (while (when-let ((ov (nth idx overlays)))
                 (if (overlay-buffer ov)
-                    (when-let ((skip (jinx--correct-overlay ov nil)))
+                    (when-let ((skip (jinx--correct-overlay ov)))
                       (setq idx (mod (+ idx skip) count)))
                   (cl-incf idx)))))))) ;; Skip deleted overlay
 
 ;;;###autoload
-(defun jinx-correct-at-point (&optional beg end)
-  "Correct a word between BEG and END, by default the word under point.
+(defun jinx-correct-at-point (&optional start end)
+  "Correct a word between START and END, by default the word under point.
 Suggest corrections even if the word is not misspelled."
   (interactive)
-  (unless (and beg end)
-    (setf (cons beg end) (or (jinx--bounds-of-word)
-                             (user-error "No word at point"))))
+  (unless (and start end)
+    (setf (cons start end) (or (jinx--bounds-of-word)
+                               (user-error "No word at point"))))
   (save-excursion
     (jinx--correct-guard
-     (while (when-let ((skip (jinx--correct-overlay (make-overlay beg end) nil)))
-              (forward-to-word skip)
-              (when-let ((bounds (jinx--bounds-of-word)))
-                (setf (cons beg end) bounds))
-              t)))))
+     (while-let ((skip (jinx--correct-overlay (make-overlay start end))))
+       (forward-to-word skip)
+       (when-let ((bounds (jinx--bounds-of-word)))
+         (setf (cons start end) bounds))))))
 
 ;;;###autoload
 (defun jinx-correct (&optional arg)
