@@ -186,7 +186,7 @@ checking."
 
 (defface jinx-highlight
   '((t :inherit isearch))
-  "Face used to highlight current misspelling during correction.")
+  "Face used to highlight current misspelled word during correction.")
 
 (defface jinx-save
   '((t :inherit font-lock-negation-char-face))
@@ -485,8 +485,8 @@ If CHECK is non-nil, always check first."
           (with-delayed-message (1 "Checking...")
             (jinx--check-region start end)))
         (jinx--get-overlays start end visible))
-      (user-error (if visible "No misspelling in visible text"
-                    "No misspelling in whole buffer"))))
+      (user-error (if visible "No misspelled word in visible text"
+                    "No misspelled word in whole buffer"))))
 
 (defun jinx--delete-overlays (start end)
   "Delete overlays between START and END."
@@ -775,7 +775,7 @@ The word will be associated with GROUP and get a prefix key."
     (save-match-data
       (with-syntax-table jinx--syntax-table
         (unless (looking-at-p "\\<")
-          (re-search-backward "\\<\\|^"))
+          (re-search-backward "\\<"))
         (when (re-search-forward "\\<\\w+\\>" nil t)
           (cons (match-beginning 0) (match-end 0)))))))
 
@@ -893,8 +893,8 @@ With prefix argument GLOBAL change the languages globally."
                   (cl-incf idx)))))))) ;; Skip deleted overlay
 
 ;;;###autoload
-(defun jinx-correct-at-point (&optional start end)
-  "Correct a word between START and END, by default the word under point.
+(defun jinx-correct-word (&optional start end)
+  "Correct word between START and END, by default the word before point.
 Suggest corrections even if the word is not misspelled."
   (interactive)
   (unless (and start end)
@@ -910,13 +910,13 @@ Suggest corrections even if the word is not misspelled."
 ;;;###autoload
 (defun jinx-correct (&optional arg)
   "Correct word depending on prefix ARG.
-- If prefix ARG is nil, correct nearest misspelling.
-- If prefix ARG is 4 (C-u pressed once), correct all misspellings.
-- If prefix ARG is 16 (C-u pressed twice), correct word at point."
+- If prefix ARG is nil, correct nearest misspelled word.
+- If prefix ARG is 4 (C-u pressed once), correct all misspelled words.
+- If prefix ARG is 16 (C-u pressed twice), correct word before point."
   (interactive "*P")
   (pcase arg
     ('nil (jinx-correct-nearest))
-    ('(16) (jinx-correct-at-point))
+    ('(16) (jinx-correct-word))
     (_ (jinx-correct-all))))
 
 (defun jinx-correct-select ()
@@ -934,7 +934,7 @@ Suggest corrections even if the word is not misspelled."
     (exit-minibuffer)))
 
 (defun jinx-next (n)
-  "Go to to Nth next misspelling."
+  "Go to to Nth next misspelled word."
   (interactive "p")
   (unless (= n 0)
     (if (minibufferp)
@@ -945,7 +945,7 @@ Suggest corrections even if the word is not misspelled."
         (goto-char (overlay-end (nth (mod n (length ov)) ov)))))))
 
 (defun jinx-previous (n)
-  "Go to to Nth previous misspelling."
+  "Go to to Nth previous misspelled word."
   (interactive "p")
   (jinx-next (- n)))
 
