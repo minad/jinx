@@ -910,9 +910,13 @@ Suggest corrections even if the word is not misspelled."
 ;;;###autoload
 (defun jinx-correct (&optional arg)
   "Correct word depending on prefix ARG.
-- If prefix ARG is nil, correct nearest misspelled word.
-- If prefix ARG is 4 (C-u pressed once), correct all misspelled words.
-- If prefix ARG is 16 (C-u pressed twice), correct word before point."
+This command dispatches to the following commands:
+  - `jinx-correct-nearest': If prefix ARG is nil, correct nearest
+    misspelled word.
+  - `jinx-correct-all': If prefix ARG is 4, corresponding to C-u
+    pressed once, correct all misspelled words.
+  - `jinx-correct-word': If prefix ARG is 16, corresponding to
+    C-u pressed twice, correct word before point."
   (interactive "*P")
   (pcase arg
     ('nil (jinx-correct-nearest))
