@@ -913,10 +913,10 @@ Suggest corrections even if the word is not misspelled."
 This command dispatches to the following commands:
   - `jinx-correct-nearest': If prefix ARG is nil, correct nearest
     misspelled word.
-  - `jinx-correct-all': If prefix ARG is 4, corresponding to C-u
-    pressed once, correct all misspelled words.
+  - `jinx-correct-all': If prefix ARG is 4, corresponding to
+    \\[universal-argument] pressed once, correct all misspelled words.
   - `jinx-correct-word': If prefix ARG is 16, corresponding to
-    C-u pressed twice, correct word before point."
+    \\[universal-argument] pressed twice, correct word before point."
   (interactive "*P")
   (pcase arg
     ('nil (jinx-correct-nearest))
