@@ -50,7 +50,8 @@ installing Jinx, Jinx will use it to locate =libenchant=. Depending on your
 operating system and Linux distribution you have to install different packages:
 
 - Debian, Ubuntu: =libenchant-2-dev=, =pkgconf=
-- Guix, Arch, Gentoo: =enchant=, =pkgconf=
+- Arch, Gentoo: =enchant=, =pkgconf=
+- Guix: =emacs-jinx= or =enchant=, =pkgconf=
 - Void, Fedora: =enchant2-devel=, =pkgconf=
 - FreeBSD, OpenBSD, Mac: =enchant2=, =pkgconf=
 
