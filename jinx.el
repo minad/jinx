@@ -88,7 +88,7 @@
                font-lock-string-face)
     (conf-mode font-lock-comment-face
                font-lock-string-face)
-    ;; yaml-mode and yaml-ts-mode are text-modes,
+    ;; `yaml-mode' and `yaml-ts-mode' are text-modes,
     ;; while they should better be conf- or prog-modes.
     (yaml-mode font-lock-comment-face
                font-lock-string-face)
