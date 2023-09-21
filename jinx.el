@@ -116,9 +116,10 @@ Set to t to enable camelCase everywhere."
      markdown-plain-url-face markdown-reference-face markdown-url-face)
     (org-mode
      org-block org-block-begin-line org-block-end-line org-code org-cite
-     org-cite-key org-date org-document-info-keyword org-drawer org-footnote
-     org-formula org-latex-and-related org-link org-macro org-meta-line
-     org-property-value org-special-keyword org-tag org-todo org-verbatim
+     org-cite-key org-date org-document-info-keyword org-done org-drawer
+     org-footnote org-formula org-latex-and-related org-link org-macro
+     org-meta-line org-property-value org-special-keyword org-tag org-todo
+     org-verbatim org-warning
      ;; org-modern
      org-modern-tag org-modern-date-active org-modern-date-inactive)
     (tex-mode
