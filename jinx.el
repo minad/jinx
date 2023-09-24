@@ -146,7 +146,7 @@ checking."
 (defcustom jinx-exclude-regexps
   '((emacs-lisp-mode "Package-Requires:.*$")
     (t "[A-Z]+\\>"         ;; Uppercase words
-       "-\\>"              ;; Hyphens used as bullet points
+       "-+\\>"             ;; Hyphens used as lines or bullet points
        "\\w*?[0-9]\\w*\\>" ;; Words with numbers, hex codes
        "[a-z]+://\\S-+"    ;; URI
        "<?[-+_.~a-zA-Z][-+_.~:a-zA-Z0-9]*@[-.a-zA-Z0-9]+>?" ;; Email
