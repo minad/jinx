@@ -1,0 +1,8 @@
+# Emacs related files
+*.elc
+*autoloads.el
+
+# compiled or object code
+*.o
+*.so
+.ccls-cache/*
