@@ -52,6 +52,7 @@ operating system and Linux distribution you have to install different packages:
 - Debian, Ubuntu: =libenchant-2-dev=, =pkgconf=
 - Arch, Gentoo: =enchant=, =pkgconf=
 - Guix: =emacs-jinx= or =enchant=, =pkgconf=
+- NixOS: =jinx= from =elpa-packages.nix=
 - Void, Fedora: =enchant2-devel=, =pkgconf=
 - FreeBSD, OpenBSD, Mac: =enchant2=, =pkgconf=
 
