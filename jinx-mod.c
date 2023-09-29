@@ -20,10 +20,25 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 #include <string.h>
 #include <stdlib.h>
 
+
+#if defined _WIN32 || defined __CYGWIN__
+  #ifdef __GNUC__
+    #define JINX_EXPORT __attribute__ ((dllexport))
+  #else
+    #define JINX_EXPORT __declspec(dllexport)
+  #endif
+#else
+  #if __GNUC__ >= 4
+    #define JINX_EXPORT __attribute__ ((visibility ("default")))
+  #else
+    #define JINX_EXPORT
+  #endif
+#endif
+
 #define jinx_unused(var) _##var __attribute__((unused))
 #define jinx_autofree    __attribute__((cleanup(jinx_autofree_cleanup)))
 
-int plugin_is_GPL_compatible;
+JINX_EXPORT int plugin_is_GPL_compatible;
 
 static EnchantBroker* broker = 0;
 static emacs_value Qt, Qnil;
@@ -169,7 +184,7 @@ static emacs_value jinx_suggest(emacs_env* env, ptrdiff_t jinx_unused(nargs),
     return list;
 }
 
-int emacs_module_init(struct emacs_runtime *runtime) {
+int JINX_EXPORT emacs_module_init(struct emacs_runtime *runtime) {
     if ((size_t)runtime->size < sizeof (*runtime))
         return 1;
     emacs_env* env = runtime->get_environment(runtime);

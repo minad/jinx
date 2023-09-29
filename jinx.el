@@ -564,7 +564,7 @@ If CHECK is non-nil, always check first."
                                    (or (locate-library c-name t)
                                        (error "Jinx: %s not found" c-name))))
                (command
-                `(,cc "-I." "-O2" "-Wall" "-Wextra" "-fPIC" "-shared"
+                `(,cc "-I." "-O2" "-Wall" "-Wextra" "-fPIC" "-shared" "-fvisibility=hidden"
                   "-o" ,mod-name ,c-name
                   ,@(split-string-and-unquote
                      (condition-case nil
