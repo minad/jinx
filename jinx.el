@@ -137,7 +137,12 @@ Set to t to enable camelCase everywhere."
      font-lock-constant-face font-lock-warning-face)
     (message-mode
      message-header-cc message-header-name message-header-newsgroups
-     message-header-other message-header-to message-header-xheader))
+     message-header-other message-header-to message-header-xheader
+     gnus-cited-text-1 gnus-cited-text-2 gnus-cited-text-3
+     gnus-cited-text-4 gnus-cited-text-5 gnus-cited-text-6
+     gnus-cited-text-7 gnus-cited-text-8 gnus-cited-text-9
+     message-cited-text-1 message-cited-text-2 message-cited-text-3
+     message-cited-text-4))
   "Alist of faces per major mode.
 These faces mark regions which should be excluded in spell
 checking."
