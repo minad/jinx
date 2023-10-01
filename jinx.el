@@ -167,6 +167,9 @@ checking."
 ;;;###autoload
 (put 'jinx-local-words 'safe-local-variable #'stringp)
 
+;;;###autoload
+(put 'jinx-mode 'safe-local-variable #'not)
+
 ;;;; Faces
 
 (defgroup jinx-faces nil
