@@ -113,7 +113,8 @@ Set to t to enable camelCase everywhere."
      markdown-code-face markdown-html-attr-name-face
      markdown-html-attr-value-face markdown-html-tag-name-face
      markdown-inline-code-face markdown-link-face markdown-markup-face
-     markdown-plain-url-face markdown-reference-face markdown-url-face)
+     markdown-plain-url-face markdown-reference-face markdown-url-face
+     markdown-comment-face)
     (org-mode
      org-block org-block-begin-line org-block-end-line org-code org-cite
      org-cite-key org-date org-document-info-keyword org-done org-drawer
@@ -141,7 +142,17 @@ Set to t to enable camelCase everywhere."
      message-cited-text-1 message-cited-text-2 message-cited-text-3
      message-cited-text-4 gnus-cite-1 gnus-cite-2 gnus-cite-3
      gnus-cite-4 gnus-cite-5 gnus-cite-6 gnus-cite-7 gnus-cite-8
-     gnus-cite-9 gnus-cite-10 gnus-cite-11))
+     gnus-cite-9 gnus-cite-10 gnus-cite-11)
+    (mastodon)
+    (git-commit-mode
+     git-commit-pseudo-header git-commit-known-pseudo-header
+     git-commit-keyword font-lock-comment-face
+     git-commit-comment-branch-local git-commit-comment-branch-remote git-commit-comment-detached
+     git-commit-comment-file git-commit-comment-heading
+     git-commit-comment-action
+     ;; No need to add git-commit-comment- faces here, these
+     ;; are already excluded by markdown-comment-face
+    ))
   "Alist of faces per major mode.
 These faces mark regions which should be excluded in spell
 checking."
