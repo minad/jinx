@@ -17,8 +17,9 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <emacs-module.h>
 #include <enchant.h>
-#include <string.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define jinx_unused(var) _##var __attribute__((unused))
 #define jinx_autofree    __attribute__((cleanup(jinx_autofree_cleanup)))
@@ -78,7 +79,8 @@ static void jinx_free_dict(void* dict) {
 static emacs_value jinx_dict(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                              emacs_value args[], void* jinx_unused(data)) {
     jinx_autofree char* str = jinx_cstr(env, args[0]);
-    EnchantDict* dict = str ? enchant_broker_request_dict(jinx_broker(), str) : 0;
+    EnchantDict* dict =
+        str ? enchant_broker_request_dict(jinx_broker(), str) : 0;
     return dict
         ? env->make_user_ptr(env, jinx_free_dict, dict)
         : Qnil;
@@ -143,15 +145,9 @@ static emacs_value jinx_add(emacs_env* env, ptrdiff_t jinx_unused(nargs),
 static emacs_value jinx_wordchars(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                                   emacs_value args[], void* jinx_unused(data)) {
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
-    if (dict) {
-        // Enchant older than 2.3.1 sometimes does not return UTF-8
-        // See https://github.com/AbiWord/enchant/blob/master/NEWS
-        emacs_value str = jinx_str(env, enchant_dict_get_extra_word_characters(dict));
-        if (env->non_local_exit_check(env) == emacs_funcall_exit_return)
-            return str;
-        env->non_local_exit_clear(env);
-    }
-    return Qnil;
+    return dict
+           ? jinx_str(env, enchant_dict_get_extra_word_characters(dict))
+           : Qnil;
 }
 
 static emacs_value jinx_suggest(emacs_env* env, ptrdiff_t jinx_unused(nargs),
@@ -171,10 +167,14 @@ static emacs_value jinx_suggest(emacs_env* env, ptrdiff_t jinx_unused(nargs),
 
 int emacs_module_init(struct emacs_runtime *runtime) {
     if ((size_t)runtime->size < sizeof (*runtime))
-        return 1;
+        return 1; // Require Emacs binary compatibility
     emacs_env* env = runtime->get_environment(runtime);
     if ((size_t)env->size < sizeof (*env))
-        return 2;
+        return 2; // Require Emacs binary compatibility
+    int v0, v1, v2;
+    if (sscanf(enchant_get_version(), "%d.%d.%d", &v0, &v1, &v2) != 3 ||
+        v0 * 10000 + v1 * 100 + v2 < 20301)
+        return 3; // Require Enchant 2.3.1 or newer
     Qt = env->make_global_ref(env, env->intern(env, "t"));
     Qnil = env->make_global_ref(env, env->intern(env, "nil"));
     jinx_defun(env, "jinx--mod-suggest", 2, 2, jinx_suggest);

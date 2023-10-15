@@ -12,6 +12,7 @@
 - Add =jinx-correct-nearest=, =jinx-correct-all= and =jinx-correct-word= commands. The
   command =jinx-correct= dispatches to one of those commands depending on the
   prefix argument.
+- Require libenchant 2.3.1 or newer.
 
 * Version 0.9 (2023-07-02)
 
