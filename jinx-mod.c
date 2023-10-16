@@ -145,9 +145,15 @@ static emacs_value jinx_add(emacs_env* env, ptrdiff_t jinx_unused(nargs),
 static emacs_value jinx_wordchars(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                                   emacs_value args[], void* jinx_unused(data)) {
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
-    return dict
-           ? jinx_str(env, enchant_dict_get_extra_word_characters(dict))
-           : Qnil;
+    if (dict) {
+        // Enchant older than 2.3.1 sometimes does not return UTF-8
+        // See https://github.com/AbiWord/enchant/blob/master/NEWS
+        emacs_value str = jinx_str(env, enchant_dict_get_extra_word_characters(dict));
+        if (env->non_local_exit_check(env) == emacs_funcall_exit_return)
+            return str;
+        env->non_local_exit_clear(env);
+    }
+    return Qnil;
 }
 
 static emacs_value jinx_suggest(emacs_env* env, ptrdiff_t jinx_unused(nargs),
@@ -174,7 +180,10 @@ int emacs_module_init(struct emacs_runtime *runtime) {
     int v0, v1, v2;
     if (sscanf(enchant_get_version(), "%d.%d.%d", &v0, &v1, &v2) != 3 ||
         v0 * 10000 + v1 * 100 + v2 < 20301)
-        return 3; // Require Enchant 2.3.1 or newer
+        env->funcall(env, env->intern(env, "message"), 1,
+                     (emacs_value[]){
+                         jinx_str(env, "Jinx: Enchant 2.3.1 or newer is recommended")
+                     });
     Qt = env->make_global_ref(env, env->intern(env, "t"));
     Qnil = env->make_global_ref(env, env->intern(env, "nil"));
     jinx_defun(env, "jinx--mod-suggest", 2, 2, jinx_suggest);
