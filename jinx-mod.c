@@ -182,7 +182,7 @@ int emacs_module_init(struct emacs_runtime *runtime) {
         v0 * 10000 + v1 * 100 + v2 < 20301)
         env->funcall(env, env->intern(env, "message"), 1,
                      (emacs_value[]){
-                         jinx_str(env, "Jinx: Enchant 2.3.1 or newer is recommended")
+                         jinx_str(env, "Jinx recommends Enchant 2.3.1 or newer")
                      });
     Qt = env->make_global_ref(env, env->intern(env, "t"));
     Qnil = env->make_global_ref(env, env->intern(env, "nil"));
