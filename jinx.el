@@ -734,7 +734,7 @@ The word will be associated with GROUP and get a prefix key."
                 (when (or (< (point) (window-start)) (> (point) (window-end nil t)))
                   (recenter))
                 (minibuffer-with-setup-hook
-                    (:append #'jinx--correct-setup)
+                    #'jinx--correct-setup
                   (or (completing-read
                        (format "Correct ‘%s’%s: " word (or info ""))
                        (jinx--correct-table
