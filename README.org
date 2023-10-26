@@ -46,7 +46,8 @@ Jinx can be installed from GNU ELPA or MELPA directly with =package-install=.
 
 Jinx requires =libenchant=. Enchant library is a required dependency for Jinx to
 compile its module at install time. If =pkgconf= or =pkg-config= is available when
-installing Jinx, Jinx will use it to locate =libenchant=. Depending on your BSD or Linux distribution you have to install different packages:
+installing Jinx, Jinx will use it to locate =libenchant=. Depending on your BSD or
+Linux distribution you have to install different packages:
 
 - Debian, Ubuntu: =libenchant-2-dev=, =pkgconf=
 - Arch, Gentoo: =enchant=, =pkgconf=
@@ -55,7 +56,9 @@ installing Jinx, Jinx will use it to locate =libenchant=. Depending on your BSD 
 - Void, Fedora: =enchant2-devel=, =pkgconf=
 - FreeBSD, OpenBSD: =enchant2=, =pkgconf=
 
-There have been reports of hangups when loading the native module on unofficial Emacs Mac ports. On Windows the installation of the native module may require manual intervention.
+There have been reports of hangups when loading the native module on unofficial
+Emacs Mac ports. On Windows the installation of the native module may require
+manual intervention.
 
 * Configuration
 
