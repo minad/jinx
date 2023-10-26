@@ -46,15 +46,16 @@ Jinx can be installed from GNU ELPA or MELPA directly with =package-install=.
 
 Jinx requires =libenchant=. Enchant library is a required dependency for Jinx to
 compile its module at install time. If =pkgconf= or =pkg-config= is available when
-installing Jinx, Jinx will use it to locate =libenchant=. Depending on your
-operating system and Linux distribution you have to install different packages:
+installing Jinx, Jinx will use it to locate =libenchant=. Depending on your BSD or Linux distribution you have to install different packages:
 
 - Debian, Ubuntu: =libenchant-2-dev=, =pkgconf=
 - Arch, Gentoo: =enchant=, =pkgconf=
 - Guix: =emacs-jinx= or =enchant=, =pkgconf=
 - NixOS: =jinx= from =elpa-packages.nix=
 - Void, Fedora: =enchant2-devel=, =pkgconf=
-- FreeBSD, OpenBSD, Mac: =enchant2=, =pkgconf=
+- FreeBSD, OpenBSD: =enchant2=, =pkgconf=
+
+There have been reports of hangups when loading the native module on unofficial Emacs Mac ports. On Windows the installation of the native module may require manual intervention.
 
 * Configuration
 
@@ -150,8 +151,8 @@ ordered as specified in the personal configuration file
 =/usr/share/enchant-2/enchant.ordering=. Enchant uses Hunspell as default backend
 for most languages. There are a few exceptions. For English Enchant prefers
 Aspell and for Finnish and Turkish special backends called Voikko and Zemberek
-are used. On non-Linux operating systems Enchant may also integrate with the
-spell-checker provided by the operating system.
+are used. On some operating systems Enchant may also integrate with the
+system spell-checker.
 
 Depending on the backend the personal dictionary will be taken from different
 locations, e.g., =~/.aspell.LANG.pws= or =~/.config/enchant/LANG.dic=. It is
