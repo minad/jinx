@@ -317,8 +317,6 @@ Predicate may return a position to skip forward.")
 (declare-function jinx--mod-describe nil)
 (declare-function jinx--mod-langs nil)
 (declare-function jinx--mod-wordchars nil)
-(declare-function org-fold-core-region "org-fold-core")
-(declare-function org-fold-core-get-regions "org-fold-core")
 
 ;;;; Overlay properties
 
@@ -606,7 +604,10 @@ If CHECK is non-nil, always check first."
     (unwind-protect
         (progn
           (if (and (derived-mode-p #'org-mode)
-                   (fboundp 'org-fold-show-set-visibility))
+                   (fboundp 'org-fold-show-set-visibility)
+                   (fboundp 'org-fold-core-get-regions)
+                   (fboundp 'org-fold-core-region))
+              ;; New Org 9.6 fold-core API
               (let ((regions (delq nil (org-fold-core-get-regions
                                         :with-markers t :from (point-min) :to (point-max)))))
                 (org-fold-show-set-visibility 'canonical)
