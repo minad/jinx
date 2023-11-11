@@ -74,7 +74,9 @@
   (replace-regexp-in-string
    "\\..*\\'" ""
    (or (bound-and-true-p current-locale-environment)
-       (getenv "LANG")
+       (pcase (getenv "LANG")
+         ((or "C" "POSIX") nil)
+         (lang lang))
        "en_US"))
   "Dictionary language codes, as a string separated by whitespace."
   :type 'string)
