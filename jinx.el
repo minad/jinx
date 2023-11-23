@@ -841,7 +841,11 @@ If SAVE is non-nil save, otherwise format candidate given action KEY."
 ;;;###autoload
 (defun jinx-languages (langs &optional global)
   "Set languages locally or globally to LANGS.
-With prefix argument GLOBAL change the languages globally."
+LANGS should be one or more language codes as a string, separated
+by whitespace.  When called interactively, the language codes are
+read via `completing-read-multiple'.  If the prefix argument
+GLOBAL is non-nil, the languages are changed globally for all
+buffers.  See also the variable `jinx-languages'."
   (interactive
    (list
     (progn
@@ -983,7 +987,7 @@ This command dispatches to the following commands:
           jinx--include-faces (jinx--mode-list jinx-include-faces)
           jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
           jinx--camel (or (eq jinx-camel-modes t)
-                          (apply #'derived-mode-p jinx-camel-modes))
+                          (seq-some #'derived-mode-p jinx-camel-modes))
           jinx--session-words (split-string jinx-local-words))
     (jinx--load-dicts)
     (add-hook 'window-state-change-hook #'jinx--reschedule nil t)
@@ -1025,7 +1029,7 @@ symbols or elements of the form (not modes)."
                                   ('t t)
                                   ('nil 0)
                                   ((pred symbolp) (and (derived-mode-p p) t))
-                                  (`(not . ,m) (and (apply #'derived-mode-p m) 0)))))))
+                                  (`(not . ,m) (and (seq-some #'derived-mode-p m) 0)))))))
     (jinx-mode 1)))
 
 (put #'jinx-correct-select 'completion-predicate #'ignore)
