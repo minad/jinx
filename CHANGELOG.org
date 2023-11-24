@@ -13,6 +13,7 @@
   command =jinx-correct= dispatches to one of those commands depending on the
   prefix argument.
 - Recommend libenchant 2.3.1 or newer. Print a message if Enchant is outdated.
+- Support $LANG=C and $LANG=POSIX environment variable settings.
 
 * Version 0.9 (2023-07-02)
 

@@ -254,6 +254,10 @@ checking."
 
 ;;;; Internal variables
 
+(defvar jinx--reschedule-hooks
+  '(window-state-change-hook window-scroll-functions post-command-hook)
+  "Hooks which reschedule the spell checking timer, see `jinx--reschedule'.")
+
 (defvar jinx--predicates
   (list #'jinx--face-ignored-p
         #'jinx--regexp-ignored-p
@@ -990,18 +994,16 @@ This command dispatches to the following commands:
                           (seq-some #'derived-mode-p jinx-camel-modes))
           jinx--session-words (split-string jinx-local-words))
     (jinx--load-dicts)
-    (add-hook 'window-state-change-hook #'jinx--reschedule nil t)
-    (add-hook 'window-scroll-functions #'jinx--reschedule nil t)
-    (add-hook 'post-command-hook #'jinx--reschedule nil t)
+    (dolist (hook jinx--reschedule-hooks)
+      (add-hook hook #'jinx--reschedule nil t))
     (jit-lock-register #'jinx--mark-pending))
    (t
     (mapc #'kill-local-variable '(jinx--exclude-regexp jinx--include-faces
                                   jinx--exclude-faces jinx--camel
                                   jinx--dicts jinx--syntax-table
                                   jinx--session-words))
-    (remove-hook 'window-state-change-hook #'jinx--reschedule t)
-    (remove-hook 'window-scroll-functions #'jinx--reschedule t)
-    (remove-hook 'post-command-hook #'jinx--reschedule t)
+    (dolist (hook jinx--reschedule-hooks)
+      (remove-hook hook #'jinx--reschedule t))
     (jit-lock-unregister #'jinx--mark-pending)
     (jinx--cleanup))))
 
