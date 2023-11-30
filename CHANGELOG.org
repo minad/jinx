@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 1.0 (2023-12-01)
 
 - Allow capitalized form of a word if non-capitalized word is stored in the
   session word list.
