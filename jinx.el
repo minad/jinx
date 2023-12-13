@@ -679,8 +679,16 @@ The word will be associated with GROUP and get a prefix key."
     (puthash word t ht))
   list)
 
+(defun jinx--session-suggestions (word)
+  "Retrieve suggestions for WORD from session."
+  (sort (cl-loop for w in jinx--session-words
+                 for d = (string-distance word w)
+                 if (<= d jinx-suggestion-distance)
+                 collect (cons d w))
+        #'car-less-than-car))
+
 (defun jinx--correct-suggestions (word)
-  "Retrieve suggestions for WORD."
+  "Retrieve suggestions for WORD from all dictionaries."
   (let ((ht (make-hash-table :test #'equal))
         (list nil))
     (dolist (dict jinx--dicts)
@@ -689,11 +697,7 @@ The word will be associated with GROUP and get a prefix key."
                             (car desc) (cdr desc))))
         (dolist (w (jinx--mod-suggest dict word))
           (setq list (jinx--add-suggestion list ht w group)))))
-    (dolist (w (sort (cl-loop for w in jinx--session-words
-                              for d = (string-distance word w)
-                              if (<= d jinx-suggestion-distance)
-                              collect (cons d w))
-                     #'car-less-than-car))
+    (dolist (w (jinx--session-suggestions word))
       (setq list (jinx--add-suggestion list ht (cdr w) "Suggestions from session")))
     (nconc (nreverse list)
            (cl-loop for (key . fun) in jinx--save-keys nconc
