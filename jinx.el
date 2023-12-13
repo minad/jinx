@@ -196,7 +196,7 @@ checking."
   "Face used to highlight current misspelled word during correction.")
 
 (defface jinx-save
-  '((t :inherit font-lock-negation-char-face))
+  '((t :inherit warning))
   "Face used for the save actions during correction.")
 
 (defface jinx-key
@@ -211,7 +211,7 @@ checking."
 
 (defvar-keymap jinx-overlay-map
   :doc "Keymap attached to misspelled words."
-  "<mouse-1>" #'jinx-correct
+  "<down-mouse-3>" #'jinx-correct-menu
   "M-n" #'jinx-next
   "M-p" #'jinx-previous
   "M-$" #'jinx-correct)
@@ -602,6 +602,14 @@ If CHECK is non-nil, always check first."
      (unless jinx-mode (jinx-mode 1))
      ,@body))
 
+(defun jinx--correct-menu-save (ov &rest ins)
+  "Helper for `jinx-correct-menu'.
+Insert INS in the minibuffer and correct word at OV."
+  (minibuffer-with-setup-hook
+      (lambda ()
+        (apply #'insert ins))
+    (jinx-correct-word (overlay-start ov) (overlay-end ov))))
+
 (defun jinx--correct-highlight (overlay fun)
   "Highlight and show OVERLAY during FUN."
   (declare (indent 1))
@@ -681,11 +689,12 @@ The word will be associated with GROUP and get a prefix key."
 
 (defun jinx--session-suggestions (word)
   "Retrieve suggestions for WORD from session."
-  (sort (cl-loop for w in jinx--session-words
-                 for d = (string-distance word w)
-                 if (<= d jinx-suggestion-distance)
-                 collect (cons d w))
-        #'car-less-than-car))
+  (mapcar #'cdr
+          (sort (cl-loop for w in jinx--session-words
+                         for d = (string-distance word w)
+                         if (<= d jinx-suggestion-distance)
+                         collect (cons d w))
+                #'car-less-than-car)))
 
 (defun jinx--correct-suggestions (word)
   "Retrieve suggestions for WORD from all dictionaries."
@@ -693,15 +702,24 @@ The word will be associated with GROUP and get a prefix key."
         (list nil))
     (dolist (dict jinx--dicts)
       (let* ((desc (jinx--mod-describe dict))
-             (group (format "Suggestions from dictionary ‘%s’ (%s)"
+             (group (format "Suggestions from dictionary ‘%s’ - %s"
                             (car desc) (cdr desc))))
         (dolist (w (jinx--mod-suggest dict word))
           (setq list (jinx--add-suggestion list ht w group)))))
     (dolist (w (jinx--session-suggestions word))
-      (setq list (jinx--add-suggestion list ht (cdr w) "Suggestions from session")))
-    (nconc (nreverse list)
-           (cl-loop for (key . fun) in jinx--save-keys nconc
-                    (ensure-list (funcall fun nil key word))))))
+      (setq list (jinx--add-suggestion list ht w "Suggestions from session")))
+    (cl-loop for (key . fun) in jinx--save-keys
+             for actions = (funcall fun nil key word) do
+             (unless (consp (car actions)) (setq actions (list actions)))
+             (cl-loop for (k w a) in actions do
+                      (push (propertize
+                             (concat (propertize (if (stringp k) k (char-to-string k))
+                                                 'face 'jinx-save 'rear-nonsticky t)
+                                     w)
+                             'jinx--group "Accept and save"
+                             'jinx--suffix (format #(" [%s]" 0 5 (face jinx-annotation)) a))
+                            list)))
+    (nreverse list)))
 
 (defun jinx--correct-affixation (cands)
   "Affixate CANDS during completion."
@@ -797,15 +815,6 @@ The word will be associated with GROUP and get a prefix key."
 
 ;;;; Save functions
 
-(defun jinx--save-action (key word ann)
-  "Format save action given KEY, WORD and ANN."
-  (propertize
-   (concat (propertize (if (stringp key) key (char-to-string key))
-                       'face 'jinx-save 'rear-nonsticky t)
-           word)
-   'jinx--group "Accept and save word"
-   'jinx--suffix (format #(" [%s]" 0 5 (face jinx-annotation)) ann)))
-
 (defun jinx--save-personal (save key word)
   "Save WORD in personal dictionary.
 If SAVE is non-nil save, otherwise format candidate given action KEY."
@@ -817,10 +826,8 @@ If SAVE is non-nil save, otherwise format candidate given action KEY."
     (cl-loop
      for dict in jinx--dicts for idx from 1
      for at = (make-string idx key)
-     for ann = (format "Personal:%s" (car (jinx--mod-describe dict))) nconc
-     (delete-consecutive-dups
-      (list (jinx--save-action at word ann)
-            (jinx--save-action at (downcase word) ann))))))
+     for ann = (format "Personal:%s" (car (jinx--mod-describe dict))) collect
+     (list at word ann))))
 
 (defun jinx--save-file (save key word)
   "Save WORD in file-local variable.
@@ -835,14 +842,14 @@ If SAVE is non-nil save, otherwise format candidate given action KEY."
                      #'string<)
                " "))
         (add-file-local-variable 'jinx-local-words jinx-local-words))
-    (jinx--save-action key word "File")))
+    (list key word "File")))
 
 (defun jinx--save-session (save key word)
   "Save WORD for the current session.
 If SAVE is non-nil save, otherwise format candidate given action KEY."
   (if save
       (add-to-list 'jinx--session-words word)
-    (jinx--save-action key word "Session")))
+    (list key word "Session")))
 
 ;;;; Public commands
 
@@ -973,6 +980,37 @@ This command dispatches to the following commands:
   (interactive "p")
   (jinx-next (- n)))
 
+(defun jinx-correct-menu (event)
+  "Popup mouse menu to correct misspelling at EVENT."
+  (interactive "e")
+  (when-let ((pt (posn-point (event-start event)))
+             (ov (car (jinx--get-overlays pt pt t))))
+    (let ((menu nil)
+          (word (buffer-substring-no-properties
+                 (overlay-start ov) (overlay-end ov))))
+      (dolist (dict jinx--dicts)
+        (when-let ((desc (jinx--mod-describe dict))
+                   (suggestions (jinx--mod-suggest dict word)))
+          (push `[,(concat (car desc) " - " (cdr desc)) :active nil] menu)
+          (cl-loop for w in suggestions repeat 10 do
+                   (push `[,w (jinx--correct-replace ,ov ,w)] menu))
+          (push "--" menu)))
+      (when-let ((suggestions (jinx--session-suggestions word)))
+        (push ["Session" :active nil] menu)
+        (cl-loop for w in suggestions repeat 10 do
+          (push `[,w (jinx--correct-replace ,ov ,w)] menu))
+        (push "--" menu))
+      (push ["Accept and save" :active nil] menu)
+      (cl-loop for (key . fun) in jinx--save-keys
+               for actions = (funcall fun nil key word) do
+               (unless (consp (car actions)) (setq actions (list actions)))
+               (cl-loop for (k w a) in actions do
+                        (push `[,a (jinx--correct-menu-save ,ov ,k ,w)] menu)))
+      (popup-menu (easy-menu-create-menu
+                   (format "Correct `%s'" word)
+                   (nreverse menu))
+                  event))))
+
 ;;;###autoload
 (define-minor-mode jinx-mode
   "Enchanted Spell Checker."
@@ -1038,6 +1076,7 @@ symbols or elements of the form (not modes)."
                                   (`(not . ,m) (and (seq-some #'derived-mode-p m) 0)))))))
     (jinx-mode 1)))
 
+(put #'jinx-correct-menu 'completion-predicate #'ignore)
 (put #'jinx-correct-select 'completion-predicate #'ignore)
 (put #'jinx-next 'command-modes '(jinx-mode))
 (put #'jinx-previous 'command-modes '(jinx-mode))
