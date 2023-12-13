@@ -104,10 +104,16 @@ Ispell =LocalWords=.
 
 * Correcting misspellings
 
-After invoking the command =jinx-correct=, suggested corrections are displayed as
-a completion menu. You can press the displayed digit keys to quickly select a
-suggestion. Furthermore the menu offers options to save the word temporarily for
-the current session, in the personal dictionary or in the file-local variables.
+The easiest way to correct misspellings is to right click on the misspelled
+word, underlined with a wavy line. Then a context menu will open where you can
+select from suggestions.
+
+If you prefer to use the keyboard, invoke the command =jinx-correct=. The
+recommended binding is =M-$=, see the configuration section. Suggested corrections
+will be displayed as a completion menu. You can press the displayed digit keys
+to quickly select a suggestion. Furthermore the menu offers options to save the
+word temporarily for the current session, in the personal dictionary or in the
+file-local variables.
 
 Note that you can enter arbitrary input at the correction prompt in order to
 make the correction or to store a modified word in the personal dictionary.
