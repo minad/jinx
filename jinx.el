@@ -991,13 +991,11 @@ This command dispatches to the following commands:
                    (suggestions (jinx--mod-suggest dict word)))
           (push `[,(concat (car desc) " - " (cdr desc)) :active nil] menu)
           (cl-loop for w in suggestions repeat 10 do
-                   (push `[,w (jinx--correct-replace ,ov ,w)] menu))
-          (push "--" menu)))
+                   (push `[,w (jinx--correct-replace ,ov ,w)] menu))))
       (when-let ((suggestions (jinx--session-suggestions word)))
         (push ["Session" :active nil] menu)
         (cl-loop for w in suggestions repeat 10 do
-          (push `[,w (jinx--correct-replace ,ov ,w)] menu))
-        (push "--" menu))
+          (push `[,w (jinx--correct-replace ,ov ,w)] menu)))
       (push ["Accept and save" :active nil] menu)
       (cl-loop for (key . fun) in jinx--save-keys
                for actions = (funcall fun nil key word) do
@@ -1009,7 +1007,7 @@ This command dispatches to the following commands:
                               menu)))
       (popup-menu (easy-menu-create-menu
                    (format "Correct `%s'" word)
-                   (nreverse menu))
+                   (delete-dups (nreverse menu)))
                   event))))
 
 ;;;###autoload
