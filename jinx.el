@@ -740,12 +740,12 @@ The word will be associated with GROUP and get a prefix key."
   "Completion table for SUGGESTIONS."
   (lambda (str pred action)
     (if (eq action 'metadata)
-        '(metadata (display-sort-function . identity)
-                   (cycle-sort-function . identity)
-                   (category . jinx)
-                   (group-function . jinx--correct-group)
-                   (affixation-function . jinx--correct-affixation)
-                   (annotation-function . jinx--correct-annotation))
+        `(metadata (category . jinx)
+                   (display-sort-function . ,#'identity)
+                   (cycle-sort-function . ,#'identity)
+                   (group-function . ,#'jinx--correct-group)
+                   (affixation-function . ,#'jinx--correct-affixation)
+                   (annotation-function . ,#'jinx--correct-annotation))
       (complete-with-action action suggestions str pred))))
 
 (cl-defun jinx--correct-overlay (overlay &key info initial)
