@@ -165,6 +165,10 @@ checking."
   "Maximal edit distance for session words to be included in suggestions."
   :type 'natnum)
 
+(defcustom jinx-menu-suggestions 10
+  "Maximal number of suggestions shown in the context menu."
+  :type 'natnum)
+
 (defvar-local jinx-local-words ""
   "File-local words, as a string separated by whitespace.")
 
@@ -990,11 +994,11 @@ This command dispatches to the following commands:
         (when-let ((desc (jinx--mod-describe dict))
                    (suggestions (jinx--mod-suggest dict word)))
           (push `[,(concat (car desc) " - " (cdr desc)) :active nil] menu)
-          (cl-loop for w in suggestions repeat 10 do
+          (cl-loop for w in suggestions repeat jinx-menu-suggestions do
                    (push `[,w (jinx--correct-replace ,ov ,w)] menu))))
       (when-let ((suggestions (jinx--session-suggestions word)))
         (push ["Session" :active nil] menu)
-        (cl-loop for w in suggestions repeat 10 do
+        (cl-loop for w in suggestions repeat jinx-menu-suggestions do
           (push `[,w (jinx--correct-replace ,ov ,w)] menu)))
       (push ["Accept and save" :active nil] menu)
       (cl-loop for (key . fun) in jinx--save-keys
