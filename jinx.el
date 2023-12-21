@@ -215,7 +215,7 @@ checking."
 
 (defvar-keymap jinx-overlay-map
   :doc "Keymap attached to misspelled words."
-  "<down-mouse-3>" #'jinx-correct-menu
+  "<down-mouse-3>" `(menu-item "" (keymap) :filter ,#'jinx--correct-menu)
   "M-n" #'jinx-next
   "M-p" #'jinx-previous
   "M-$" #'jinx-correct)
@@ -786,6 +786,36 @@ Optionally show prompt INFO and insert INITIAL input."
     (insert-before-markers word)
     (delete-region start end)))
 
+(defun jinx--correct-menu (&rest _)
+  "Return popup mouse menu to correct misspelling."
+  (when-let ((posn (event-start last-input-event))
+             (pt (posn-point posn))
+             (ov (car (jinx--get-overlays pt pt t))))
+    (let ((menu nil)
+          (word (buffer-substring-no-properties
+                 (overlay-start ov) (overlay-end ov))))
+      (dolist (dict jinx--dicts)
+        (when-let ((desc (jinx--mod-describe dict))
+                   (suggestions (jinx--mod-suggest dict word)))
+          (push `[,(concat (car desc) " - " (cdr desc)) :active nil] menu)
+          (cl-loop for w in suggestions repeat jinx-menu-suggestions do
+                   (push `[,w (jinx--correct-replace ,ov ,w)] menu))))
+      (when-let ((suggestions (jinx--session-suggestions word)))
+        (push ["Session" :active nil] menu)
+        (cl-loop for w in suggestions repeat jinx-menu-suggestions do
+          (push `[,w (jinx--correct-replace ,ov ,w)] menu)))
+      (push ["Accept and save" :active nil] menu)
+      (cl-loop for (key . fun) in jinx--save-keys
+               for actions = (funcall fun nil key word) do
+               (unless (consp (car actions)) (setq actions (list actions)))
+               (cl-loop for (k w a) in actions do
+                        (push `[,a (jinx-correct-word
+                                    ,(overlay-start ov) ,(overlay-end ov)
+                                    ,(concat (if (stringp k) k (char-to-string k)) w))]
+                              menu)))
+      (easy-menu-create-menu (format "Correct `%s'" word)
+                             (delete-dups (nreverse menu))))))
+
 (defun jinx--load-dicts ()
   "Load dictionaries and setup syntax table."
   (setq jinx--dicts (delq nil (mapcar #'jinx--mod-dict
@@ -982,38 +1012,6 @@ This command dispatches to the following commands:
   (interactive "p")
   (jinx-next (- n)))
 
-(defun jinx-correct-menu (event)
-  "Popup mouse menu to correct misspelling at EVENT."
-  (interactive "e")
-  (when-let ((pt (posn-point (event-start event)))
-             (ov (car (jinx--get-overlays pt pt t))))
-    (let ((menu nil)
-          (word (buffer-substring-no-properties
-                 (overlay-start ov) (overlay-end ov))))
-      (dolist (dict jinx--dicts)
-        (when-let ((desc (jinx--mod-describe dict))
-                   (suggestions (jinx--mod-suggest dict word)))
-          (push `[,(concat (car desc) " - " (cdr desc)) :active nil] menu)
-          (cl-loop for w in suggestions repeat jinx-menu-suggestions do
-                   (push `[,w (jinx--correct-replace ,ov ,w)] menu))))
-      (when-let ((suggestions (jinx--session-suggestions word)))
-        (push ["Session" :active nil] menu)
-        (cl-loop for w in suggestions repeat jinx-menu-suggestions do
-          (push `[,w (jinx--correct-replace ,ov ,w)] menu)))
-      (push ["Accept and save" :active nil] menu)
-      (cl-loop for (key . fun) in jinx--save-keys
-               for actions = (funcall fun nil key word) do
-               (unless (consp (car actions)) (setq actions (list actions)))
-               (cl-loop for (k w a) in actions do
-                        (push `[,a (jinx-correct-word
-                                    ,(overlay-start ov) ,(overlay-end ov)
-                                    ,(concat (if (stringp k) k (char-to-string k)) w))]
-                              menu)))
-      (popup-menu (easy-menu-create-menu
-                   (format "Correct `%s'" word)
-                   (delete-dups (nreverse menu)))
-                  event))))
-
 ;;;###autoload
 (define-minor-mode jinx-mode
   "Enchanted Spell Checker."
@@ -1079,7 +1077,6 @@ symbols or elements of the form (not modes)."
                                   (`(not . ,m) (and (seq-some #'derived-mode-p m) 0)))))))
     (jinx-mode 1)))
 
-(put #'jinx-correct-menu 'completion-predicate #'ignore)
 (put #'jinx-correct-select 'completion-predicate #'ignore)
 (put #'jinx-next 'command-modes '(jinx-mode))
 (put #'jinx-previous 'command-modes '(jinx-mode))
