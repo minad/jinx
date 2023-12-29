@@ -4,4 +4,6 @@
 *.info
 *.so
 *.texi
-README-elpa
+*~
+\#*\#
+/README-elpa
