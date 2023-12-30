@@ -259,7 +259,8 @@ checking."
 ;;;; Internal variables
 
 (defvar jinx--schedule-hooks
-  '(window-state-change-hook window-scroll-functions post-command-hook)
+  '(window-selection-change-functions window-scroll-functions
+    window-state-change-hook post-command-hook)
   "Hooks which reschedule the spell checking timer, see `jinx--schedule'.")
 
 (defvar jinx--predicates
