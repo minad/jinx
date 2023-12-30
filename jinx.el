@@ -270,7 +270,7 @@ checking."
 Predicate should return t if the word before point is valid.
 Predicate may return a position to skip forward.")
 
-(defvar jinx--timer nil
+(defvar jinx--timer (timer-create)
   "Global timer to check pending regions.")
 
 (defvar jinx--base-syntax-table
@@ -539,7 +539,7 @@ If CHECK is non-nil, always check first."
 
 (defun jinx--timer-handler ()
   "Global timer handler, checking the pending regions in all windows."
-  (setq jinx--timer nil)
+  (timer-set-function jinx--timer nil)
   (dolist (frame (frame-list))
     (dolist (win (window-list frame 'no-miniwindow))
       (when-let ((buffer (window-buffer win))
@@ -549,19 +549,19 @@ If CHECK is non-nil, always check first."
 
 (defun jinx--reschedule (&rest _)
   "Restart the global idle timer."
-  (when jinx--timer
+  (when (timer--function jinx--timer)
     (cancel-timer jinx--timer)
-    (setq jinx--timer nil))
+    (timer-set-function jinx--timer nil))
   (jinx--schedule))
 
 (defun jinx--schedule ()
   "Start the global idle timer."
-  (when (and (not jinx--timer)
+  (when (and (not (timer--function jinx--timer))
              (not completion-in-region-mode) ;; Corfu completion
              (get-buffer-window)) ;; Buffer visible
-    (setq jinx--timer
-          (run-with-idle-timer jinx-delay
-                               nil #'jinx--timer-handler))))
+    (timer-set-function jinx--timer #'jinx--timer-handler)
+    (timer-set-idle-time jinx--timer jinx-delay)
+    (timer-activate-when-idle jinx--timer)))
 
 (defun jinx--load-module ()
   "Compile and load dynamic module."
