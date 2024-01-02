@@ -278,6 +278,9 @@ Predicate may return a position to skip forward.")
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?$ "_" st)
     (modify-syntax-entry ?% "_" st)
+    (modify-syntax-entry '(#xe000 . #xf8ff) "_" st)    ;; Priv. use area
+    (modify-syntax-entry '(#xf0000 . #xffffd) "_" st)  ;; Supp. priv. use area A
+    (modify-syntax-entry '(#x100000 . #x10fffd) "_" st);; Supp. priv. use area B
     (modify-syntax-entry '(#x80 . #x9f) "_" st)        ;; Control characters
     (modify-syntax-entry '(#x2150 . #x2bff) "_" st)    ;; Number Forms - Misc. Arrows
     (modify-syntax-entry '(#xfe00 . #xfe0f) "_" st)    ;; Variation Selectors
