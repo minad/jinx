@@ -558,7 +558,7 @@ If CHECK is non-nil, always check first."
              (get-buffer-window)) ;; Buffer visible
     (timer-set-function jinx--timer #'jinx--timer-handler)
     (timer-set-idle-time jinx--timer jinx-delay)
-    (timer-activate-when-idle jinx--timer)))
+    (timer-activate-when-idle jinx--timer t)))
 
 (defun jinx--load-module ()
   "Compile and load dynamic module."
