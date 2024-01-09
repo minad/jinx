@@ -258,10 +258,10 @@ checking."
 
 ;;;; Internal variables
 
-(defvar jinx--schedule-hooks
+(defvar jinx--reschedule-hooks
   '(window-selection-change-functions window-scroll-functions
     window-state-change-hook post-command-hook)
-  "Hooks which reschedule the spell checking timer, see `jinx--schedule'.")
+  "Hooks which reschedule the spell checking timer, see `jinx--reschedule'.")
 
 (defvar jinx--predicates
   (list #'jinx--face-ignored-p
@@ -551,7 +551,14 @@ If CHECK is non-nil, always check first."
         (with-current-buffer buffer
           (jinx--check-pending (window-start win) (window-end win)))))))
 
-(defun jinx--schedule (&rest _)
+(defun jinx--reschedule (&rest _)
+  "Restart the global idle timer."
+  (when (timer--function jinx--timer)
+    (cancel-timer jinx--timer)
+    (timer-set-function jinx--timer nil))
+  (jinx--schedule))
+
+(defun jinx--schedule ()
   "Start the global idle timer."
   (when (and (not (timer--function jinx--timer))
              (not completion-in-region-mode) ;; Corfu completion
@@ -1034,16 +1041,16 @@ This command dispatches to the following commands:
                           (seq-some #'derived-mode-p jinx-camel-modes))
           jinx--session-words (split-string jinx-local-words))
     (jinx--load-dicts)
-    (dolist (hook jinx--schedule-hooks)
-      (add-hook hook #'jinx--schedule nil t))
+    (dolist (hook jinx--reschedule-hooks)
+      (add-hook hook #'jinx--reschedule nil t))
     (jit-lock-register #'jinx--mark-pending))
    (t
     (mapc #'kill-local-variable '(jinx--exclude-regexp jinx--include-faces
                                   jinx--exclude-faces jinx--camel
                                   jinx--dicts jinx--syntax-table
                                   jinx--session-words))
-    (dolist (hook jinx--schedule-hooks)
-      (remove-hook hook #'jinx--schedule t))
+    (dolist (hook jinx--reschedule-hooks)
+      (remove-hook hook #'jinx--reschedule t))
     (jit-lock-unregister #'jinx--mark-pending)
     (jinx--cleanup))))
 
