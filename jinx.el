@@ -601,6 +601,11 @@ If CHECK is non-nil, always check first."
                   (pop-to-buffer (current-buffer))
                   (error msg)))))
           (setq mod-file (expand-file-name mod-name))))
+      ;; Initialize Mac spell checker to avoid dead lock (gh:minad/jinx#91).
+      (when (and (eq window-system 'mac) (fboundp 'mac-do-applescript))
+        (mac-do-applescript
+         "use framework \"AppKit\"
+          set spellChecker to current application's NSSpellChecker's sharedSpellChecker()"))
       (module-load mod-file))))
 
 (defmacro jinx--correct-guard (&rest body)
