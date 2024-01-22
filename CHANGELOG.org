@@ -5,6 +5,7 @@
 * Development
 
 - Fix deadlock on MacOS during Jinx startup.
+- Timer optimizations.
 
 * Version 1.1 (2023-12-27)
 
