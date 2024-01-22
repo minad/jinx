@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 1.2 (2024-01-22)
 
 - Fix deadlock on MacOS during Jinx startup.
 - Timer optimizations.
