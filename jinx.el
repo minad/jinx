@@ -534,7 +534,7 @@ If CHECK is non-nil, always check first."
 (defun jinx--get-org-language ()
   "Get language from Org #+language keyword."
   (when (and (not (local-variable-p 'jinx-languages))
-             (derived-mode-p #'org-mode))
+             (derived-mode-p 'org-mode))
     (save-excursion
       (save-match-data
         (goto-char (point-min))
@@ -622,7 +622,7 @@ If CHECK is non-nil, always check first."
     (goto-char (overlay-end overlay))
     (unwind-protect
         (progn
-          (if (and (derived-mode-p #'org-mode)
+          (if (and (derived-mode-p 'org-mode)
                    (fboundp 'org-fold-show-set-visibility)
                    (fboundp 'org-fold-core-get-regions)
                    (fboundp 'org-fold-core-region))
