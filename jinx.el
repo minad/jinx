@@ -131,6 +131,20 @@ Set to t to enable camelCase everywhere."
     (texinfo-mode
      font-lock-function-name-face font-lock-keyword-face
      font-lock-variable-name-face)
+    (typst-ts-mode
+     font-lock-warning-face font-lock-function-name-face font-lock-function-call-face
+     font-lock-variable-name-face font-lock-variable-use-face font-lock-keyword-face
+     font-lock-comment-delimiter-face font-lock-type-face font-lock-constant-face
+     font-lock-builtin-face font-lock-preprocessor-face font-lock-doc-markup-face
+     font-lock-negation-char-face font-lock-escape-face font-lock-number-face
+     font-lock-operator-face font-lock-property-use-face font-lock-punctuation-face
+     font-lock-bracket-face font-lock-delimiter-face font-lock-misc-punctuation-face
+     typst-ts-markup-item-indicator-face typst-ts-markup-term-indicator-face
+     typst-ts-markup-rawspan-indicator-face typst-ts-markup-rawspan-blob-face
+     typst-ts-markup-rawblock-indicator-face typst-ts-markup-rawblock-lang-face
+     typst-ts-markup-rawblock-blob-face
+     typst-ts-error-face typst-ts-shorthand-face typst-ts-markup-linebreak-face
+     typst-ts-markup-quote-face typst-ts-markup-url-face typst-ts-math-indicator-face)
     (rst-mode
      rst-literal rst-external rst-directive rst-definition rst-reference)
     (sgml-mode
