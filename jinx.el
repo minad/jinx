@@ -1034,7 +1034,7 @@ This command dispatches to the following commands:
    (jinx-mode
     (jinx--load-module)
     (let ((enable-local-variables :safe))
-      (hack-local-variables))
+      (hack-local-variables 'ignore-mode))
     (jinx--get-org-language)
     (setq jinx--exclude-regexp
           (when-let ((regexps (jinx--mode-list jinx-exclude-regexps)))
