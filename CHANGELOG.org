@@ -2,6 +2,11 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Version 1.3 (2024-02-23)
+
+- Fix interaction bug with the newest version of AUCTeX, where the major mode
+  got changed unexpectedly.
+
 * Version 1.2 (2024-01-22)
 
 - Fix deadlock on MacOS during Jinx startup.
