@@ -4,8 +4,8 @@
 
 * Development
 
-- ~jinx-correct~: Make sure that words are saved without text properties in the
-  file-local variable ~jinx-local-words~.
+- Bugfix: ~jinx-correct~ - Make sure that words are saved without text properties
+  in the file-local variable ~jinx-local-words~.
 
 * Version 1.3 (2024-02-23)
 
