@@ -779,7 +779,8 @@ Optionally show prompt INFO and insert INITIAL input."
            (len (length choice)))
       (pcase (and (> len 0) (assq (aref choice 0) jinx--save-keys))
         (`(,key . ,fun)
-         (funcall fun 'save key (if (> len 1) (substring choice 1) word))
+         (funcall fun 'save key
+                  (if (> len 1) (substring-no-properties choice 1) word))
          (jinx--recheck-overlays))
         ((guard (not (equal choice word)))
          (jinx--correct-replace overlay choice)))
