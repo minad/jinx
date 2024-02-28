@@ -930,9 +930,12 @@ buffers.  See also the variable `jinx-languages'."
   "Correct all misspelled words in the buffer."
   (interactive "*")
   (jinx--correct-guard
-   (let* ((overlays (jinx--force-overlays (point-min) (point-max) :check t))
+   (let* ((overlays (jinx--force-overlays (or (use-region-beginning) (point-min))
+                                          (or (use-region-end) (point-max))
+                                          :check t))
           (count (length overlays))
           (idx 0))
+     (deactivate-mark)
      (push-mark)
      (while-let ((ov (nth idx overlays)))
        (if-let (((overlay-buffer ov))
@@ -982,13 +985,14 @@ Optionally insert INITIAL input in the minibuffer."
 This command dispatches to the following commands:
   - `jinx-correct-nearest': If prefix ARG is nil, correct nearest
     misspelled word.
-  - `jinx-correct-all': If prefix ARG is 4, corresponding to
-    \\[universal-argument] pressed once, correct all misspelled words.
+  - `jinx-correct-all': If a region is marked, or if prefix ARG
+    is 4, corresponding to \\[universal-argument] pressed once,
+    correct all misspelled words.
   - `jinx-correct-word': If prefix ARG is 16, corresponding to
     \\[universal-argument] pressed twice, correct word before point."
   (interactive "*P")
   (pcase arg
-    ('nil (jinx-correct-nearest))
+    ('nil (if (use-region-p) (jinx-correct-all) (jinx-correct-nearest)))
     ('(16) (jinx-correct-word))
     (_ (jinx-correct-all))))
 

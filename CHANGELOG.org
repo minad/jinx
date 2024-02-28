@@ -6,6 +6,8 @@
 
 - Bugfix: ~jinx-correct~ - Make sure that words are saved without text properties
   in the file-local variable ~jinx-local-words~.
+- ~jinx-correct~: If a region is marked, call ~jinx-correct-all~ and restrict
+  corrections to the marked region.
 
 * Version 1.3 (2024-02-23)
 
