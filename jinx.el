@@ -94,12 +94,11 @@
     ;; while they should better be conf- or prog-modes.
     (yaml-mode font-lock-comment-face
                font-lock-string-face)
-    (yaml-ts-mode font-lock-comment-face
-                  font-lock-string-face))
+    (yaml-ts-mode . yaml-mode)) ;; alias
   "Alist of faces per major mode.
 These faces mark regions which should be included in spell
 checking."
-  :type '(alist :key-type symbol :value-type (repeat face)))
+  :type '(alist :key-type symbol :value-type (choice symbol (repeat face))))
 
 (defcustom jinx-camel-modes
   '(java-mode java-ts-mode js-mode js-ts-mode ruby-mode ruby-ts-mode rust-mode
@@ -128,6 +127,7 @@ Set to t to enable camelCase everywhere."
      tex-math font-latex-math-face font-latex-sedate-face
      font-latex-verbatim-face font-lock-function-name-face
      font-lock-keyword-face font-lock-variable-name-face)
+    (TeX-mode . tex-mode) ;; alias
     (texinfo-mode
      font-lock-function-name-face font-lock-keyword-face
      font-lock-variable-name-face)
@@ -147,7 +147,7 @@ Set to t to enable camelCase everywhere."
   "Alist of faces per major mode.
 These faces mark regions which should be excluded in spell
 checking."
-  :type '(alist :key-type symbol :value-type (repeat face)))
+  :type '(alist :key-type symbol :value-type (choice symbol (repeat face))))
 
 (defcustom jinx-exclude-regexps
   '((emacs-lisp-mode "Package-Requires:.*$")
@@ -159,7 +159,7 @@ checking."
        "\\(?:Local Variables\\|End\\):\\s-*$" ;; Local variable indicator
        "jinx-\\(?:languages\\|local-words\\):\\s-+.*$")) ;; Local variables
   "List of excluded regexps per major mode."
-  :type '(alist :key-type symbol :value-type (repeat regexp)))
+  :type '(alist :key-type symbol :value-type (choice symbol (repeat regexp))))
 
 (defcustom jinx-suggestion-distance 3
   "Maximal edit distance for session words to be included in suggestions."
@@ -529,7 +529,8 @@ If CHECK is non-nil, always check first."
 (defun jinx--mode-list (list)
   "Lookup by major mode in LIST."
   (cl-loop for (mode . vals) in list
-           if (or (eq mode t) (derived-mode-p mode)) append vals))
+           if (or (eq mode t) (derived-mode-p mode))
+           append (if (symbolp vals) (alist-get vals list) vals)))
 
 (defun jinx--get-org-language ()
   "Get language from Org #+language keyword."
