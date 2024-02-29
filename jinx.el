@@ -127,7 +127,6 @@ Set to t to enable camelCase everywhere."
      tex-math font-latex-math-face font-latex-sedate-face
      font-latex-verbatim-face font-lock-function-name-face
      font-lock-keyword-face font-lock-variable-name-face)
-    (TeX-mode . tex-mode) ;; alias
     (texinfo-mode
      font-lock-function-name-face font-lock-keyword-face
      font-lock-variable-name-face)
