@@ -92,9 +92,8 @@
                font-lock-string-face)
     ;; `yaml-mode' and `yaml-ts-mode' are text-modes,
     ;; while they should better be conf- or prog-modes.
-    (yaml-mode font-lock-comment-face
-               font-lock-string-face)
-    (yaml-ts-mode . yaml-mode)) ;; alias
+    (yaml-mode . conf-mode)
+    (yaml-ts-mode . conf-mode))
   "Alist of faces per major mode.
 These faces mark regions which should be included in spell
 checking."
