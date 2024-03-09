@@ -6,6 +6,7 @@
 
 - Bugfix: ~jinx-correct~ - Make sure that words are saved without text properties
   in the file-local variable ~jinx-local-words~.
+- Bugfix: Ensure that ~eval~ local variable enabling ~jinx-mode~ works.
 - ~jinx-correct~: If a region is marked, call ~jinx-correct-all~ and restrict
   corrections to the marked region.
 - ~jinx-exclude-faces~, ~jinx-include-faces~, ~jinx-exclude-regexps~: Support mode
