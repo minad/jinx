@@ -614,39 +614,57 @@ If CHECK is non-nil, always check first."
      (unless jinx-mode (jinx-mode 1))
      ,@body))
 
+(defun jinx--invisible-open-temporarily ()
+  "Temporarily open overlays which hide the current line.
+See `isearch-open-necessary-overlays' and `isearch-open-overlay-temporary'."
+  (if (and (derived-mode-p 'org-mode)
+           (fboundp 'org-fold-show-set-visibility)
+           (fboundp 'org-fold-core-get-regions)
+           (fboundp 'org-fold-core-region))
+      ;; New Org 9.6 fold-core API
+      (let ((regions (delq nil (org-fold-core-get-regions
+                                :with-markers t :from (point-min) :to (point-max)))))
+        (let ((inhibit-redisplay t)) ;; HACK: Prevent flicker due to premature redisplay
+          (org-fold-show-set-visibility 'canonical))
+        (list (lambda ()
+                (cl-loop for (beg end spec) in regions do
+                         (org-fold-core-region beg end t spec)))))
+    (let (restore)
+      (dolist (ov (overlays-in (pos-bol) (pos-eol)))
+        (let ((inv (overlay-get ov 'invisible)))
+          (when (and (invisible-p inv) (overlay-get ov 'isearch-open-invisible))
+            (push (if-let ((fun (overlay-get ov 'isearch-open-invisible-temporary)))
+                      (progn
+                        (funcall fun ov nil)
+                        (lambda () (funcall fun ov t)))
+                    (overlay-put ov 'invisible nil)
+                    (lambda () (overlay-put ov 'invisible inv)))
+                  restore))))
+      restore)))
+
+(defun jinx--invisible-open-permanently ()
+  "Open overlays which hide the current line.
+See `isearch-open-necessary-overlays' and `isearch-open-overlay-temporary'."
+  (if (and (derived-mode-p 'org-mode) (fboundp 'org-fold-show-set-visibility))
+      ;; New Org 9.6 fold-core API
+      (let ((inhibit-redisplay t)) ;; HACK: Prevent flicker due to premature redisplay
+        (org-fold-show-set-visibility 'canonical))
+    (dolist (ov (overlays-in (pos-bol) (pos-eol)))
+      (when-let (fun (overlay-get ov 'isearch-open-invisible))
+        (when (invisible-p (overlay-get ov 'invisible))
+          (funcall fun ov))))))
+
 (defun jinx--correct-highlight (overlay fun)
   "Highlight and show OVERLAY during FUN."
   (declare (indent 1))
   (let (restore)
     (goto-char (overlay-end overlay))
     (unwind-protect
-        (progn
-          (if (and (derived-mode-p 'org-mode)
-                   (fboundp 'org-fold-show-set-visibility)
-                   (fboundp 'org-fold-core-get-regions)
-                   (fboundp 'org-fold-core-region))
-              ;; New Org 9.6 fold-core API
-              (let ((regions (delq nil (org-fold-core-get-regions
-                                        :with-markers t :from (point-min) :to (point-max)))))
-                (org-fold-show-set-visibility 'canonical)
-                (push (lambda ()
-                        (cl-loop for (beg end spec) in regions do
-                                 (org-fold-core-region beg end t spec)))
-                      restore))
-            (dolist (ov (overlays-in (pos-bol) (pos-eol)))
-              (let ((inv (overlay-get ov 'invisible)))
-                (when (and (invisible-p inv) (overlay-get ov 'isearch-open-invisible))
-                  (push (if-let ((fun (overlay-get ov 'isearch-open-invisible-temporary)))
-                            (progn
-                              (funcall fun ov nil)
-                              (lambda () (funcall fun ov t)))
-                          (overlay-put ov 'invisible nil)
-                          (lambda () (overlay-put ov 'invisible inv)))
-                        restore)))))
-          (let ((hl (make-overlay (overlay-start overlay) (overlay-end overlay))))
-            (overlay-put hl 'face 'jinx-highlight)
-            (overlay-put hl 'window (selected-window))
-            (push (lambda () (delete-overlay hl)) restore))
+        (let ((hl (make-overlay (overlay-start overlay) (overlay-end overlay))))
+          (overlay-put hl 'face 'jinx-highlight)
+          (overlay-put hl 'window (selected-window))
+          (push (lambda () (delete-overlay hl)) restore)
+          (cl-callf2 append (jinx--invisible-open-temporarily) restore)
           (funcall fun))
       (mapc #'funcall restore))))
 
@@ -1018,7 +1036,8 @@ This command dispatches to the following commands:
       (let ((ov (jinx--force-overlays (point-min) (point-max))))
         (unless (or (> n 0) (<= (overlay-start (car ov)) (point) (overlay-end (car ov))))
           (cl-incf n))
-        (goto-char (overlay-end (nth (mod n (length ov)) ov)))))))
+        (goto-char (overlay-end (nth (mod n (length ov)) ov)))
+        (jinx--invisible-open-permanently)))))
 
 (defun jinx-previous (n)
   "Go to to Nth previous misspelled word."
