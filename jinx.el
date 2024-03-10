@@ -931,7 +931,8 @@ buffers.  See also the variable `jinx-languages'."
   (jinx--correct-guard
    (let* ((overlays (jinx--force-overlays (or (use-region-beginning) (point-min))
                                           (or (use-region-end) (point-max))
-                                          :check t))
+                                          :check t
+                                          :visible t))
           (count (length overlays))
           (idx 0))
      (deactivate-mark)
@@ -1015,7 +1016,7 @@ This command dispatches to the following commands:
   (unless (= n 0)
     (if (minibufferp)
         (throw 'jinx--goto n)
-      (let ((ov (jinx--force-overlays (point-min) (point-max))))
+      (let ((ov (jinx--force-overlays (point-min) (point-max) :visible t)))
         (unless (or (> n 0) (<= (overlay-start (car ov)) (point) (overlay-end (car ov))))
           (cl-incf n))
         (goto-char (overlay-end (nth (mod n (length ov)) ov)))))))
