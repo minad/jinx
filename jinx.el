@@ -663,8 +663,8 @@ See `isearch-open-necessary-overlays' and `isearch-open-overlay-temporary'."
         (let ((hl (make-overlay (overlay-start overlay) (overlay-end overlay))))
           (overlay-put hl 'face 'jinx-highlight)
           (overlay-put hl 'window (selected-window))
-          (push (lambda () (delete-overlay hl)) restore)
-          (cl-callf2 append (jinx--invisible-open-temporarily) restore)
+          (setq restore (cons (lambda () (delete-overlay hl))
+                              (jinx--invisible-open-temporarily)))
           (funcall fun))
       (mapc #'funcall restore))))
 
