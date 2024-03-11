@@ -27,7 +27,7 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 int plugin_is_GPL_compatible;
 
 static EnchantBroker* broker = 0;
-static emacs_value Qt, Qnil;
+static emacs_value Qt, Qnil, Qcons;
 
 static EnchantBroker* jinx_broker(void) {
     return broker ? broker : (broker = enchant_broker_init());
@@ -42,7 +42,7 @@ static emacs_value jinx_str(emacs_env* env, const char* str) {
 }
 
 static emacs_value jinx_cons(emacs_env* env, emacs_value a, emacs_value b) {
-    return env->funcall(env, env->intern(env, "cons"), 2, (emacs_value[]){a, b});
+    return env->funcall(env, Qcons, 2, (emacs_value[]){a, b});
 }
 
 static char* jinx_cstr(emacs_env* env, emacs_value val) {
@@ -186,6 +186,7 @@ int emacs_module_init(struct emacs_runtime *runtime) {
                      });
     Qt = env->make_global_ref(env, env->intern(env, "t"));
     Qnil = env->make_global_ref(env, env->intern(env, "nil"));
+    Qcons = env->make_global_ref(env, env->intern(env, "cons"));
     jinx_defun(env, "jinx--mod-suggest", 2, 2, jinx_suggest);
     jinx_defun(env, "jinx--mod-check", 2, 2, jinx_check);
     jinx_defun(env, "jinx--mod-add", 2, 2, jinx_add);
