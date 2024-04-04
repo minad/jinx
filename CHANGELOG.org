@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 1.5 (2024-04-04)
 
 - Bugfix: Ensure that ~jinx-next~ unfolds hidden misspellings.
 - Bugfix: Ensure that directory local variable enabling ~jinx-mode~ works.
