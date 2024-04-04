@@ -5,6 +5,7 @@
 * Development
 
 - Bugfix: Ensure that ~jinx-next~ unfolds hidden misspellings.
+- Bugfix: Ensure that directory local variable enabling ~jinx-mode~ works.
 
 * Version 1.4 (2024-03-10)
 
