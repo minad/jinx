@@ -1056,9 +1056,7 @@ This command dispatches to the following commands:
       (jinx-mode -1)))
    (jinx-mode
     (jinx--load-module)
-    (let ((enable-local-variables :safe)
-          (enable-local-eval nil)
-          (enable-dir-local-variables nil))
+    (let ((enable-local-variables :safe) (enable-local-eval nil))
       (hack-local-variables 'ignore-mode))
     (jinx--get-org-language)
     (setq jinx--exclude-regexp
