@@ -1056,7 +1056,10 @@ This command dispatches to the following commands:
       (jinx-mode -1)))
    (jinx-mode
     (jinx--load-module)
-    (let ((enable-local-variables :safe) (enable-local-eval nil))
+    (cl-letf* ((enable-local-variables :safe)
+               (enable-local-eval nil)
+               ;; Fix reentrancy problem (gh:minad/jinx#158)
+               ((symbol-function #'jinx-mode) #'ignore))
       (hack-local-variables 'ignore-mode))
     (jinx--get-org-language)
     (setq jinx--exclude-regexp
