@@ -2,6 +2,12 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Version 1.6 (2024-04-12)
+
+- Bugfix (again): Ensure that directory local variables work correctly with
+  Jinx. It is possible to turn Jinx on or off via dir-locals, and also configure
+  the language and local words.
+
 * Version 1.5 (2024-04-04)
 
 - Bugfix: Ensure that ~jinx-next~ unfolds hidden misspellings.
