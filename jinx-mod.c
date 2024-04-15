@@ -130,6 +130,8 @@ static emacs_value jinx_check(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                               emacs_value args[], void* jinx_unused(data)) {
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
     jinx_autofree char* str = jinx_cstr(env, args[1]);
+    // Do not error in the checking function (Non-Unicode strings)
+    env->non_local_exit_clear(env);
     return !dict || !str || enchant_dict_check(dict, str, -1) ? Qnil : Qt;
 }
 

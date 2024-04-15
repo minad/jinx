@@ -2,6 +2,10 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Development
+
+- ~jinx--word-valid-p~: Do not error on invalid characters.
+
 * Version 1.6 (2024-04-12)
 
 - Bugfix (again): Ensure that directory local variables work correctly with
