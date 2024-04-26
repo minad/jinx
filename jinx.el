@@ -397,9 +397,12 @@ FLAG must be t or nil."
               (eq flag
                   (not (and (get-text-property start 'jinx--pending)
                             (not (invisible-p start))))))
-    (setq start (next-single-char-property-change
-                 start 'jinx--pending nil
-                 (next-single-char-property-change start 'invisible nil end))))
+    (let ((pos (next-single-char-property-change
+                start 'jinx--pending nil
+                (next-single-char-property-change start 'invisible nil end))))
+      ;; BUG: Make sure that new position is larger than start.
+      ;; Is this an Emacs bug?
+      (setq start (max pos (1+ start)))))
   start)
 
 (defun jinx--check-pending (start end)
