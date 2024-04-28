@@ -5,6 +5,7 @@
 * Development
 
 - ~jinx--word-valid-p~: Do not error on invalid characters.
+- ~jinx-save-languages~: New custom variable.
 
 * Version 1.6 (2024-04-12)
 

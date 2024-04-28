@@ -81,6 +81,12 @@
   "Dictionary language codes, as a string separated by whitespace."
   :type 'string)
 
+(defcustom jinx-save-languages 'ask
+  "Save the variable `jinx-languages' as file-local variable?"
+  :type '(choice (const :tag "Never"  nil)
+                 (const :tag "Always" t)
+                 (const :tag "Ask"    ask)))
+
 ;;;###autoload
 (put 'jinx-languages 'safe-local-variable #'stringp)
 
@@ -935,8 +941,10 @@ buffers.  See also the variable `jinx-languages'."
    (t
     (setq-local jinx-languages langs)
     (when (or (assq 'jinx-languages file-local-variables-alist)
-              (and buffer-file-name
-                   (y-or-n-p "Save `jinx-languages' as file-local variable? ")))
+              (if (eq jinx-save-languages 'ask)
+                  (and buffer-file-name
+                       (y-or-n-p "Save `jinx-languages' as file-local variable? "))
+                jinx-save-languages))
       (add-file-local-variable 'jinx-languages jinx-languages)
       (setf (alist-get 'jinx-languages file-local-variables-alist) jinx-languages))))
   (jinx--load-dicts)
