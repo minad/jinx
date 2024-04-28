@@ -5,6 +5,9 @@
 * Development
 
 - ~jinx--word-valid-p~: Do not error on invalid characters.
+- New custom variable ~jinx-save-languages~ with values ~'always~, ~'ask~ and
+  ~'never~ to control when the "Save `jinx-languages' as file-local variable?"
+  message is shown.
 
 * Version 1.6 (2024-04-12)
 

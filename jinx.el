@@ -176,6 +176,16 @@ checking."
 ;;;###autoload
 (put 'jinx-mode 'safe-local-variable #'not)
 
+(defcustom jinx-ask-save-languages 'ask
+  "Ask user whether to save jinx-languages when it is changed
+in the local variables list.
+
+Values are:
+ask: ask whether to save
+never: don't save it in any case
+always: save without asking"
+  :type 'symbol)
+
 ;;;; Faces
 
 (defgroup jinx-faces nil
@@ -905,6 +915,19 @@ If SAVE is non-nil save, otherwise format candidate given action KEY."
       (add-to-list 'jinx--session-words word)
     (list key word "Session")))
 
+(defun jinx--do-save-jinx-languages ()
+  "This function covers the different cases: a) a user who always
+wants to keep track of the file-local value for jinx-languages;
+b) a user who wants to be asked when jinx-languages is file-local and changes;
+and c) a user with reasons not to save the new value."
+  ;; the user wants it added to the file unconditionally
+  (cond ((eq jinx-save-languages 'always) t)
+        ;; default behaviour, be prudent and ask
+        ((eq jinx-save-languages 'ask)
+         ;; The user doesn't want to save it.
+         (y-or-n-p "Save `jinx-languages' as file-local variable? "))
+        (t nil))) ;; would cover the 'never case
+
 ;;;; Public commands
 
 ;;;###autoload
@@ -935,8 +958,7 @@ buffers.  See also the variable `jinx-languages'."
    (t
     (setq-local jinx-languages langs)
     (when (or (assq 'jinx-languages file-local-variables-alist)
-              (and buffer-file-name
-                   (y-or-n-p "Save `jinx-languages' as file-local variable? ")))
+              (and buffer-file-name (jinx--do-save-jinx-languages)))
       (add-file-local-variable 'jinx-languages jinx-languages)
       (setf (alist-get 'jinx-languages file-local-variables-alist) jinx-languages))))
   (jinx--load-dicts)
