@@ -181,10 +181,11 @@ checking."
 in the local variables list.
 
 Values are:
-ask: ask whether to save
-never: don't save it in any case
-always: save without asking"
-  :type 'symbol)
+ ask: ask whether to save
+ never: don't save it in any case
+ always: save without asking"
+  :type 'symbol
+  :options '(always ask never))
 
 ;;;; Faces
 
