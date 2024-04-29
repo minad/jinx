@@ -177,15 +177,16 @@ checking."
 (put 'jinx-mode 'safe-local-variable #'not)
 
 (defcustom jinx-save-languages 'ask
-  "Ask user whether to save jinx-languages when it is changed
-in the local variables list.
+  "Should user be asked whether to save jinx-languages when it is changed
+in the local variables list?
 
 Values are:
- ask: ask whether to save
- never: don't save it in any case
+ ask:    ask whether to save
+ never:  don't save it in any case
  always: save without asking"
-  :type 'symbol
-  :options '(always ask never))
+    :type '(choice (const :tag "Ask"    ask)
+                   (const :tag "Never"  never)
+                   (const :tag "Always" always)))
 
 ;;;; Faces
 
