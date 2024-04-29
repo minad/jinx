@@ -176,7 +176,7 @@ checking."
 ;;;###autoload
 (put 'jinx-mode 'safe-local-variable #'not)
 
-(defcustom jinx-ask-save-languages 'ask
+(defcustom jinx-save-languages 'ask
   "Ask user whether to save jinx-languages when it is changed
 in the local variables list.
 
