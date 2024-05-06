@@ -947,6 +947,7 @@ buffers.  See also the variable `jinx-languages'."
                 jinx-save-languages))
       (add-file-local-variable 'jinx-languages jinx-languages)
       (setf (alist-get 'jinx-languages file-local-variables-alist) jinx-languages))))
+  (force-mode-line-update t) ; Make sure change is reflected in mode line
   (jinx--load-dicts)
   (jinx--cleanup))
 
