@@ -142,11 +142,11 @@ Set to t to enable camelCase everywhere."
     (emacs-lisp-mode
      font-lock-constant-face font-lock-warning-face)
     (message-mode
-     message-header-cc message-header-name message-header-newsgroups
-     message-header-other message-header-to message-header-xheader
-     message-cited-text-1 message-cited-text-2 message-cited-text-3
-     message-cited-text-4 gnus-cite-1 gnus-cite-2 gnus-cite-3
-     gnus-cite-4 gnus-cite-5 gnus-cite-6 gnus-cite-7 gnus-cite-8
+     message-separator message-header-cc message-header-name
+     message-header-newsgroups message-header-other message-header-to
+     message-header-xheader message-cited-text-1 message-cited-text-2
+     message-cited-text-3 message-cited-text-4 gnus-cite-1 gnus-cite-2
+     gnus-cite-3 gnus-cite-4 gnus-cite-5 gnus-cite-6 gnus-cite-7 gnus-cite-8
      gnus-cite-9 gnus-cite-10 gnus-cite-11))
   "Alist of faces per major mode.
 These faces mark regions which should be excluded in spell
