@@ -104,7 +104,7 @@ Ispell =LocalWords=.
 
 * Correcting misspellings
 
-The easiest way to correct a misspellings is to right click on the word,
+The easiest way to correct a misspelling is to right click on the word,
 underlined with a wavy line. Then a context menu will open where you can select
 from suggestions.
 
