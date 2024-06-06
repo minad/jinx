@@ -738,7 +738,8 @@ The word will be associated with GROUP and get a prefix key."
       (setq list (jinx--add-suggestion list ht w "Suggestions from session")))
     (cl-loop for (key . fun) in jinx--save-keys
              for actions = (funcall fun nil key word) do
-             (unless (consp (car actions)) (setq actions (list actions)))
+             (when (and actions (not (consp (car actions))))
+               (setq actions (list actions)))
              (cl-loop for (k w a) in actions do
                       (push (propertize
                              (concat (propertize (if (stringp k) k (char-to-string k))
