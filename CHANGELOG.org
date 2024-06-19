@@ -2,6 +2,11 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Version 1.8 (2024-06-19)
+
+- Bugfix in ~jinx-correct~: Fix ~wrong-type-argument~ error if no Enchant
+  dictionaries are found.
+
 * Version 1.7 (2024-05-15)
 
 - ~jinx--word-valid-p~: Do not error on invalid characters.
