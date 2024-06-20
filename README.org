@@ -164,7 +164,7 @@ system spell-checker.
 Depending on the backend the personal dictionary will be taken from different
 locations, e.g., =~/.aspell.LANG.pws= or =~/.config/enchant/LANG.dic=. It is
 possible to symlink different personal dictionaries such that they are shared by
-different spell checkers. See the [[https://abiword.github.io/enchant/src/enchant.html][Enchant manual]] for details.
+different spell checkers. See the [[https://abiword.github.io/enchant/lib/enchant.html][Enchant manual]] for details.
 
 * Alternative spell-checking packages
 
