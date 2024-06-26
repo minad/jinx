@@ -403,9 +403,13 @@ FLAG must be t or nil."
               (eq flag
                   (not (and (get-text-property start 'jinx--pending)
                             (not (invisible-p start))))))
-    (setq start (next-single-char-property-change
+    (let ((next (next-single-char-property-change
                  start 'jinx--pending nil
                  (next-single-char-property-change start 'invisible nil end))))
+      ;; END can be outside the buffer if the buffer size has changed in
+      ;; between. Then `next-single-property-change' will return (point-max)
+      ;; instead of END. See gh:minad/jinx#156.
+      (setq start (if (> next start) next end))))
   start)
 
 (defun jinx--check-pending (start end)
