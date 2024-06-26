@@ -399,14 +399,10 @@ This function is a modification hook for the overlay."
 (defun jinx--find-visible-pending (start end flag)
   "Find (in)visible and (non-)pending region between START and END.
 FLAG must be t or nil."
-  (while
-      ;; END can be outside the buffer if the buffer size has changed in
-      ;; between. Then `next-single-property-change' will return (point-max)
-      ;; instead of END. See gh:minad/jinx#156.
-      (and (< start (min end (point-max)))
-           (eq flag
-               (not (and (get-text-property start 'jinx--pending)
-                         (not (invisible-p start))))))
+  (while (and (< start end)
+              (eq flag
+                  (not (and (get-text-property start 'jinx--pending)
+                            (not (invisible-p start))))))
     (setq start (next-single-char-property-change
                  start 'jinx--pending nil
                  (next-single-char-property-change start 'invisible nil end))))
