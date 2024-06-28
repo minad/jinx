@@ -1022,11 +1022,15 @@ This command dispatches to the following commands:
     is 4, corresponding to \\[universal-argument] pressed once,
     correct all misspelled words.
   - `jinx-correct-word': If prefix ARG is 16, corresponding to
-    \\[universal-argument] pressed twice, correct word before point."
+    \\[universal-argument] pressed twice, correct word before point.
+  - If prefix ARG is 64, corresponding to \\[universal-argument] pressed
+    three times, check the whole buffer, but do not open the correction
+    UI."
   (interactive "*P")
   (pcase arg
     ('nil (if (use-region-p) (jinx-correct-all) (jinx-correct-nearest)))
     ('(16) (jinx-correct-word))
+    ('(64) (jinx-correct-all t))
     (_ (jinx-correct-all))))
 
 (defun jinx-correct-select ()
