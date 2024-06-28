@@ -956,22 +956,25 @@ buffers.  See also the variable `jinx-languages'."
   (jinx--cleanup))
 
 ;;;###autoload
-(defun jinx-correct-all ()
-  "Correct all misspelled words in the buffer."
-  (interactive "*")
+(defun jinx-correct-all (&optional only-check)
+  "Correct all misspelled words in the buffer.
+With prefix argument ONLY-CHECK, only check the buffer and highlight all
+misspellings, but do not open the correction UI."
+  (interactive "*P")
   (jinx--correct-guard
    (let* ((overlays (jinx--force-overlays (or (use-region-beginning) (point-min))
                                           (or (use-region-end) (point-max))
                                           :check t))
           (count (length overlays))
           (idx 0))
-     (deactivate-mark)
-     (push-mark)
-     (while-let ((ov (nth idx overlays)))
-       (if-let (((overlay-buffer ov))
-                (skip (jinx--correct-overlay ov :info (format " (%d of %d)" (1+ idx) count))))
-           (setq idx (mod (+ idx skip) count))
-         (cl-incf idx))))))
+     (unless only-check
+       (deactivate-mark)
+       (push-mark)
+       (while-let ((ov (nth idx overlays)))
+         (if-let (((overlay-buffer ov))
+                  (skip (jinx--correct-overlay ov :info (format " (%d of %d)" (1+ idx) count))))
+             (setq idx (mod (+ idx skip) count))
+           (cl-incf idx)))))))
 
 ;;;###autoload
 (defun jinx-correct-nearest ()

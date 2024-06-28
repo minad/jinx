@@ -2,6 +2,11 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Development
+
+- Bugfix: In some rare scenarios, Jinx could hang when checking pending regions.
+- ~jinx-correct-all~: Add ~ONLY-CHECK~ prefix argument.
+
 * Version 1.8 (2024-06-19)
 
 - Bugfix in ~jinx-correct~: Fix ~wrong-type-argument~ error if no Enchant
