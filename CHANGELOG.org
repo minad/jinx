@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 1.9 (2024-06-29)
 
 - Bugfix: In some rare scenarios, Jinx could hang when checking pending regions.
 - ~jinx-correct-all~: Add ~ONLY-CHECK~ prefix argument.
