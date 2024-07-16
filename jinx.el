@@ -597,7 +597,7 @@ If CHECK is non-nil, always check first."
                   ,@(split-string-and-unquote
                      (condition-case nil
                          (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
-                       (error "-I/usr/include/enchant-2 -lenchant-2"))))))
+                       (error "-I/usr/include/enchant-2 -I/usr/local/include/enchant-2 -L/usr/local/lib -lenchant-2"))))))
           (with-current-buffer (get-buffer-create "*jinx module compilation*")
             (let ((inhibit-read-only t))
               (erase-buffer)
