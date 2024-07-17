@@ -291,7 +291,13 @@ Predicate may return a position to skip forward.")
     (modify-syntax-entry '(#x1cf00 . #x1d7ff) "_" st)  ;; Znamenny Musical - Math. Alpha.
     (modify-syntax-entry '(#x1ee00 . #x1fbff) "_" st)  ;; Arabic Math. - Legacy Computing
     st)
-  "Base syntax table for spell checking.")
+  "Parent syntax table of `jinx--syntax-table'.")
+
+(defvar jinx--syntax-overrides
+  '((?' . "w")
+    (?’ . "w")
+    (?. . "."))
+  "Syntax table overrides used for `jinx--syntax-table'.")
 
 (defvar jinx--select-keys
   "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -319,7 +325,10 @@ Predicate may return a position to skip forward.")
   "List of dictionaries.")
 
 (defvar-local jinx--syntax-table nil
-  "Syntax table used during checking.")
+  "Syntax table used during checking.
+The table inherits from `jinx--base-syntax-table'.  The table is
+configured according to the word characters defined by the local
+dictionaries.  Afterwards `jinx--syntax-overrides' are applied.")
 
 (defvar-local jinx--session-words nil
   "List of words accepted in this session.")
@@ -864,9 +873,8 @@ Optionally show prompt INFO and insert INITIAL input."
   (dolist (dict jinx--dicts)
     (cl-loop for c across (jinx--mod-wordchars dict) do
              (modify-syntax-entry c "w" jinx--syntax-table)))
-  (modify-syntax-entry ?' "w" jinx--syntax-table)
-  (modify-syntax-entry ?’ "w" jinx--syntax-table)
-  (modify-syntax-entry ?. "." jinx--syntax-table))
+  (cl-loop for (k . v) in jinx--syntax-overrides do
+           (modify-syntax-entry k v jinx--syntax-table)))
 
 (defun jinx--bounds-of-word ()
   "Return bounds of word at point using `jinx--syntax-table'."
