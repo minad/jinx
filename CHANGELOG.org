@@ -6,6 +6,9 @@
 
 - Bugfix: In some rare scenarios, Jinx could hang when checking pending regions.
 - ~jinx-correct-all~: Add ~ONLY-CHECK~ prefix argument.
+- Bump Compat dependency to Compat 30.
+- Add include and linkpaths from FreeBSD for compilation.
+- Add ~jinx--syntax-overrides~ to override syntax table.
 
 * Version 1.8 (2024-06-19)
 
