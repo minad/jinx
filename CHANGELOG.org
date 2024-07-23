@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 1.10 (2024-07-23)
 
 - Bump Compat dependency to Compat 30.
 - Add include and linkpaths from FreeBSD for compilation.
