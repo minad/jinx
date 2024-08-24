@@ -166,7 +166,7 @@ locations, e.g., =~/.aspell.LANG.pws= or =~/.config/enchant/LANG.dic=. It is
 possible to symlink different personal dictionaries such that they are shared by
 different spell checkers. See the [[https://rrthomas.github.io/enchant/lib/enchant.html][Enchant manual]] for details.
 
-* Alternative spell-checking packages
+* Alternatives
 
 There exist multiple alternative spell-checking packages for Emacs, most
 famously the builtin ispell.el and flyspell.el packages. The main advantages of
@@ -174,9 +174,9 @@ Jinx are its automatic checking of the visible text, its sharp focus on
 performance and the ability to easily use multiple dictionaries at once. The
 following three alternative packages come closest to the behavior of Jinx.
 
-- [[https://github.com/astoff/jit-spell][jit-spell]]: Jinx UI borrows ideas from Augusto Stoffel's Jit-spell. Jit-spell
-  uses the less efficient Ispell process communication instead of Jinx's calling
-  a native API. Since Jit-spell does not restrict spell checking to the visible
+- [[https://github.com/astoff/jit-spell][jit-spell]]: Jinx borrows ideas from Augusto Stoffel's Jit-spell. Jit-spell uses
+  the less efficient Ispell process communication instead of Jinx's calling a
+  native API. Since Jit-spell does not restrict spell checking to the visible
   text only, it may enqueue the entire buffer too eagerly for checking. This
   happens when scrolling around or when stealth font locking is enabled. For
   this reason, Jit-spell affected load and latency in my tests ([[https://github.com/astoff/jit-spell/issues/9][issue on Github]]).
