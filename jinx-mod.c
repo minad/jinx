@@ -149,7 +149,7 @@ static emacs_value jinx_wordchars(emacs_env* env, ptrdiff_t jinx_unused(nargs),
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
     if (dict) {
         // Enchant older than 2.3.1 sometimes does not return UTF-8
-        // See https://github.com/AbiWord/enchant/blob/master/NEWS
+        // See https://github.com/rrthomas/enchant/blob/master/NEWS
         emacs_value str = jinx_str(env, enchant_dict_get_extra_word_characters(dict));
         if (env->non_local_exit_check(env) == emacs_funcall_exit_return)
             return str;
