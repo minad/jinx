@@ -6,7 +6,7 @@
 ;; Maintainer: Daniel Mendler <mail@daniel-mendler.de>
 ;; Created: 2023
 ;; Version: 1.10
-;; Package-Requires: ((emacs "27.1") (compat "30"))
+;; Package-Requires: ((emacs "28.1") (compat "30"))
 ;; Homepage: https://github.com/minad/jinx
 ;; Keywords: convenience, text
 
@@ -1043,6 +1043,7 @@ This command dispatches to the following commands:
 
 (defun jinx-correct-select ()
   "Quick selection key for corrections."
+  (declare (completion ignore))
   (interactive)
   (let* ((keys (this-command-keys-vector))
          (word (nth (if (eq (aref keys 0) ?0)
@@ -1057,7 +1058,7 @@ This command dispatches to the following commands:
 
 (defun jinx-next (n)
   "Go to to Nth next misspelled word."
-  (interactive "p")
+  (interactive "p" jinx-mode)
   (unless (= n 0)
     (if (minibufferp)
         (throw 'jinx--goto n)
@@ -1069,7 +1070,7 @@ This command dispatches to the following commands:
 
 (defun jinx-previous (n)
   "Go to to Nth previous misspelled word."
-  (interactive "p")
+  (interactive "p" jinx-mode)
   (jinx-next (- n)))
 
 ;;;###autoload
@@ -1113,36 +1114,19 @@ This command dispatches to the following commands:
     (jit-lock-unregister #'jinx--mark-pending)
     (jinx--cleanup))))
 
-(defcustom global-jinx-modes '(text-mode prog-mode conf-mode)
-  "List of modes where Jinx should be enabled.
-The variable can either be t, nil or a list of t, nil, mode
-symbols or elements of the form (not modes)."
-  :type '(repeat sexp))
-
 ;;;###autoload
 (define-globalized-minor-mode global-jinx-mode
   jinx-mode jinx--on
+  :predicate '(text-mode prog-mode conf-mode)
   :group 'jinx)
 
 (defun jinx--on ()
   "Turn `jinx-mode' on."
-  (when (and (not (or noninteractive
-                      buffer-read-only
-                      (buffer-base-buffer) ;; Do not enable in indirect buffers
-                      (eq (aref (buffer-name) 0) ?\s)))
-             ;; TODO backport `easy-mmode--globalized-predicate-p'
-             (or (eq t global-jinx-modes)
-                 (eq t (cl-loop for p in global-jinx-modes thereis
-                                (pcase-exhaustive p
-                                  ('t t)
-                                  ('nil 0)
-                                  ((pred symbolp) (and (derived-mode-p p) t))
-                                  (`(not . ,m) (and (seq-some #'derived-mode-p m) 0)))))))
+  (unless (or noninteractive
+              buffer-read-only
+              (buffer-base-buffer) ;; Do not enable in indirect buffers
+              (eq (aref (buffer-name) 0) ?\s))
     (jinx-mode 1)))
-
-(put #'jinx-correct-select 'completion-predicate #'ignore)
-(put #'jinx-next 'command-modes '(jinx-mode))
-(put #'jinx-previous 'command-modes '(jinx-mode))
 
 (provide 'jinx)
 ;;; jinx.el ends here
