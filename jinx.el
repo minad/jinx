@@ -7,7 +7,7 @@
 ;; Created: 2023
 ;; Version: 1.10
 ;; Package-Requires: ((emacs "28.1") (compat "30"))
-;; Homepage: https://github.com/minad/jinx
+;; URL: https://github.com/minad/jinx
 ;; Keywords: convenience, text
 
 ;; This file is part of GNU Emacs.
@@ -61,7 +61,7 @@
 (defgroup jinx nil
   "Enchanted Spell Checker."
   :link '(info-link :tag "Info Manual" "(jinx)")
-  :link '(url-link :tag "Homepage" "https://github.com/minad/jinx")
+  :link '(url-link :tag "Website" "https://github.com/minad/jinx")
   :link '(emacs-library-link :tag "Library Source" "jinx.el")
   :group 'text
   :prefix "jinx-")
