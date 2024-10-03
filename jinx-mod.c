@@ -179,6 +179,14 @@ int emacs_module_init(struct emacs_runtime *runtime) {
     emacs_env* env = runtime->get_environment(runtime);
     if ((size_t)env->size < sizeof (*env))
         return 2; // Require Emacs binary compatibility
+    // report libenchant version
+    char ver_str[100] = {0};
+    snprintf(ver_str, sizeof(ver_str), "Jinx: libenchant version %s", enchant_get_version());
+    env->funcall(env, env->intern(env, "message"), 1,
+                 (emacs_value[]){
+                     jinx_str(env, ver_str)
+                 });
+    // warn if deprecated libenchant version
     int v0, v1, v2;
     if (sscanf(enchant_get_version(), "%d.%d.%d", &v0, &v1, &v2) != 3 ||
         v0 * 10000 + v1 * 100 + v2 < 20301)
@@ -186,6 +194,22 @@ int emacs_module_init(struct emacs_runtime *runtime) {
                      (emacs_value[]){
                          jinx_str(env, "Jinx recommends Enchant 2.3.1 or newer")
                      });
+    // handle ENCHANT_CONFIG_DIR
+    emacs_value emacs_enchant_config_dir =
+        env->funcall(env, env->intern(env, "getenv"), 1,
+                     (emacs_value[]){
+                         jinx_str(env, "ENCHANT_CONFIG_DIR")
+                     });
+    if (env->is_not_nil(env, emacs_enchant_config_dir)) {
+        jinx_autofree char* enchant_config_dir = jinx_cstr(env, emacs_enchant_config_dir);
+        setenv("ENCHANT_CONFIG_DIR", enchant_config_dir, 1);
+        char env_str[256] = {0};
+        snprintf(env_str, sizeof(ver_str), "Jinx: ENCHANT_CONFIG_DIR=%s", enchant_config_dir);
+        env->funcall(env, env->intern(env, "message"), 1,
+                     (emacs_value[]){
+                         jinx_str(env, env_str)
+                     });
+    }
     Qt = env->make_global_ref(env, env->intern(env, "t"));
     Qnil = env->make_global_ref(env, env->intern(env, "nil"));
     Qcons = env->make_global_ref(env, env->intern(env, "cons"));
