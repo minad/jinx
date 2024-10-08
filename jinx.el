@@ -584,6 +584,16 @@ If CHECK is non-nil, always check first."
     (timer-set-idle-time jinx--timer jinx-delay)
     (timer-activate-when-idle jinx--timer t)))
 
+
+(defun jinx--get-target ()
+  "Correctly establish the target architecture. Note, Apple Silicon machines will report themselves as x86_64 on ocassions and this prevents the jinx module linking correctly."
+  (if (and (string= system-type "darwin")
+           (string-match "Apple" (car (process-lines "sysctl" "-n" "machdep.cpu.brand_string"))))
+      (list "-arch" "arm64")
+    (list "-arch" (car (process-lines "uname" "-m"))))
+  )
+  
+
 (defun jinx--load-module ()
   "Compile and load dynamic module."
   (unless (fboundp #'jinx--mod-dict)
@@ -596,12 +606,14 @@ If CHECK is non-nil, always check first."
                        (seq-find #'executable-find '("gcc" "clang" "cc"))
                        (error "Jinx: No C compiler found")))
                (c-name (file-name-with-extension mod-name ".c"))
+               (target (jinx--get-target))
                (default-directory (file-name-directory
                                    (or (locate-library c-name t)
                                        (error "Jinx: %s not found" c-name))))
                (command
                 `(,cc "-I." "-O2" "-Wall" "-Wextra" "-fPIC" "-shared"
-                  "-o" ,mod-name ,c-name
+                      "-o" ,mod-name ,c-name
+                  ,@target
                   ,@(split-string-and-unquote
                      (condition-case nil
                          (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
