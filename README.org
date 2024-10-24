@@ -44,11 +44,11 @@ Ruby or Rust are listed in =jinx-camel-modes=. For these modes composite words i
 
 Jinx can be installed from GNU ELPA or MELPA directly with =package-install=.
 
-Most importantly your Emacs must be compiled with dynamic module support.
-Furthermore Jinx requires =libenchant=. Enchant library is a required dependency
-for Jinx to compile its module at install time. If =pkgconf= or =pkg-config= is
-available, Jinx will use it to locate =libenchant= during installation. Depending
-on your BSD or Linux distribution you have to install different packages:
+Most importantly your Emacs must be compiled with dynamic module support. Jinx
+requires =libenchant=, which is needed to compile the native module at install
+time. If =pkgconf= or =pkg-config= is available, Jinx will use it to locate
+=libenchant= during installation. Depending on your BSD or Linux distribution you
+have to install different packages:
 
 - Debian, Ubuntu: =libenchant-2-dev=, =pkgconf=
 - Arch, Gentoo: =enchant=, =pkgconf=
