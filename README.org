@@ -60,6 +60,9 @@ Linux distribution you have to install different packages:
 On Windows the installation of the native module may require manual
 intervention.
 
+On Gentoo make sure to compile Emacs with the 'dynamic-loading' use
+flag.
+
 * Configuration
 
 Jinx has two modes: the command, =global-jinx-mode= activates globally; and the
