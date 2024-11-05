@@ -62,6 +62,7 @@
   "Enchanted Spell Checker."
   :link '(info-link :tag "Info Manual" "(jinx)")
   :link '(url-link :tag "Website" "https://github.com/minad/jinx")
+  :link '(url-link :tag "Wiki" "https://github.com/minad/jinx/wiki")
   :link '(emacs-library-link :tag "Library Source" "jinx.el")
   :group 'text
   :prefix "jinx-")
