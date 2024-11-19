@@ -776,7 +776,7 @@ The word will be associated with GROUP and get a prefix key."
       (format #(" (%s)" 0 5 (face jinx-key)) (string-trim prefix))
     (get-text-property 0 'jinx--suffix cand)))
 
-(defun jinx--correct-group (word transform)
+(defun jinx--group (word transform)
   "Group WORD during completion, TRANSFORM candidate if non-nil."
   (if transform
       word
@@ -784,15 +784,15 @@ The word will be associated with GROUP and get a prefix key."
 
 (defun jinx--correct-table (suggestions)
   "Completion table for SUGGESTIONS."
-  (lambda (str pred action)
-    (if (eq action 'metadata)
-        `(metadata (category . jinx)
-                   (display-sort-function . ,#'identity)
-                   (cycle-sort-function . ,#'identity)
-                   (group-function . ,#'jinx--correct-group)
-                   (affixation-function . ,#'jinx--correct-affixation)
-                   (annotation-function . ,#'jinx--correct-annotation))
-      (complete-with-action action suggestions str pred))))
+  (let ((md `(metadata (category . jinx)
+                       (display-sort-function . ,#'identity)
+                       (cycle-sort-function . ,#'identity)
+                       (group-function . ,#'jinx--group)
+                       (affixation-function . ,#'jinx--correct-affixation)
+                       (annotation-function . ,#'jinx--correct-annotation))))
+    (lambda (str pred action)
+      (if (eq action 'metadata) md
+        (complete-with-action action suggestions str pred)))))
 
 (cl-defun jinx--correct-overlay (overlay &key info initial)
   "Correct word at OVERLAY.
@@ -886,6 +886,24 @@ Optionally show prompt INFO and insert INITIAL input."
         (when (re-search-forward "\\<\\w+\\>" nil t)
           (cons (match-beginning 0) (match-end 0)))))))
 
+(defun jinx--read-languages ()
+  "Read languages via `completing-read-multiple'."
+  (jinx--load-module)
+  (let ((langs (delete-dups
+                (cl-loop for (l . p) in (jinx--mod-langs) collect
+                         (propertize l 'jinx--group (format "Provider %s" p)))))
+        (md `(metadata (group-function . ,#'jinx--group))))
+      (string-join
+       (or (completing-read-multiple
+            (format "Change languages (%s): "
+                    (string-join (split-string jinx-languages) ", "))
+            (lambda (str pred action)
+              (if (eq action 'metadata) md
+                (complete-with-action action langs str pred)))
+            nil t)
+           (user-error "No languages selected"))
+       " ")))
+
 ;;;; Save functions
 
 (defun jinx--save-personal (save key word)
@@ -934,18 +952,7 @@ by whitespace.  When called interactively, the language codes are
 read via `completing-read-multiple'.  If the prefix argument
 GLOBAL is non-nil, the languages are changed globally for all
 buffers.  See also the variable `jinx-languages'."
-  (interactive
-   (list
-    (progn
-      (jinx--load-module)
-      (string-join
-       (or (completing-read-multiple
-            (format "Change languages (%s): "
-                    (string-join (split-string jinx-languages) ", "))
-            (delete-dups (jinx--mod-langs)) nil t)
-           (user-error "No languages selected"))
-       " "))
-    current-prefix-arg))
+  (interactive (list (jinx--read-languages) current-prefix-arg))
   (unless jinx-mode (jinx-mode 1))
   (cond
    (global

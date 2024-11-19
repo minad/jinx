@@ -5,6 +5,7 @@
 * Development
 
 - Require Emacs 28.1.
+- ~jinx-languages~: Group dictionaries by dictionary provider.
 
 * Version 1.10 (2024-07-23)
 

@@ -108,13 +108,15 @@ static emacs_value jinx_describe(emacs_env* env, ptrdiff_t jinx_unused(nargs),
 }
 
 static void jinx_langs_cb(const char* const lang_tag,
-                          const char* const jinx_unused(provider_name),
+                          const char* const provider_name,
                           const char* const jinx_unused(provider_desc),
                           const char* const jinx_unused(provider_file),
                           void* data) {
     emacs_env* env = ((emacs_env**)data)[0];
     ((emacs_value*)data)[1] = jinx_cons(env,
-                                        jinx_str(env, lang_tag),
+                                        jinx_cons(env,
+                                                  jinx_str(env, lang_tag),
+                                                  jinx_str(env, provider_name)),
                                         ((emacs_value*)data)[1]);
 }
 
