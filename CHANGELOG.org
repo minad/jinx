@@ -5,6 +5,8 @@
 * Development
 
 - Require Emacs 28.1.
+- Remove special ~org-fold~ code. Set ~org-fold-core-style~ to ~overlay~ if unfolding
+  in Org files does not work for you.
 - ~jinx-languages~: Group dictionaries by dictionary provider.
 
 * Version 1.10 (2024-07-23)
