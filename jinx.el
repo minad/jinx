@@ -263,6 +263,10 @@ checking."
 
 ;;;; Internal variables
 
+(defvar jinx--compile-flags
+  '("-I." "-O2" "-Wall" "-Wextra" "-fPIC" "-shared")
+  "List of compile flags passed to the C compiler.")
+
 (defvar jinx--reschedule-hooks
   '(window-selection-change-functions window-scroll-functions
     window-state-change-hook post-command-hook)
@@ -601,8 +605,7 @@ If CHECK is non-nil, always check first."
                                    (or (locate-library c-name t)
                                        (error "Jinx: %s not found" c-name))))
                (command
-                `(,cc "-I." "-O2" "-Wall" "-Wextra" "-fPIC" "-shared"
-                  "-o" ,mod-name ,c-name
+                `(,cc ,@jinx--compile-flags "-o" ,mod-name ,c-name
                   ,@(split-string-and-unquote
                      (condition-case nil
                          (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
