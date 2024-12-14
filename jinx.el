@@ -310,6 +310,9 @@ Predicate may return a position to skip forward.")
     (?+ . ,#'jinx--save-session))
   "Keys for save actions used by `jinx-correct'.")
 
+(defvar jinx--load-module-extra-paths nil
+  "Extra paths to add when trying to compile.")
+
 (defvar-local jinx--exclude-faces nil
   "List of excluded faces.")
 
@@ -606,7 +609,7 @@ If CHECK is non-nil, always check first."
                   ,@(split-string-and-unquote
                      (condition-case nil
                          (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
-                       (error "-I/usr/include/enchant-2 -I/usr/local/include/enchant-2 -L/usr/local/lib -lenchant-2"))))))
+                       (error (concat "-I/usr/include/enchant-2 -I/usr/local/include/enchant-2 -L/usr/local/lib -lenchant-2" " " jinx--load-module-extra-paths)))))))
           (with-current-buffer (get-buffer-create "*jinx module compilation*")
             (let ((inhibit-read-only t))
               (erase-buffer)
