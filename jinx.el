@@ -768,17 +768,13 @@ The word will be associated with GROUP and get a prefix key."
       word
     (get-text-property 0 'jinx--group word)))
 
-(defun jinx--correct-table (suggestions)
-  "Completion table for SUGGESTIONS."
-  (let ((md `(metadata (category . jinx)
-                       (display-sort-function . ,#'identity)
-                       (cycle-sort-function . ,#'identity)
-                       (group-function . ,#'jinx--group)
-                       (affixation-function . ,#'jinx--correct-affixation)
-                       (annotation-function . ,#'jinx--correct-annotation))))
-    (lambda (str pred action)
-      (if (eq action 'metadata) md
-        (complete-with-action action suggestions str pred)))))
+;; TODO: Use `completion-table-with-metadata'
+(defun jinx--table-with-metadata (table metadata)
+  "Return new completion TABLE with METADATA."
+  (lambda (string pred action)
+    (if (eq action 'metadata)
+        `(metadata . ,metadata)
+      (complete-with-action action table string pred))))
 
 (cl-defun jinx--correct-overlay (overlay &key info initial)
   "Correct word at OVERLAY.
@@ -795,8 +791,14 @@ Optionally show prompt INFO and insert INITIAL input."
                     #'jinx--correct-setup
                   (or (completing-read
                        (format "Correct ‘%s’%s: " word (or info ""))
-                       (jinx--correct-table
-                        (jinx--correct-suggestions word))
+                       (jinx--table-with-metadata
+                        (jinx--correct-suggestions word)
+                        `((category . jinx)
+                          (display-sort-function . ,#'identity)
+                          (cycle-sort-function . ,#'identity)
+                          (group-function . ,#'jinx--group)
+                          (affixation-function . ,#'jinx--correct-affixation)
+                          (annotation-function . ,#'jinx--correct-annotation)))
                        nil nil initial t word)
                       word)))))
            (len (length choice)))
@@ -877,15 +879,12 @@ Optionally show prompt INFO and insert INITIAL input."
   (jinx--load-module)
   (let ((langs (delete-dups
                 (cl-loop for (l . p) in (jinx--mod-langs) collect
-                         (propertize l 'jinx--group (format "Provider %s" p)))))
-        (md `(metadata (group-function . ,#'jinx--group))))
+                         (propertize l 'jinx--group (format "Provider %s" p))))))
       (string-join
        (or (completing-read-multiple
             (format "Change languages (%s): "
                     (string-join (split-string jinx-languages) ", "))
-            (lambda (str pred action)
-              (if (eq action 'metadata) md
-                (complete-with-action action langs str pred)))
+            (jinx--table-with-metadata langs `((group-function . ,#'jinx--group)))
             nil t)
            (user-error "No languages selected"))
        " ")))
