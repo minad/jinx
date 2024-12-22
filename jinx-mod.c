@@ -149,8 +149,7 @@ static emacs_value jinx_wordchars(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                                   emacs_value args[], void* jinx_unused(data)) {
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
     if (dict) {
-        // Enchant older than 2.3.1 sometimes does not return UTF-8
-        // See https://github.com/rrthomas/enchant/blob/master/NEWS
+        // Enchant older than 2.3.1 does not enforce UTF-8 <gh:rrthomas/enchant#278>
         emacs_value str = jinx_str(env, enchant_dict_get_extra_word_characters(dict));
         if (env->non_local_exit_check(env) == emacs_funcall_exit_return)
             return str;
@@ -175,11 +174,12 @@ static emacs_value jinx_suggest(emacs_env* env, ptrdiff_t jinx_unused(nargs),
 }
 
 int emacs_module_init(struct emacs_runtime *runtime) {
+    // Require Emacs binary compatibility
     if ((size_t)runtime->size < sizeof (*runtime))
-        return 1; // Require Emacs binary compatibility
+        return 1;
     emacs_env* env = runtime->get_environment(runtime);
     if ((size_t)env->size < sizeof (*env))
-        return 2; // Require Emacs binary compatibility
+        return 2;
     Qt = env->make_global_ref(env, env->intern(env, "t"));
     Qnil = env->make_global_ref(env, env->intern(env, "nil"));
     Qcons = env->make_global_ref(env, env->intern(env, "cons"));
