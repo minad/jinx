@@ -44,8 +44,8 @@
 ;; calling the widely-used API of the Enchant library, see
 ;; https://rrthomas.github.io/enchant/.  Jinx automatically compiles
 ;; jinx-mod.c and loads the dynamic module at startup.  By binding
-;; directly to the native Enchant API, Jinx avoids the slower backend
-;; process communication with Aspell.
+;; directly to the native Enchant API, Jinx avoids slower inter-process
+;; communication.
 
 ;; See the manual for further information.
 
@@ -387,19 +387,21 @@ dictionaries.  Afterwards `jinx--syntax-overrides' are applied.")
               (cl-loop for f in face thereis (memq f jinx--exclude-faces))
             (memq face jinx--exclude-faces))))))
 
-(defun jinx--word-valid-p (start)
-  "Return non-nil if word at START is valid."
-  (let ((word (buffer-substring-no-properties start (point)))
-        case-fold-search)
-    (or (member word jinx--session-words)
-        ;; Allow capitalized words
+(defun jinx--word-valid-p (word)
+  "Return non-nil if WORD is valid.
+WORD can also be a start position."
+  (unless (stringp word)
+    (setq word (buffer-substring-no-properties word (point))))
+  (or (member word jinx--session-words)
+      ;; Allow capitalized words
+      (let (case-fold-search)
         (and (string-match-p "\\`[[:upper:]][[:lower:]]+\\'" word)
              (cl-loop
               for w in jinx--session-words
               thereis (and (string-equal-ignore-case word w)
-                           (string-match-p "\\`[[:lower:]]+\\'" w))))
-        (cl-loop for dict in jinx--dicts
-                 thereis (jinx--mod-check dict word)))))
+                           (string-match-p "\\`[[:lower:]]+\\'" w)))))
+      (cl-loop for dict in jinx--dicts
+               thereis (jinx--mod-check dict word))))
 
 ;;;; Internal functions
 
