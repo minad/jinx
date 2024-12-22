@@ -688,12 +688,13 @@ See `isearch-open-necessary-overlays' and `isearch-open-overlay-temporary'."
 
 (defun jinx--correct-setup ()
   "Setup minibuffer for correction."
-  (let ((message-log-max nil)
-        (inhibit-message t))
-    (use-local-map (make-composed-keymap (list jinx-correct-map) (current-local-map)))
-    (when (and (eq completing-read-function #'completing-read-default)
-               (not (bound-and-true-p vertico-mode))
-               (not (bound-and-true-p icomplete-mode)))
+  (use-local-map (make-composed-keymap (list jinx-correct-map) (current-local-map)))
+  ;; TODO Use `eager-display' on Emacs 31
+  (when (and (eq completing-read-function #'completing-read-default)
+             (not (bound-and-true-p vertico-mode))
+             (not (bound-and-true-p icomplete-mode)))
+    (let ((message-log-max nil)
+          (inhibit-message t))
       (minibuffer-completion-help))))
 
 (defun jinx--add-suggestion (list ht word group)
