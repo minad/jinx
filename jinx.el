@@ -329,6 +329,9 @@ Predicate may return a position to skip forward.")
 (defvar-local jinx--dicts nil
   "List of dictionaries.")
 
+(defvar jinx--dicts-alist nil
+  "Alist of all loaded dictionaries.")
+
 (defvar-local jinx--syntax-table nil
   "Syntax table used during checking.
 The table inherits from `jinx--base-syntax-table'.  The table is
@@ -853,8 +856,14 @@ Optionally show prompt INFO and insert INITIAL input."
 
 (defun jinx--load-dicts ()
   "Load dictionaries and setup syntax table."
-  (setq jinx--dicts (delq nil (mapcar #'jinx--mod-dict
-                                      (split-string jinx-languages)))
+  (setq jinx--dicts (cl-loop for lang in (split-string jinx-languages)
+                             ;; Keep a reference to all loaded dictionaries.
+                             ;; See <gh:rrthomas/enchant#402>.
+                             for dict = (or (cdr (assoc lang jinx--dicts-alist))
+                                            (when-let ((dict (jinx--mod-dict lang)))
+                                              (push (cons lang dict) jinx--dicts-alist)
+                                              dict))
+                             if dict collect dict)
         jinx--syntax-table (make-syntax-table jinx--base-syntax-table))
   (unless jinx--dicts
     (message "Jinx: No dictionaries available for %S" jinx-languages))
