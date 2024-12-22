@@ -17,7 +17,6 @@ along with GNU Emacs.  If not, see <https://www.gnu.org/licenses/>.  */
 
 #include <emacs-module.h>
 #include <enchant.h>
-#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -181,13 +180,6 @@ int emacs_module_init(struct emacs_runtime *runtime) {
     emacs_env* env = runtime->get_environment(runtime);
     if ((size_t)env->size < sizeof (*env))
         return 2; // Require Emacs binary compatibility
-    int v0, v1, v2;
-    if (sscanf(enchant_get_version(), "%d.%d.%d", &v0, &v1, &v2) != 3 ||
-        v0 * 10000 + v1 * 100 + v2 < 20301)
-        env->funcall(env, env->intern(env, "message"), 1,
-                     (emacs_value[]){
-                         jinx_str(env, "Jinx recommends Enchant 2.3.1 or newer")
-                     });
     Qt = env->make_global_ref(env, env->intern(env, "t"));
     Qnil = env->make_global_ref(env, env->intern(env, "nil"));
     Qcons = env->make_global_ref(env, env->intern(env, "cons"));
