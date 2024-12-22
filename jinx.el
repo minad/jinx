@@ -859,10 +859,8 @@ Optionally show prompt INFO and insert INITIAL input."
   (setq jinx--dicts (cl-loop for lang in (split-string jinx-languages)
                              ;; Keep a weak reference to loaded dictionaries.
                              ;; See <gh:rrthomas/enchant#402>.
-                             for dict = (or (gethash lang jinx--dicts-hash)
-                                            (when-let ((dict (jinx--mod-dict lang)))
-                                              (puthash lang dict jinx--dicts-hash)
-                                              dict))
+                             for dict = (with-memoization (gethash lang jinx--dicts-hash)
+                                          (jinx--mod-dict lang))
                              if dict collect dict)
         jinx--syntax-table (make-syntax-table jinx--base-syntax-table))
   (unless jinx--dicts
