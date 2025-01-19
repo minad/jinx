@@ -422,7 +422,7 @@ FLAG must be t or nil."
               (eq flag
                   (not (and (get-text-property start 'jinx--pending)
                             (not (invisible-p start))))))
-    (let ((next (next-single-char-property-change
+    (let ((next (next-single-property-change
                  start 'jinx--pending nil
                  (next-single-char-property-change start 'invisible nil end))))
       ;; END can be outside the buffer if the buffer size has changed in
