@@ -140,7 +140,7 @@ Set to t to enable camelCase everywhere."
      rst-literal rst-external rst-directive rst-definition rst-reference)
     (sgml-mode
      font-lock-function-name-face font-lock-variable-name-face)
-    (emacs-lisp-mode
+    (lisp-data-mode
      font-lock-constant-face font-lock-warning-face)
     (message-mode
      message-separator message-header-cc message-header-name
