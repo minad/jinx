@@ -415,16 +415,11 @@ WORD can also be a start position."
 This function is a modification hook for the overlay."
   (delete-overlay overlay))
 
-(defun jinx--find-visible-pending (start end flag)
-  "Find (in)visible and (non-)pending region between START and END.
-FLAG must be t or nil."
-  (while (and (< start end)
-              (eq flag
-                  (not (and (get-text-property start 'jinx--pending)
-                            (not (invisible-p start))))))
-    (let ((next (next-single-property-change
-                 start 'jinx--pending nil
-                 (next-single-char-property-change start 'invisible nil end))))
+(defun jinx--find-visible (start end visible)
+  "Find (in)visible region between START and END.
+VISIBLE must be nil or t."
+  (while (and (< start end) (eq (not visible) (not (invisible-p start))))
+    (let ((next (next-single-char-property-change start 'invisible nil end)))
       ;; END can be outside the buffer if the buffer size has changed in
       ;; between. Then `next-single-property-change' will return (point-max)
       ;; instead of END. See gh:minad/jinx#156.
@@ -433,18 +428,21 @@ FLAG must be t or nil."
 
 (defun jinx--check-pending (start end)
   "Check pending visible region between START and END."
-  (let ((pos start)
-        (retry (and (eq (window-buffer) (current-buffer))
+  (let ((retry (and (eq (window-buffer) (current-buffer))
                     (symbolp real-last-command)
                     (string-match-p "self-insert-command\\'"
                                     (symbol-name real-last-command))
                     (window-point))))
-    (while (< pos end)
-      (let* ((from (jinx--find-visible-pending pos end t))
-             (to (jinx--find-visible-pending from end nil)))
-        (if (< from to)
-            (setq pos (jinx--check-region from to retry))
-          (setq pos to))))))
+    (while (< start end)
+      (let* ((vfrom (jinx--find-visible start end t))
+             (vto (jinx--find-visible vfrom end nil)))
+        (while (< vfrom vto)
+          (let* ((pfrom (or (text-property-any vfrom vto 'jinx--pending t) vto))
+                 (pto (or (text-property-not-all pfrom vto 'jinx--pending t) vto)))
+            (when (< pfrom pto)
+              (jinx--check-region pfrom pto retry))
+            (setq vfrom pto)))
+        (setq start vto)))))
 
 (defun jinx--check-region (start end &optional retry)
   "Check region between START and END.
@@ -499,8 +497,7 @@ position."
               (remove-list-of-text-properties start end '(jinx--pending))
               (when retry-start
                 (put-text-property retry-start retry-end 'jinx--pending t)))))
-      (set-syntax-table st)))
-  end)
+      (set-syntax-table st))))
 
 (defun jinx--get-overlays (start end &optional visible)
   "Return misspelled word overlays between START and END.
