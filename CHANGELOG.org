@@ -2,6 +2,12 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Version 1.12 (2025-01-28)
+
+- Improve performance in large folded Org buffers.
+- Support ~lisp-data-mode~.
+- Retain dictionaries in weak hash table for sharing.
+
 * Version 1.11 (2024-12-22)
 
 - Require Emacs 28.1.
