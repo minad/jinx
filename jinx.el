@@ -835,14 +835,14 @@ Optionally show prompt INFO and insert INITIAL input."
       (dolist (dict jinx--dicts)
         (when-let ((desc (jinx--mod-describe dict))
                    (suggestions (jinx--mod-suggest dict word)))
-          (push `[,(concat (car desc) " - " (cdr desc)) :active nil] menu)
+          (push `[,(concat "── " (car desc) " ─ " (cdr desc) " ──") :active nil] menu)
           (cl-loop for w in suggestions repeat jinx-menu-suggestions do
                    (push `[,w (jinx--correct-replace ,ov ,w)] menu))))
       (when-let ((suggestions (jinx--session-suggestions word)))
-        (push ["Session" :active nil] menu)
+        (push ["── Session ──" :active nil] menu)
         (cl-loop for w in suggestions repeat jinx-menu-suggestions do
           (push `[,w (jinx--correct-replace ,ov ,w)] menu)))
-      (push ["Accept and save" :active nil] menu)
+      (push ["── Accept and save ──" :active nil] menu)
       (cl-loop for (key . fun) in jinx--save-keys
                for actions = (funcall fun nil key word) do
                (unless (consp (car actions)) (setq actions (list actions)))
