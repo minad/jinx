@@ -900,6 +900,15 @@ Optionally show prompt INFO and insert INITIAL input."
            (user-error "No languages selected"))
        " ")))
 
+(defun jinx--add-local-word (var word)
+  "Add WORD to local word list VAR."
+  (add-to-list 'jinx--session-words word)
+  (set var
+       (string-join
+        (sort (delete-dups (cons word (split-string (symbol-value var))))
+              #'string<)
+        " ")))
+
 ;;;; Save functions
 
 (defun jinx--save-personal (save key word)
@@ -943,15 +952,6 @@ action KEY."
                    default-directory)))
           (add-dir-local-variable nil 'jinx-dir-local-words jinx-dir-local-words)))
     (list key word "Directory")))
-
-(defun jinx--add-local-word (var word)
-  "Add WORD to local word list VAR."
-  (add-to-list 'jinx--session-words word)
-  (set var
-       (string-join
-        (sort (delete-dups (cons word (split-string (symbol-value var))))
-              #'string<)
-        " ")))
 
 (defun jinx--save-session (save key word)
   "Save WORD for the current session.
