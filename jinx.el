@@ -935,11 +935,12 @@ action KEY."
   (if save
       (progn
         (jinx--add-local-word 'jinx-dir-local-words word)
-        (let ((default-directory (or (locate-dominating-file default-directory ".dir-locals.el")
-                                     (when-let (proj (project-current))
-                                       (declare-function project-root "project")
-                                       (project-root proj))
-                                     default-directory)))
+        (let ((default-directory
+               (or (locate-dominating-file default-directory ".dir-locals.el")
+                   (when-let (proj (project-current))
+                     (declare-function project-root "project")
+                     (project-root proj))
+                   default-directory)))
           (add-dir-local-variable nil 'jinx-dir-local-words jinx-dir-local-words)))
     (list key word "Directory")))
 
