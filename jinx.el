@@ -177,11 +177,14 @@ checking."
 (defvar-local jinx-local-words ""
   "File-local words, as a string separated by whitespace.")
 
-;;;###autoload
-(put 'jinx-local-words 'safe-local-variable #'stringp)
+(defvar-local jinx-dir-local-words ""
+  "Directory-local words, as a string separated by whitespace.")
 
 ;;;###autoload
-(put 'jinx-mode 'safe-local-variable #'not)
+(progn
+  (put 'jinx-local-words 'safe-local-variable #'stringp)
+  (put 'jinx-dir-local-words 'safe-local-variable #'stringp)
+  (put 'jinx-mode 'safe-local-variable #'not))
 
 ;;;; Faces
 
@@ -311,6 +314,7 @@ Predicate may return a position to skip forward.")
 (defvar jinx--save-keys
   `((?@ . ,#'jinx--save-personal)
     (?* . ,#'jinx--save-file)
+    (?/ . ,#'jinx--save-dir)
     (?+ . ,#'jinx--save-session))
   "Keys for save actions used by `jinx-correct'.")
 
@@ -917,15 +921,36 @@ If SAVE is non-nil save, otherwise format candidate given action KEY."
 If SAVE is non-nil save, otherwise format candidate given action KEY."
   (if save
       (progn
-        (add-to-list 'jinx--session-words word)
-        (setq jinx-local-words
-              (string-join
-               (sort (delete-dups
-                      (cons word (split-string jinx-local-words)))
-                     #'string<)
-               " "))
+        (jinx--add-local-word 'jinx-local-words word)
         (add-file-local-variable 'jinx-local-words jinx-local-words))
     (list key word "File")))
+
+(defun jinx--save-dir (save key word)
+  "Save WORD in directory-local variable.
+Uses a .dir-locals.el file in the current directory or any parent
+directory.  If no .dir-locals.el file is found, it is created in the
+project root.  If no project root is found, it is created in the current
+directory.  If SAVE is non-nil save, otherwise format candidate given
+action KEY."
+  (if save
+      (progn
+        (jinx--add-local-word 'jinx-dir-local-words word)
+        (let ((default-directory (or (locate-dominating-file default-directory ".dir-locals.el")
+                                     (when-let (proj (project-current))
+                                       (declare-function project-root "project")
+                                       (project-root proj))
+                                     default-directory)))
+          (add-dir-local-variable nil 'jinx-dir-local-words jinx-dir-local-words)))
+    (list key word "Directory")))
+
+(defun jinx--add-local-word (var word)
+  "Add WORD to local word list VAR."
+  (add-to-list 'jinx--session-words word)
+  (set var
+       (string-join
+        (sort (delete-dups (cons word (split-string (symbol-value var))))
+              #'string<)
+        " ")))
 
 (defun jinx--save-session (save key word)
   "Save WORD for the current session.
@@ -1098,7 +1123,8 @@ This command dispatches to the following commands:
           jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
           jinx--camel (or (eq jinx-camel-modes t)
                           (seq-some #'derived-mode-p jinx-camel-modes))
-          jinx--session-words (split-string jinx-local-words))
+          jinx--session-words (nconc (split-string jinx-dir-local-words)
+                                     (split-string jinx-local-words)))
     (jinx--load-dicts)
     (dolist (hook jinx--reschedule-hooks)
       (add-hook hook #'jinx--reschedule nil t))
