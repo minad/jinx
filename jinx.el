@@ -366,6 +366,7 @@ dictionaries.  Afterwards `jinx--syntax-overrides' are applied.")
 (put 'jinx-overlay 'insert-in-front-hooks (list #'jinx--overlay-modified))
 (put 'jinx-overlay 'insert-behind-hooks   (list #'jinx--overlay-modified))
 (put 'jinx-overlay 'keymap                'jinx-overlay-map)
+(put 'jinx-overlay 'help-echo             "Jinx: \\`mouse-3' menu, \\[jinx-correct] correct, \\`M-p' previous, \\`M-n' next")
 
 ;;;; Predicates
 
@@ -855,7 +856,7 @@ Optionally show prompt INFO and insert INITIAL input."
                                     ,(overlay-start ov) ,(overlay-end ov)
                                     ,(concat (if (stringp k) k (char-to-string k)) w))]
                               menu)))
-      (easy-menu-create-menu (format "Correct `%s'" word)
+      (easy-menu-create-menu (format "Correct \"%s\"" word)
                              (delete-dups (nreverse menu))))))
 
 (defun jinx--load-dicts ()
