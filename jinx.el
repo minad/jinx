@@ -256,8 +256,10 @@ checking."
   "Menu used when Jinx is active."
   '("Jinx"
     ["Correct nearest" jinx-correct]
-    ["Correct all" (jinx-correct t)
+    ["Correct all" jinx-correct-all
      :keys "\\[universal-argument] \\[jinx-correct]"]
+    ["Correct word" jinx-correct-word
+     :keys "\\[universal-argument] \\[universal-argument] \\[jinx-correct]"]
     ["Change languages" jinx-languages]
     "----"
     ["Manual" (info "(jinx)")]
@@ -1102,7 +1104,7 @@ This command dispatches to the following commands:
 ;;;###autoload
 (define-minor-mode jinx-mode
   "Enchanted Spell Checker."
-  :lighter (:eval (concat " Jinx[" jinx-languages "]"))
+  :lighter (" " (:eval (concat "Jinx[" jinx-languages "]")))
   :group 'jinx
   :keymap jinx-mode-map
   (cond
