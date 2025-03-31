@@ -745,18 +745,22 @@ The word will be associated with GROUP and get a prefix key."
           (setq list (jinx--add-suggestion list ht w group)))))
     (dolist (w (jinx--session-suggestions word))
       (setq list (jinx--add-suggestion list ht w "Suggestions from session")))
-    (cl-loop for (key . fun) in jinx--save-keys
-             for actions = (funcall fun nil key word) do
-             (when (and actions (not (consp (car actions))))
-               (setq actions (list actions)))
-             (cl-loop for (k w a) in actions do
-                      (push (propertize
-                             (concat (propertize (if (stringp k) k (char-to-string k))
-                                                 'face 'jinx-save 'rear-nonsticky t)
-                                     w)
-                             'jinx--group "Accept and save"
-                             'jinx--suffix (format #(" [%s]" 0 5 (face jinx-annotation)) a))
-                            list)))
+    (cl-loop
+     for (key . fun) in jinx--save-keys
+     for actions = (funcall fun nil key word) do
+     (when (and actions (not (consp (car actions))))
+       (setq actions (list actions)))
+     (cl-loop
+      for (k w a) in actions
+      for k2 = (propertize (if (stringp k) k (char-to-string k))
+                           'face 'jinx-save 'rear-nonsticky t)
+      for a2 = (format #(" [%s]" 0 5 (face jinx-annotation)) a)
+      do (cl-loop
+          for w2 in (delete-consecutive-dups (list w (downcase w))) do
+          (push (propertize (concat k2 w2)
+                            'jinx--group "Accept and save"
+                            'jinx--suffix a2)
+                list))))
     (nreverse list)))
 
 (defun jinx--correct-affixation (cands)
