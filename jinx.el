@@ -754,12 +754,12 @@ The word will be associated with GROUP and get a prefix key."
       for (k w a) in actions
       for k2 = (propertize (if (stringp k) k (char-to-string k))
                            'face 'jinx-save 'rear-nonsticky t)
+      for a2 = (format #(" [%s]" 0 5 (face jinx-annotation)) a)
       do (cl-loop
-          for w2 in (delete-dups (list w (downcase w))) do
-          (push (propertize
-                 (concat k2 w2)
-                 'jinx--group "Accept and save"
-                 'jinx--suffix (format #(" [%s]" 0 5 (face jinx-annotation)) a))
+          for w2 in (delete-consecutive-dups (list w (downcase w))) do
+          (push (propertize (concat k2 w2)
+                            'jinx--group "Accept and save"
+                            'jinx--suffix a2)
                 list))))
     (nreverse list)))
 
