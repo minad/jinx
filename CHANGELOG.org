@@ -2,6 +2,11 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Development
+
+- ~jinx-correct~: For capitalized words, offer lower case variants to save in
+  personal dictionary and file local variables.
+
 * Version 2.0 (2025-03-11)
 
 - Add ~jinx-dir-local-words~ saved in ~.dir-locals.el~. Words can be added to the
