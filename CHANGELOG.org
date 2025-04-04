@@ -6,6 +6,7 @@
 
 - ~jinx-correct~: For capitalized words, offer lower case variants to save in
   personal dictionary and file local variables.
+- Add ~help-echo~ to the Jinx overlays.
 
 * Version 2.0 (2025-03-11)
 
