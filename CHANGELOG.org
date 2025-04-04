@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 2.1 (2025-04-04)
 
 - ~jinx-correct~: For capitalized words, offer lower case variants to save in
   personal dictionary and file local variables.
