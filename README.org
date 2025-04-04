@@ -133,7 +133,7 @@ more suggestions fit on the screen and enable annotations.
 
 #+begin_src emacs-lisp
 (add-to-list 'vertico-multiform-categories
-             '(jinx grid (vertico-grid-annotate . 20)))
+             '(jinx grid (vertico-grid-annotate . 20) (vertico-count . 4)))
 (vertico-multiform-mode 1)
 #+end_src
 
