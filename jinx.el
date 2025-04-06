@@ -642,7 +642,7 @@ If CHECK is non-nil, always check first."
   "Guard BODY during correction loop."
   `(cl-letf (((symbol-function #'jinx--timer-handler) #'ignore) ;; Inhibit
              (repeat-mode nil)) ;; No repeating of jinx-next and jinx-previous
-     (unless jinx-mode (jinx-mode 1))
+     (unless jinx-mode (jinx-mode))
      ,@body))
 
 (defun jinx--invisible-open-temporarily ()
@@ -978,7 +978,7 @@ read via `completing-read-multiple'.  If the prefix argument
 GLOBAL is non-nil, the languages are changed globally for all
 buffers.  See also the variable `jinx-languages'."
   (interactive (list (jinx--read-languages) current-prefix-arg))
-  (unless jinx-mode (jinx-mode 1))
+  (unless jinx-mode (jinx-mode))
   (cond
    (global
     (kill-local-variable 'jinx-languages)
@@ -1173,7 +1173,7 @@ symbols or elements of the form (not modes)."
                                   ('nil 0)
                                   ((pred symbolp) (and (derived-mode-p p) t))
                                   (`(not . ,m) (and (seq-some #'derived-mode-p m) 0)))))))
-    (jinx-mode 1)))
+    (jinx-mode)))
 
 (provide 'jinx)
 ;;; jinx.el ends here
