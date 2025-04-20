@@ -43,7 +43,7 @@
 ;; Jinx's high performance and low resource usage comes from directly
 ;; calling the API of the Enchant library, see
 ;; https://rrthomas.github.io/enchant/.  Jinx automatically compiles
-;; jinx-backend.c and loads the dynamic module at startup.  By binding
+;; jinx-mod.c and loads the dynamic module at startup.  By binding
 ;; directly to the native Enchant API, Jinx avoids slower
 ;; inter-process communication.
 
@@ -351,13 +351,13 @@ dictionaries.  Afterwards `jinx--syntax-overrides' are applied.")
 
 (defvar repeat-mode)
 (defvar jinx-mode)
-(declare-function jinx--backend-check "ext:jinx-backend.c")
-(declare-function jinx--backend-add "ext:jinx-backend.c")
-(declare-function jinx--backend-suggest "ext:jinx-backend.c")
-(declare-function jinx--backend-dict "ext:jinx-backend.c")
-(declare-function jinx--backend-describe "ext:jinx-backend.c")
-(declare-function jinx--backend-langs "ext:jinx-backend.c")
-(declare-function jinx--backend-wordchars "ext:jinx-backend.c")
+(declare-function jinx--mod-check nil)
+(declare-function jinx--mod-add nil)
+(declare-function jinx--mod-suggest nil)
+(declare-function jinx--mod-dict nil)
+(declare-function jinx--mod-describe nil)
+(declare-function jinx--mod-langs nil)
+(declare-function jinx--mod-wordchars nil)
 
 ;;;; Overlay properties
 
@@ -408,7 +408,7 @@ WORD can also be a start position."
               thereis (and (string-equal-ignore-case word w)
                            (string-match-p "\\`[[:lower:]]+\\'" w)))))
       (cl-loop for dict in jinx--dicts
-               thereis (jinx--backend-check dict word))))
+               thereis (jinx--mod-check dict word))))
 
 ;;;; Internal functions
 
@@ -600,10 +600,10 @@ If CHECK is non-nil, always check first."
 
 (defun jinx--load-module ()
   "Compile and load dynamic module."
-  (unless (fboundp #'jinx--backend-dict)
+  (unless (fboundp #'jinx--mod-dict)
     (unless module-file-suffix
       (error "Jinx: Dynamic modules are not supported"))
-    (let* ((mod-name (file-name-with-extension "jinx-backend" module-file-suffix))
+    (let* ((mod-name (file-name-with-extension "jinx-mod" module-file-suffix))
            (mod-file (locate-library mod-name t)))
       (unless mod-file
         (let* ((cc (or (getenv "CC")
@@ -738,10 +738,10 @@ The word will be associated with GROUP and get a prefix key."
   (let ((ht (make-hash-table :test #'equal))
         (list nil))
     (dolist (dict jinx--dicts)
-      (let* ((desc (jinx--backend-describe dict))
+      (let* ((desc (jinx--mod-describe dict))
              (group (format "Suggestions from dictionary ‘%s’ - %s"
                             (car desc) (cdr desc))))
-        (dolist (w (jinx--backend-suggest dict word))
+        (dolist (w (jinx--mod-suggest dict word))
           (setq list (jinx--add-suggestion list ht w group)))))
     (dolist (w (jinx--session-suggestions word))
       (setq list (jinx--add-suggestion list ht w "Suggestions from session")))
@@ -844,8 +844,8 @@ Optionally show prompt INFO and insert INITIAL input."
           (word (buffer-substring-no-properties
                  (overlay-start ov) (overlay-end ov))))
       (dolist (dict jinx--dicts)
-        (when-let ((desc (jinx--backend-describe dict))
-                   (suggestions (jinx--backend-suggest dict word)))
+        (when-let ((desc (jinx--mod-describe dict))
+                   (suggestions (jinx--mod-suggest dict word)))
           (push `[,(concat "── " (car desc) " ─ " (cdr desc) " ──") :active nil] menu)
           (cl-loop for w in suggestions repeat jinx-menu-suggestions do
                    (push `[,w (jinx--correct-replace ,ov ,w)] menu))))
@@ -871,13 +871,13 @@ Optionally show prompt INFO and insert INITIAL input."
                              ;; Keep a weak reference to loaded dictionaries.
                              ;; See <gh:rrthomas/enchant#402>.
                              for dict = (with-memoization (gethash lang jinx--dicts-hash)
-                                          (jinx--backend-dict lang))
+                                          (jinx--mod-dict lang))
                              if dict collect dict)
         jinx--syntax-table (make-syntax-table jinx--base-syntax-table))
   (unless jinx--dicts
     (message "Jinx: No dictionaries available for %S" jinx-languages))
   (dolist (dict jinx--dicts)
-    (cl-loop for c across (jinx--backend-wordchars dict) do
+    (cl-loop for c across (jinx--mod-wordchars dict) do
              (modify-syntax-entry c "w" jinx--syntax-table)))
   (cl-loop for (k . v) in jinx--syntax-overrides do
            (modify-syntax-entry k v jinx--syntax-table)))
@@ -896,7 +896,7 @@ Optionally show prompt INFO and insert INITIAL input."
   "Read languages via `completing-read-multiple'."
   (jinx--load-module)
   (let ((langs (delete-dups
-                (cl-loop for (l . p) in (jinx--backend-langs) collect
+                (cl-loop for (l . p) in (jinx--mod-langs) collect
                          (propertize l 'jinx--group (format "Provider %s" p))))))
       (string-join
        (or (completing-read-multiple
@@ -923,13 +923,13 @@ Optionally show prompt INFO and insert INITIAL input."
 If SAVE is non-nil save, otherwise format candidate given action KEY."
   (if save
       (let ((idx (seq-position word key (lambda (x y) (not (equal x y))))))
-        (jinx--backend-add (or (nth idx jinx--dicts)
+        (jinx--mod-add (or (nth idx jinx--dicts)
                            (user-error "Invalid dictionary"))
                        (substring word idx)))
     (cl-loop
      for dict in jinx--dicts for idx from 1
      for at = (make-string idx key)
-     for ann = (format "Personal:%s" (car (jinx--backend-describe dict))) collect
+     for ann = (format "Personal:%s" (car (jinx--mod-describe dict))) collect
      (list at word ann))))
 
 (defun jinx--save-file (save key word)

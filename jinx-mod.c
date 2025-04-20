@@ -183,12 +183,12 @@ int emacs_module_init(struct emacs_runtime *runtime) {
     Qt = env->make_global_ref(env, env->intern(env, "t"));
     Qnil = env->make_global_ref(env, env->intern(env, "nil"));
     Qcons = env->make_global_ref(env, env->intern(env, "cons"));
-    jinx_defun(env, "jinx--backend-suggest", 2, 2, jinx_suggest);
-    jinx_defun(env, "jinx--backend-check", 2, 2, jinx_check);
-    jinx_defun(env, "jinx--backend-add", 2, 2, jinx_add);
-    jinx_defun(env, "jinx--backend-dict", 1, 1, jinx_dict);
-    jinx_defun(env, "jinx--backend-langs", 0, 0, jinx_langs);
-    jinx_defun(env, "jinx--backend-describe", 1, 1, jinx_describe);
-    jinx_defun(env, "jinx--backend-wordchars", 1, 1, jinx_wordchars);
+    jinx_defun(env, "jinx--mod-suggest", 2, 2, jinx_suggest);
+    jinx_defun(env, "jinx--mod-check", 2, 2, jinx_check);
+    jinx_defun(env, "jinx--mod-add", 2, 2, jinx_add);
+    jinx_defun(env, "jinx--mod-dict", 1, 1, jinx_dict);
+    jinx_defun(env, "jinx--mod-langs", 0, 0, jinx_langs);
+    jinx_defun(env, "jinx--mod-describe", 1, 1, jinx_describe);
+    jinx_defun(env, "jinx--mod-wordchars", 1, 1, jinx_wordchars);
     return 0;
 }
