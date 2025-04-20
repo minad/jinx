@@ -351,13 +351,13 @@ dictionaries.  Afterwards `jinx--syntax-overrides' are applied.")
 
 (defvar repeat-mode)
 (defvar jinx-mode)
-(declare-function jinx--mod-check nil)
-(declare-function jinx--mod-add nil)
-(declare-function jinx--mod-suggest nil)
-(declare-function jinx--mod-dict nil)
-(declare-function jinx--mod-describe nil)
-(declare-function jinx--mod-langs nil)
-(declare-function jinx--mod-wordchars nil)
+(declare-function jinx--mod-check "ext:jinx-mod.c")
+(declare-function jinx--mod-add "ext:jinx-mod.c")
+(declare-function jinx--mod-suggest "ext:jinx-mod.c")
+(declare-function jinx--mod-dict "ext:jinx-mod.c")
+(declare-function jinx--mod-describe "ext:jinx-mod.c")
+(declare-function jinx--mod-langs "ext:jinx-mod.c")
+(declare-function jinx--mod-wordchars "ext:jinx-mod.c")
 
 ;;;; Overlay properties
 
