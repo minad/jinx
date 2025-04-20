@@ -24,7 +24,7 @@ intervention. Jinx can be used completely on its own, but can also safely
 co-exist with Emacs's built-in spell-checker Ispell.
 
 Jinx's high performance and low resource usage comes from directly calling the
-API of the [[https://rrthomas.github.io/enchant/][Enchant library]]. Jinx automatically compiles =jinx-mod.c= and loads the
+API of the [[https://rrthomas.github.io/enchant/][Enchant library]]. Jinx automatically compiles =jinx-backend.c= and loads the
 dynamic module at startup. By binding directly to the native Enchant API, Jinx
 avoids slower inter-process communication. Enchant is used by other text editors
 and supports multiple backends like [[https://nuspell.github.io/][Nuspell]], [[http://hunspell.github.io/][Hunspell]] and [[http://aspell.net/][Aspell]].
