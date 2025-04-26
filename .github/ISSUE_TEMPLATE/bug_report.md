@@ -5,4 +5,4 @@ about: Report a bug. Do not use this for support requests and feature suggestion
 ---
 
 Please provide precise information and the exact steps to reproduce the issue.
-Please start from `emacs -Q` or try `package-isolate`.
+Start from `emacs -Q` or use `package-isolate`.
