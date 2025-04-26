@@ -1,14 +1,15 @@
+blank_issues_enabled: false
 contact_links:
   - name: "🙏 Please support my work on my many Emacs projects"
     url: https://github.com/sponsors/minad
     about: Thanks! Your support helps dedicating time to project maintenance and development.
-  - name: "💡 Suggest a feature ⇾ Please create a discussion"
+  - name: "💡 Suggest a feature ➞ Please create a discussion"
     url: https://github.com/minad/jinx/discussions/categories/ideas
     about: Start a new discussion suggesting an improvement or a feature.
   - name: "🧑‍🤝‍🧑 Ask the community for support"
     url: https://www.reddit.com/r/emacs
     about: Please be kind and support others.
-  - name: "🤓 Ask the maintainer for support ⇾ Please create a discussion"
+  - name: "🤓 Ask the maintainer for support ➞ Please create a discussion"
     url: https://github.com/minad/jinx/discussions/categories/q-a
     about: Please keep in mind that my bandwidth is limited.
   - name: "🔍 Search through old issues or discussions"
