@@ -18,6 +18,6 @@ contact_links:
   - name: "📝 Jinx wiki"
     url: https://github.com/minad/jinx/wiki
     about: Additional configuration tips are covered there. Feel free to edit!
-  - name: "📚 Jinx manual"
+  - name: "📖 Jinx manual"
     url: https://github.com/minad/jinx/blob/main/README.org
     about: The manual covers the basic setup and workflow.
