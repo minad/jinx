@@ -957,7 +957,8 @@ action KEY."
                      (declare-function project-root "project")
                      (project-root proj))
                    default-directory)))
-          (add-dir-local-variable nil 'jinx-dir-local-words jinx-dir-local-words)))
+          (save-window-excursion
+            (add-dir-local-variable nil 'jinx-dir-local-words jinx-dir-local-words))))
     (list key word "Directory")))
 
 (defun jinx--save-session (save key word)
