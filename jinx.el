@@ -288,8 +288,11 @@ Predicate may return a position to skip forward.")
 (defvar jinx--timer (timer-create)
   "Global timer to check pending regions.")
 
-(defvar jinx--base-syntax-table
+(defvar jinx--syntax-table
   (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?' "w" st)
+    (modify-syntax-entry ?’ "w" st)
+    (modify-syntax-entry ?- "w" st)
     (modify-syntax-entry ?$ "_" st)
     (modify-syntax-entry ?% "_" st)
     (modify-syntax-entry '(#xe000 . #xf8ff) "_" st)    ;; Priv. use area
@@ -301,13 +304,7 @@ Predicate may return a position to skip forward.")
     (modify-syntax-entry '(#x1cf00 . #x1d7ff) "_" st)  ;; Znamenny Musical - Math. Alpha.
     (modify-syntax-entry '(#x1ee00 . #x1fbff) "_" st)  ;; Arabic Math. - Legacy Computing
     st)
-  "Parent syntax table of `jinx--syntax-table'.")
-
-(defvar jinx--syntax-overrides
-  '((?' . "w")
-    (?’ . "w")
-    (?. . "."))
-  "Syntax table overrides used for `jinx--syntax-table'.")
+  "Syntax table used during checking.")
 
 (defvar jinx--select-keys
   "123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
@@ -338,12 +335,6 @@ Predicate may return a position to skip forward.")
 (defvar jinx--dicts-hash (make-hash-table :test #'equal :weakness 'value)
   "Weak hash table of all loaded dictionaries.")
 
-(defvar-local jinx--syntax-table nil
-  "Syntax table used during checking.
-The table inherits from `jinx--base-syntax-table'.  The table is
-configured according to the word characters defined by the local
-dictionaries.  Afterwards `jinx--syntax-overrides' are applied.")
-
 (defvar-local jinx--session-words nil
   "List of words accepted in this session.")
 
@@ -357,7 +348,6 @@ dictionaries.  Afterwards `jinx--syntax-overrides' are applied.")
 (declare-function jinx--mod-dict "ext:jinx-mod.c")
 (declare-function jinx--mod-describe "ext:jinx-mod.c")
 (declare-function jinx--mod-langs "ext:jinx-mod.c")
-(declare-function jinx--mod-wordchars "ext:jinx-mod.c")
 
 ;;;; Overlay properties
 
@@ -867,20 +857,14 @@ Optionally show prompt INFO and insert INITIAL input."
 
 (defun jinx--load-dicts ()
   "Load dictionaries and setup syntax table."
-  (setq jinx--dicts (cl-loop for lang in (split-string jinx-languages)
-                             ;; Keep a weak reference to loaded dictionaries.
-                             ;; See <gh:rrthomas/enchant#402>.
-                             for dict = (with-memoization (gethash lang jinx--dicts-hash)
-                                          (jinx--mod-dict lang))
-                             if dict collect dict)
-        jinx--syntax-table (make-syntax-table jinx--base-syntax-table))
-  (unless jinx--dicts
-    (message "Jinx: No dictionaries available for %S" jinx-languages))
-  (dolist (dict jinx--dicts)
-    (cl-loop for c across (jinx--mod-wordchars dict) do
-             (modify-syntax-entry c "w" jinx--syntax-table)))
-  (cl-loop for (k . v) in jinx--syntax-overrides do
-           (modify-syntax-entry k v jinx--syntax-table)))
+  (unless (setq jinx--dicts
+                (cl-loop for lang in (split-string jinx-languages)
+                         ;; Keep a weak reference to loaded dictionaries.
+                         ;; See <gh:rrthomas/enchant#402>.
+                         for dict = (with-memoization (gethash lang jinx--dicts-hash)
+                                      (jinx--mod-dict lang))
+                         if dict collect dict))
+    (message "Jinx: No dictionaries available for %S" jinx-languages)))
 
 (defun jinx--bounds-of-word ()
   "Return bounds of word at point using `jinx--syntax-table'."

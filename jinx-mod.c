@@ -145,19 +145,6 @@ static emacs_value jinx_add(emacs_env* env, ptrdiff_t jinx_unused(nargs),
     return Qnil;
 }
 
-static emacs_value jinx_wordchars(emacs_env* env, ptrdiff_t jinx_unused(nargs),
-                                  emacs_value args[], void* jinx_unused(data)) {
-    EnchantDict* dict = env->get_user_ptr(env, args[0]);
-    if (dict) {
-        // Enchant older than 2.3.1 does not enforce UTF-8 <gh:rrthomas/enchant#278>
-        emacs_value str = jinx_str(env, enchant_dict_get_extra_word_characters(dict));
-        if (env->non_local_exit_check(env) == emacs_funcall_exit_return)
-            return str;
-        env->non_local_exit_clear(env);
-    }
-    return Qnil;
-}
-
 static emacs_value jinx_suggest(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                                 emacs_value args[], void* jinx_unused(data)) {
     EnchantDict* dict = env->get_user_ptr(env, args[0]);
@@ -189,6 +176,5 @@ int emacs_module_init(struct emacs_runtime *runtime) {
     jinx_defun(env, "jinx--mod-dict", 1, 1, jinx_dict);
     jinx_defun(env, "jinx--mod-langs", 0, 0, jinx_langs);
     jinx_defun(env, "jinx--mod-describe", 1, 1, jinx_describe);
-    jinx_defun(env, "jinx--mod-wordchars", 1, 1, jinx_wordchars);
     return 0;
 }
