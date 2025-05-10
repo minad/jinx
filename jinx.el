@@ -292,7 +292,6 @@ Predicate may return a position to skip forward.")
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?' "w" st)
     (modify-syntax-entry ?’ "w" st)
-    (modify-syntax-entry ?- "w" st)
     (modify-syntax-entry ?$ "_" st)
     (modify-syntax-entry ?% "_" st)
     (modify-syntax-entry '(#xe000 . #xf8ff) "_" st)    ;; Priv. use area
