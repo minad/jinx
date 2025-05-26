@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 2.2 (2025-05-26)
 
 - Stop using =enchant_dict_get_extra_word_characters=. Instead rely on the
   =jinx--syntax-table= for tokenization.
