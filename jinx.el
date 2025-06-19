@@ -521,8 +521,8 @@ If CHECK is non-nil, always check first."
         (with-delayed-message (1 "Checking...")
           (jinx--check-region start end))
         (jinx--get-overlays start end visible))
-      (user-error (if visible "No misspelled word in visible text"
-                    "No misspelled word in whole buffer"))))
+      (user-error "No misspelled word in %s"
+                  (if visible "visible text" (format "buffer `%s'" (buffer-name))))))
 
 (defun jinx--delete-overlays (start end)
   "Delete overlays between START and END."
@@ -983,7 +983,7 @@ buffers.  See also the variable `jinx-languages'."
 (defun jinx-correct-all (&optional only-check)
   "Correct all misspelled words in the buffer.
 With prefix argument ONLY-CHECK, only check the buffer and highlight all
-misspellings, but do not open the correction UI."
+misspelled words, but do not open the correction UI."
   (interactive "*P")
   (jinx--correct-guard
    (let* ((overlays (jinx--force-overlays (or (use-region-beginning) (point-min))
@@ -991,7 +991,9 @@ misspellings, but do not open the correction UI."
                                           :check t))
           (count (length overlays))
           (idx 0))
-     (unless only-check
+     (if only-check
+         (message "%d misspelled word%s in buffer `%s'"
+                  count (if (= count 1) "" "s") (buffer-name))
        (deactivate-mark)
        (push-mark)
        (while-let ((ov (nth idx overlays)))
