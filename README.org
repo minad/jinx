@@ -27,7 +27,7 @@ Jinx's high performance and low resource usage comes from directly calling the
 API of the [[https://rrthomas.github.io/enchant/][Enchant library]]. Jinx automatically compiles =jinx-mod.c= and loads the
 dynamic module at startup. By binding directly to the native Enchant API, Jinx
 avoids slower inter-process communication. Enchant is used by other text editors
-and supports multiple backends like [[https://nuspell.github.io/][Nuspell]], [[http://hunspell.github.io/][Hunspell]] and [[http://aspell.net/][Aspell]].
+and supports multiple backends like [[https://nuspell.github.io/][Nuspell]], [[https://hunspell.github.io/][Hunspell]] and [[http://aspell.net/][Aspell]].
 
 Jinx supports spell-checking multiple languages in the same buffer. See the
 =jinx-languages= variable to customize for multiple languages. Jinx can flexibly
