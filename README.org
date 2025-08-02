@@ -59,6 +59,26 @@ have to install different packages:
 - OpenSUSE: =emacs-jinx= or =enchant-devel=, =gcc=
 - FreeBSD, OpenBSD, Mac: =enchant2=, =pkgconf=
 
+You could do this with:
+
+#+begin_src emacs-lisp
+(unless (file-exists-p "/usr/include/enchant-2/enchant.h")
+  (use-package system-packages :ensure t)
+  (system-packages-ensure
+   (cond ((eq system-packages-package-manager 'apt)
+          (list "gcc" "libenchant-2-dev"))
+         ((eq system-packages-package-manager 'pacman)
+          (list "enchant" "pkgconf"))
+         ((eq system-packages-package-manager 'emerge)
+          "enchant")
+         ((eq system-packages-package-manager 'xbps-install)
+          (list "enchant2-devel" "gcc" "pkgconf"))
+         ((eq system-packages-package-manager 'dnf)
+          "pkgconfig(enchant-2)")
+         ((eq system-packages-package-manager 'zypper)
+          "emacs-jinx"))))
+#+end_src
+
 On Windows the installation of the native module may require manual
 intervention.
 
