@@ -163,7 +163,10 @@ checking."
        "<?[-+_.~a-zA-Z][-+_.~:a-zA-Z0-9]*@[-.a-zA-Z0-9]+>?" ;; Email
        "\\(?:Local Variables\\|End\\):\\s-*$" ;; Local variable indicator
        "jinx-\\(?:languages\\|local-words\\):\\s-+.*$")) ;; Local variables
-  "List of excluded regexps per major mode."
+  "List of excluded regexps per major mode.
+The regexp must match at the beginning of the spell-checked word.
+Therefore `jinx-exclude-regexps' cannot be used to exclude larger parts
+of a buffer.  Write a custom predicate instead, see `jinx--predicates'."
   :type '(alist :key-type symbol :value-type (choice symbol (repeat regexp))))
 
 (defcustom jinx-suggestion-distance 3
