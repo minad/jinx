@@ -49,12 +49,14 @@ time. If =pkgconf= or =pkg-config= is available, Jinx will use it to locate
 =libenchant= during installation. Depending on your BSD or Linux distribution you
 have to install different packages:
 
-- Debian, Ubuntu: =libenchant-2-dev=, =pkgconf=
-- Arch, Gentoo: =enchant=, =pkgconf=
+- Debian, Ubuntu: =gcc=, =libenchant-2-dev=
+- Arch: =enchant=, =pkgconf=
+- Gentoo: =enchant=
 - Guix: =emacs-jinx= defined in =emacs-xyz.scm=
 - Nix: =jinx= defined in =elpa-packages.nix=
-- Void, Fedora: =enchant2-devel=, =pkgconf=
-- OpenSUSE: =emacs-jinx= or =enchant=, =pkgconf=
+- Void: =enchant2-devel=, =gcc=, =pkgconf=
+- Fedora, RHEL: =enchant2-devel=
+- OpenSUSE: =emacs-jinx= or =enchant-devel=, =gcc=
 - FreeBSD, OpenBSD, Mac: =enchant2=, =pkgconf=
 
 On Windows the installation of the native module may require manual
