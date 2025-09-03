@@ -154,6 +154,13 @@ These faces mark regions which should be excluded in spell
 checking."
   :type '(alist :key-type symbol :value-type (choice symbol (repeat face))))
 
+(defcustom jinx-exclude-properties
+  '((t read-only))
+  "Alist of properties per major mode.
+These properties mark regions which should be excluded in spell
+checking."
+  :type '(alist :key-type symbol :value-type (choice symbol (repeat symbol))))
+
 (defcustom jinx-exclude-regexps
   '((emacs-lisp-mode "Package-Requires:.*$")
     (t "[A-Z]+\\>"         ;; Uppercase words
@@ -281,8 +288,9 @@ of a buffer.  Write a custom predicate instead, see `jinx--predicates'."
   "Hooks which reschedule the spell checking timer, see `jinx--reschedule'.")
 
 (defvar jinx--predicates
-  (list #'jinx--face-ignored-p
-        #'jinx--regexp-ignored-p
+  (list #'jinx--face-excluded-p
+        #'jinx--regexp-excluded-p
+        #'jinx--property-excluded-p
         #'jinx--word-valid-p)
   "Predicate functions called at point with argument START.
 Predicate should return t if the word before point is valid.
@@ -321,6 +329,9 @@ Predicate may return a position to skip forward.")
 
 (defvar-local jinx--exclude-faces nil
   "List of excluded faces.")
+
+(defvar-local jinx--exclude-properties nil
+  "List of excluded properties.")
 
 (defvar-local jinx--include-faces nil
   "List of included faces.")
@@ -364,18 +375,18 @@ Predicate may return a position to skip forward.")
 
 ;;;; Predicates
 
-(defun jinx--regexp-ignored-p (start)
-  "Return non-nil if word at START matches ignore regexps."
+(defun jinx--regexp-excluded-p (pos)
+  "Return non-nil if word at POS matches a regexp from `jinx-exclude-regexps'."
   (save-excursion
-    (goto-char start)
+    (goto-char pos)
     (when (and jinx--exclude-regexp (looking-at-p jinx--exclude-regexp))
       (save-match-data
         (looking-at jinx--exclude-regexp)
         (match-end 0)))))
 
-(defun jinx--face-ignored-p (start)
-  "Return non-nil if face at START of word is ignored."
-  (let ((face (get-text-property start 'face)))
+(defun jinx--face-excluded-p (pos)
+  "Return non-nil if face at POS is excluded via `jinx-exclude-faces'."
+  (let ((face (get-text-property pos 'face)))
     (or
      (and jinx--include-faces
           (if (listp face)
@@ -386,9 +397,18 @@ Predicate may return a position to skip forward.")
               (cl-loop for f in face thereis (memq f jinx--exclude-faces))
             (memq face jinx--exclude-faces))))))
 
+(defun jinx--property-excluded-p (pos)
+  "Return non-nil if property at POS is excluded via `jinx-exclude-properties'."
+  (cl-loop for prop in jinx--exclude-properties
+           thereis (get-char-property pos prop)))
+
+(defun jinx--read-only-p (pos)
+  "Return non-nil if POS is read-only."
+  (get-text-property pos 'read-only))
+
 (defun jinx--word-valid-p (word)
   "Return non-nil if WORD is valid.
-WORD can also be a start position."
+WORD can also be a position."
   (unless (stringp word)
     (setq word (buffer-substring-no-properties word (point))))
   (or (member word jinx--session-words)
@@ -1118,6 +1138,7 @@ This command dispatches to the following commands:
                        regexps "\\|"))
           jinx--include-faces (jinx--mode-list jinx-include-faces)
           jinx--exclude-faces (jinx--mode-list jinx-exclude-faces)
+          jinx--exclude-properties (jinx--mode-list jinx-exclude-properties)
           jinx--camel (or (eq jinx-camel-modes t)
                           (seq-some #'derived-mode-p jinx-camel-modes))
           jinx--session-words (nconc (split-string jinx-dir-local-words)
