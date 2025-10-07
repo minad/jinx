@@ -6,6 +6,7 @@
 
 - =jinx-exclude-properties=: New variable to exclude propertized text from
   checking. Exclude =read-only= text by default.
+- Use =eager-display= for the default completion UI.
 - Require Emacs 29.
 
 * Version 2.3 (2025-07-28)
