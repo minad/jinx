@@ -625,23 +625,27 @@ If CHECK is non-nil, always check first."
                (default-directory (file-name-directory
                                    (or (locate-library c-name t)
                                        (error "Jinx: %s not found" c-name))))
-               (command
-                `(,cc ,@jinx--compile-flags "-o" ,mod-name ,c-name
-                  ,@(split-string-and-unquote
-                     (condition-case nil
-                         (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
-                       (error "-I/usr/include/enchant-2 -I/usr/local/include/enchant-2 -L/usr/local/lib -lenchant-2"))))))
+               (command nil)
+               (inhibit-read-only t))
           (with-current-buffer (get-buffer-create "*jinx module compilation*")
-            (let ((inhibit-read-only t))
-              (erase-buffer)
-              (compilation-mode)
-              (insert (string-join command " ") "\n")
-              (if (equal 0 (apply #'call-process (car command) nil (current-buffer) t (cdr command)))
-                  (insert (message "Jinx: %s compiled successfully" mod-name))
-                (let ((msg (format "Jinx: Compilation of %s failed" mod-name)))
-                  (insert msg)
-                  (pop-to-buffer (current-buffer))
-                  (error msg)))))
+            (erase-buffer)
+            (compilation-mode)
+            (insert (format "Jinx: Compiling %s\n" mod-name))
+            (setq command
+                  `(,cc ,@jinx--compile-flags "-o" ,mod-name ,c-name
+                        ,@(split-string-and-unquote
+                           (condition-case nil
+                               (car (process-lines "pkg-config" "--cflags" "--libs" "enchant-2"))
+                             (error
+                              (insert "Jinx: pkgconf or pkg-config not found\n")
+                              "-I/usr/include/enchant-2 -I/usr/local/include/enchant-2 -L/usr/local/lib -lenchant-2")))))
+            (insert (string-join command " ") "\n")
+            (if (equal 0 (apply #'call-process (car command) nil (current-buffer) t (cdr command)))
+                (insert (message "Jinx: %s compiled successfully" mod-name))
+              (let ((msg (format "Jinx: Compilation of %s failed" mod-name)))
+                (insert msg)
+                (pop-to-buffer (current-buffer))
+                (error msg))))
           (setq mod-file (expand-file-name mod-name))))
       ;; Initialize Mac spell checker to avoid dead lock (gh:minad/jinx#91).
       (when (and (eq window-system 'mac) (fboundp 'mac-do-applescript))
