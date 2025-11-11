@@ -43,11 +43,12 @@ these modes composite words in =camelCase= and =PascalCase= are accepted.
 
 Jinx can be installed from GNU ELPA or MELPA directly with =package-install=.
 
-Most importantly your Emacs must be compiled with dynamic module support. Jinx
-requires =libenchant=, which is needed to compile the native module at install
-time. If =pkgconf= or =pkg-config= is available, Jinx will use it to locate
-=libenchant= during installation. Depending on your BSD or Linux distribution you
-have to install different packages:
+Your Emacs must be compiled with dynamic module support. Furthermore a C
+compiler must be available on your system (=gcc= or =clang=). Jinx requires
+=libenchant=, which is needed to compile the native module at install time. If
+=pkgconf= or =pkg-config= is available, Jinx will use it to locate =libenchant= during
+installation. Depending on your BSD or Linux distribution you have to install
+different packages:
 
 - Debian, Ubuntu: =libenchant-2-dev=, =pkgconf=
 - Arch, Gentoo: =enchant=, =pkgconf=
