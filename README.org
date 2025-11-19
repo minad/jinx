@@ -54,7 +54,8 @@ different packages:
 - Arch, Gentoo: =enchant=, =pkgconf=
 - Guix: =emacs-jinx= defined in =emacs-xyz.scm=
 - Nix: =jinx= defined in =elpa-packages.nix=
-- Void, Fedora: =enchant2-devel=, =pkgconf=
+- Void: =enchant2-devel=, =pkgconf=
+- Fedora: =enchant2-devel=, =pkgconf-pkg-config=
 - FreeBSD, OpenBSD, Mac: =enchant2=, =pkgconf=
 
 On Windows the installation of the native module may require manual
