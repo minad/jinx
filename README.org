@@ -56,6 +56,7 @@ different packages:
 - Nix: =jinx= defined in =elpa-packages.nix=
 - Void: =enchant2-devel=, =pkgconf=
 - Fedora: =enchant2-devel=, =pkgconf-pkg-config=
+- OpenSUSE: =emacs-jinx= or =enchant-devel=, =pkgconf-pkg-config=
 - FreeBSD, OpenBSD, Mac: =enchant2=, =pkgconf=
 
 On Windows the installation of the native module may require manual
