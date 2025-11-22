@@ -87,7 +87,7 @@ of the Ispell package, =M-$= can be re-used.
 #+end_src
 
 - =M-$= triggers correction for the misspelled word before point.
-- =C-u M-$= or =M-x jinx-correct-all= triggers correction for the entire buffer.
+- =C-u M-$= or =M-x jinx-correct-all= spell-checks the entire buffer.
 - =C-u C-u M-$= or =M-x jinx-correct-word= forces correction of the word at point,
   even if it is not misspelled.
 
