@@ -87,9 +87,9 @@ of the Ispell package, =M-$= can be re-used.
 #+end_src
 
 - =M-$= triggers correction for the misspelled word before point.
-- =C-u M-$= triggers correction for the entire buffer.
-- =C-u C-u M-$= forces correction of the word at point, even if it is not
-  misspelled.
+- =C-u M-$= or =M-x jinx-correct-all= triggers correction for the entire buffer.
+- =C-u C-u M-$= or =M-x jinx-correct-word= forces correction of the word at point,
+  even if it is not misspelled.
 
 A sample configuration with the popular =use-package= macro is shown here:
 
@@ -111,11 +111,13 @@ underlined with a wavy line. Then a context menu will open where you can select
 from suggestions.
 
 If you prefer to use the keyboard, invoke the command =jinx-correct=. The
-recommended binding is =M-$=, see the configuration section. Suggested corrections
-will be displayed as a completion menu. You can press the displayed digit keys
-to quickly select a suggestion. Furthermore the menu offers options to save the
-word temporarily for the current session, in the personal dictionary or in the
-file-local or directory-local variables.
+recommended binding is =M-$=, see the configuration section. In order to check the
+entire buffer press the keys =C-u M-$= or use =M-x jinx-correct-all=.
+
+Suggested corrections will be displayed as a completion menu. You can press the
+displayed digit keys to quickly select a suggestion. Furthermore the menu offers
+options to save the word temporarily for the current session, in the personal
+dictionary or in the file-local or directory-local variables.
 
 You can enter arbitrary input at the correction prompt in order to make the
 correction or to store a modified word in the personal dictionary. For example
