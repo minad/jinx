@@ -20,8 +20,9 @@ the text is checked if it has not been checked before. Each misspelling can be
 corrected from a list of dictionary words presented as a completion menu.
 
 Installing Jinx is straight-forward and configuring should not need much
-intervention. Jinx can be used completely on its own, but can also safely
-co-exist with Emacs's built-in spell-checker Ispell.
+intervention. Jinx can be used completely on its own, and is designed as a full
+replacement for Emacs's built-in spell-checker Ispell, but it can also safely
+co-exist with it.
 
 Jinx's high performance and low resource usage comes from directly calling the
 API of the [[https://rrthomas.github.io/enchant/][Enchant library]]. Jinx automatically compiles =jinx-mod.c= and loads the
