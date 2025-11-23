@@ -777,12 +777,6 @@ optionally added."
                  (or (get-text-property 0 'jinx--prefix cand) "")
                  (or (get-text-property 0 'jinx--suffix cand) ""))))
 
-(defun jinx--correct-annotation (cand)
-  "Annotate CAND during completion."
-  (if-let ((prefix (get-text-property 0 'jinx--prefix cand)))
-      (format #(" (%s)" 0 5 (face jinx-key)) (string-trim prefix))
-    (get-text-property 0 'jinx--suffix cand)))
-
 (defun jinx--group (word transform)
   "Group WORD during completion, TRANSFORM candidate if non-nil."
   (if transform
@@ -819,8 +813,7 @@ Optionally show prompt INFO and insert INITIAL input."
                           (display-sort-function . ,#'identity)
                           (cycle-sort-function . ,#'identity)
                           (group-function . ,#'jinx--group)
-                          (affixation-function . ,#'jinx--correct-affixation)
-                          (annotation-function . ,#'jinx--correct-annotation)))
+                          (affixation-function . ,#'jinx--correct-affixation)))
                        nil nil initial t word)
                       word)))))
            (len (length choice)))
