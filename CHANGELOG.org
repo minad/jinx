@@ -5,6 +5,7 @@
 * Development
 
 - Actions can be triggered via digit keys now.
+- Drop legacy =annotation-function=.
 
 * Version 2.4 (2025-10-13)
 
