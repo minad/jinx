@@ -56,7 +56,7 @@ different packages:
 - Guix: =emacs-jinx= defined in =emacs-xyz.scm=
 - Nix: =jinx= defined in =elpa-packages.nix=
 - Void: =enchant2-devel=, =pkgconf=
-- Fedora: =enchant2-devel=, =pkgconf-pkg-config=
+- Fedora: =emacs-jinx= or =enchant2-devel=, =pkgconf-pkg-config=
 - OpenSUSE: =emacs-jinx= or =enchant-devel=, =pkgconf-pkg-config=
 - FreeBSD, OpenBSD, Mac: =enchant2=, =pkgconf=
 
