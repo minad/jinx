@@ -71,6 +71,7 @@
   "Idle timer delay."
   :type 'float)
 
+;; TODO Replace with a universal variable in Emacs bug#80071
 (defcustom jinx-languages
   (replace-regexp-in-string
    "\\..*\\'" ""
@@ -184,9 +185,11 @@ of a buffer.  Write a custom predicate instead, see `jinx--predicates'."
   "Maximal number of suggestions shown in the context menu."
   :type 'natnum)
 
+;; TODO Replace with a universal variable in Emacs bug#80071
 (defvar-local jinx-local-words ""
   "File-local words, as a string separated by whitespace.")
 
+;; TODO Replace with a universal variable in Emacs bug#80071
 (defvar-local jinx-dir-local-words ""
   "Directory-local words, as a string separated by whitespace.")
 
