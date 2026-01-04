@@ -592,8 +592,8 @@ If CHECK is non-nil, always check first."
   (timer-set-function jinx--timer nil)
   (dolist (frame (frame-list))
     (dolist (win (window-list frame 'no-miniwindow))
-      (when-let ((buffer (window-buffer win))
-                 ((buffer-local-value 'jinx-mode buffer)))
+      (when-let* ((buffer (window-buffer win))
+                  ((buffer-local-value 'jinx-mode buffer)))
         (with-current-buffer buffer
           (jinx--check-pending (window-start win) (window-end win)))))))
 
@@ -671,7 +671,7 @@ See `isearch-open-necessary-overlays' and `isearch-open-overlay-temporary'."
     (dolist (ov (overlays-in (pos-bol) (pos-eol)) restore)
       (let ((inv (overlay-get ov 'invisible)))
         (when (and (invisible-p inv) (overlay-get ov 'isearch-open-invisible))
-          (push (if-let ((fun (overlay-get ov 'isearch-open-invisible-temporary)))
+          (push (if-let* ((fun (overlay-get ov 'isearch-open-invisible-temporary)))
                     (progn
                       (funcall fun ov nil)
                       (lambda () (funcall fun ov t)))
@@ -683,9 +683,9 @@ See `isearch-open-necessary-overlays' and `isearch-open-overlay-temporary'."
   "Open overlays which hide the current line.
 See `isearch-open-necessary-overlays' and `isearch-open-overlay-temporary'."
   (dolist (ov (overlays-in (pos-bol) (pos-eol)))
-    (when-let (fun (overlay-get ov 'isearch-open-invisible))
-      (when (invisible-p (overlay-get ov 'invisible))
-        (funcall fun ov)))))
+    (when-let* ((fun (overlay-get ov 'isearch-open-invisible))
+                ((invisible-p (overlay-get ov 'invisible))))
+      (funcall fun ov))))
 
 (defun jinx--correct-highlight (overlay fun)
   "Highlight and show OVERLAY during FUN."
@@ -831,8 +831,8 @@ Optionally show prompt INFO and insert INITIAL input."
 
 (defun jinx--correct-replace (overlay word)
   "Replace OVERLAY with WORD."
-  (when-let ((start (overlay-start overlay))
-             (end (overlay-end overlay)))
+  (when-let* ((start (overlay-start overlay))
+              (end (overlay-end overlay)))
     (undo-boundary)
     (delete-overlay overlay)
     (goto-char end)
@@ -841,19 +841,19 @@ Optionally show prompt INFO and insert INITIAL input."
 
 (defun jinx--correct-menu (&rest _)
   "Return popup mouse menu to correct misspelling."
-  (when-let ((posn (event-start last-input-event))
-             (pt (posn-point posn))
-             (ov (car (jinx--get-overlays pt pt t))))
+  (when-let* ((posn (event-start last-input-event))
+              (pt (posn-point posn))
+              (ov (car (jinx--get-overlays pt pt t))))
     (let ((menu nil)
           (word (buffer-substring-no-properties
                  (overlay-start ov) (overlay-end ov))))
       (dolist (dict jinx--dicts)
-        (when-let ((desc (jinx--mod-describe dict))
-                   (suggestions (jinx--mod-suggest dict word)))
+        (when-let* ((desc (jinx--mod-describe dict))
+                    (suggestions (jinx--mod-suggest dict word)))
           (push `[,(concat "── " (car desc) " ─ " (cdr desc) " ──") :active nil] menu)
           (cl-loop for w in suggestions repeat jinx-menu-suggestions do
                    (push `[,w (jinx--correct-replace ,ov ,w)] menu))))
-      (when-let ((suggestions (jinx--session-suggestions word)))
+      (when-let* ((suggestions (jinx--session-suggestions word)))
         (push ["── Session ──" :active nil] menu)
         (cl-loop for w in suggestions repeat jinx-menu-suggestions do
           (push `[,w (jinx--correct-replace ,ov ,w)] menu)))
@@ -951,7 +951,7 @@ action KEY."
         (jinx--add-local-word 'jinx-dir-local-words word)
         (let ((default-directory
                (or (locate-dominating-file default-directory ".dir-locals.el")
-                   (when-let (proj (project-current))
+                   (when-let* ((proj (project-current)))
                      (declare-function project-root "project")
                      (project-root proj))
                    default-directory)))
@@ -1012,8 +1012,8 @@ misspelled words, but do not open the correction UI."
        (deactivate-mark)
        (push-mark)
        (while-let ((ov (nth idx overlays)))
-         (if-let (((overlay-buffer ov))
-                  (skip (jinx--correct-overlay ov :info (format " (%d of %d)" (1+ idx) count))))
+         (if-let* (((overlay-buffer ov))
+                   (skip (jinx--correct-overlay ov :info (format " (%d of %d)" (1+ idx) count))))
              (setq idx (mod (+ idx skip) count))
            (cl-incf idx)))))))
 
@@ -1027,9 +1027,9 @@ misspelled words, but do not open the correction UI."
             (count (length overlays))
             (idx 0))
        ;; Not using `while-let' is intentional here.
-       (while (when-let ((ov (nth idx overlays)))
+       (while (when-let* ((ov (nth idx overlays)))
                 (if (overlay-buffer ov)
-                    (when-let ((skip (jinx--correct-overlay ov)))
+                    (when-let* ((skip (jinx--correct-overlay ov)))
                       (setq idx (mod (+ idx skip) count)))
                   (cl-incf idx)))))))) ;; Skip deleted overlay
 
@@ -1049,7 +1049,7 @@ Optionally insert INITIAL input in the minibuffer."
                              (jinx--correct-overlay ov :initial initial)
                          (delete-overlay ov)))))
        (forward-to-word skip)
-       (when-let ((bounds (jinx--bounds-of-word)))
+       (when-let* ((bounds (jinx--bounds-of-word)))
          (setf (cons start end) bounds
                initial nil))))))
 
@@ -1121,7 +1121,7 @@ This command dispatches to the following commands:
       (hack-local-variables 'ignore-mode))
     (jinx--get-org-language)
     (setq jinx--exclude-regexp
-          (when-let ((regexps (jinx--mode-list jinx-exclude-regexps)))
+          (when-let* ((regexps (jinx--mode-list jinx-exclude-regexps)))
             (mapconcat (lambda (r) (format "\\(?:%s\\)" r))
                        regexps "\\|"))
           jinx--include-faces (jinx--mode-list jinx-include-faces)
