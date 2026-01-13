@@ -1101,8 +1101,7 @@ This command dispatches to the following commands:
 (defun jinx-previous (&optional n)
   "Go to to Nth previous misspelled word."
   (interactive "p" jinx-mode)
-  (unless n (setq n 1))
-  (jinx-next (- n)))
+  (jinx-next (- (or n 1))))
 
 ;;;###autoload
 (define-minor-mode jinx-mode
