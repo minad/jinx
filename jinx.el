@@ -1085,9 +1085,10 @@ This command dispatches to the following commands:
     (insert word)
     (exit-minibuffer)))
 
-(defun jinx-next (n)
+(defun jinx-next (&optional n)
   "Go to to Nth next misspelled word."
   (interactive "p" jinx-mode)
+  (unless n (setq n 1))
   (unless (= n 0)
     (if (minibufferp)
         (throw 'jinx--goto n)
@@ -1097,9 +1098,10 @@ This command dispatches to the following commands:
         (goto-char (overlay-end (nth (mod n (length ov)) ov)))
         (jinx--invisible-open-permanently)))))
 
-(defun jinx-previous (n)
+(defun jinx-previous (&optional n)
   "Go to to Nth previous misspelled word."
   (interactive "p" jinx-mode)
+  (unless n (setq n 1))
   (jinx-next (- n)))
 
 ;;;###autoload
