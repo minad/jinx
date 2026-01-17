@@ -2,6 +2,11 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Development
+
+- Use =when-let*= instead of =when-let=.
+- =jinx-next/previous=: Make argument optional.
+
 * Version 2.5 (2025-11-29)
 
 - Actions can be triggered via digit keys now.
