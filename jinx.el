@@ -857,15 +857,16 @@ Optionally show prompt INFO and insert INITIAL input."
         (push ["── Session ──" :active nil] menu)
         (cl-loop for w in suggestions repeat jinx-menu-suggestions do
           (push `[,w (jinx--correct-replace ,ov ,w)] menu)))
-      (push ["── Accept and save ──" :active nil] menu)
-      (cl-loop for (key . fun) in jinx--save-keys
-               for actions = (funcall fun nil key word) do
-               (unless (consp (car actions)) (setq actions (list actions)))
-               (cl-loop for (k w a) in actions do
-                        (push `[,a (jinx-correct-word
-                                    ,(overlay-start ov) ,(overlay-end ov)
-                                    ,(concat (if (stringp k) k (char-to-string k)) w))]
-                              menu)))
+      (let ((submenu (list "Accept and save")))
+        (cl-loop for (key . fun) in jinx--save-keys
+                 for actions = (funcall fun nil key word) do
+                 (unless (consp (car actions)) (setq actions (list actions)))
+                 (cl-loop for (k w a) in actions do
+                          (push `[,a (jinx-correct-word
+                                      ,(overlay-start ov) ,(overlay-end ov)
+                                      ,(concat (if (stringp k) k (char-to-string k)) w))]
+                                submenu)))
+        (push (nreverse submenu) menu))
       (easy-menu-create-menu (format "Correct \"%s\"" word)
                              (delete-dups (nreverse menu))))))
 
