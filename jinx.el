@@ -149,14 +149,20 @@ Set to t to enable camelCase everywhere."
      message-header-xheader message-cited-text-1 message-cited-text-2
      message-cited-text-3 message-cited-text-4 gnus-cite-1 gnus-cite-2
      gnus-cite-3 gnus-cite-4 gnus-cite-5 gnus-cite-6 gnus-cite-7 gnus-cite-8
-     gnus-cite-9 gnus-cite-10 gnus-cite-11))
+     gnus-cite-9 gnus-cite-10 gnus-cite-11)
+    (git-commit-mode
+     git-commit-keyword
+     git-commit-comment-branch-local git-commit-comment-branch-remote
+     git-commit-comment-button git-commit-comment-file
+     git-commit-comment-action))
   "Alist of faces per mode (major or minor).
 These faces mark regions which should be excluded in spell
 checking."
   :type '(alist :key-type symbol :value-type (choice symbol (repeat face))))
 
 (defcustom jinx-exclude-properties
-  '((t read-only))
+  '((t read-only)
+    (git-commit-mode invisible))
   "Alist of properties per mode (major or minor).
 These properties mark regions which should be excluded in spell
 checking."
