@@ -885,7 +885,7 @@ Optionally show prompt INFO and insert INITIAL input."
     (save-match-data
       (with-syntax-table jinx--syntax-table
         (unless (looking-at-p "\\<")
-          (re-search-backward "\\<"))
+          (re-search-backward "\\<" nil t))
         (when (re-search-forward "\\<\\w+\\>" nil t)
           (cons (match-beginning 0) (match-end 0)))))))
 
