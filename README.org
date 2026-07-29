@@ -119,7 +119,8 @@ entire buffer press the keys =C-u M-$= or use =M-x jinx-correct-all=.
 Suggested corrections will be displayed as a completion menu. You can press the
 displayed digit keys to quickly select a suggestion. Furthermore the menu offers
 options to save the word temporarily for the current session, in the personal
-dictionary or in the file-local or directory-local variables.
+dictionary or in the file-local or directory-local variables. Words can be
+removed from these places again via =M-x jinx-remove-word=.
 
 You can enter arbitrary input at the correction prompt in order to make the
 correction or to store a modified word in the personal dictionary. For example
@@ -131,10 +132,12 @@ While inside the =jinx-correct= prompt, the keys =M-n= and =M-p= are bound to
 =jinx-next= and =jinx-previous= respectively and allow you to move the next and
 previous misspelled word.
 
-The completion menu is compatible with all popular completion UIs: Vertico, Mct,
-Icomplete, Ivy, Helm and the default completions buffer. In case you use Vertico
-I suggest that you tweak the completion display via =vertico-multiform-mode= for
-the completion category =jinx=. You can for example use the grid display such that
+* Completion configuration
+
+The completion menu is compatible with the popular completion UIs: Vertico, Mct,
+Icomplete, Helm and the default completions buffer. In case you use Vertico I
+suggest that you tweak the completion display via =vertico-multiform-mode= for the
+completion category =jinx=. You can for example use the grid display such that
 more suggestions fit on the screen and enable annotations.
 
 #+begin_src emacs-lisp
