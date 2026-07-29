@@ -2,6 +2,12 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Development
+
+- New command =jinx-remove-word= to remove words from personal dictionary, file
+  local variable, and so on.
+- New customizable variable =jinx-file-local-prop-line=.
+
 * Version 2.8 (2026-05-19)
 
 - Add support for minor modes to ~jinx-include-*~ and ~jinx-exclude-*~ variables.

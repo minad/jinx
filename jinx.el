@@ -191,6 +191,10 @@ of a buffer.  Write a custom predicate instead, see `jinx--predicates'."
   "Maximal number of suggestions shown in the context menu."
   :type 'natnum)
 
+(defcustom jinx-file-local-prop-line nil
+  "Store file local variables in the prop line."
+  :type 'boolean)
+
 ;; TODO Replace with a universal variable in Emacs bug#80071
 (defvar-local jinx-local-words ""
   "File-local words, as a string separated by whitespace.")
@@ -366,6 +370,8 @@ Predicate may return a position to skip forward.")
 (defvar jinx-mode)
 (declare-function jinx--mod-check "ext:jinx-mod.c")
 (declare-function jinx--mod-add "ext:jinx-mod.c")
+(declare-function jinx--mod-remove "ext:jinx-mod.c")
+(declare-function jinx--mod-has "ext:jinx-mod.c")
 (declare-function jinx--mod-suggest "ext:jinx-mod.c")
 (declare-function jinx--mod-dict "ext:jinx-mod.c")
 (declare-function jinx--mod-describe "ext:jinx-mod.c")
@@ -758,14 +764,10 @@ optionally added."
     (dolist (w (jinx--session-suggestions word))
       (jinx--add-suggestion list ht w "Suggestions from session"))
     (cl-loop
-     for (key . fun) in jinx--save-keys
-     for actions = (funcall fun nil key word) do
-     (when (and actions (not (consp (car actions))))
-       (setq actions (list actions)))
+     for (key . fun) in jinx--save-keys do
      (cl-loop
-      for (k w a) in actions
-      for k2 = (propertize (if (stringp k) k (char-to-string k))
-                           'face 'jinx-save 'rear-nonsticky t)
+      for (k w a) in (funcall fun 'format key word)
+      for k2 = (propertize k 'face 'jinx-save 'rear-nonsticky t)
       for a2 = (format #(" [%s]" 0 5 (face jinx-annotation)) a)
       do (cl-loop
           for w2 in (list w (downcase w)) do
@@ -813,7 +815,7 @@ Optionally show prompt INFO and insert INITIAL input."
            (len (length choice)))
       (pcase (and (> len 0) (assq (aref choice 0) jinx--save-keys))
         (`(,key . ,fun)
-         (funcall fun 'save key
+         (funcall fun 'add key
                   (if (> len 1) (substring-no-properties choice 1) word))
          (jinx--recheck-overlays))
         ((guard (not (equal choice word)))
@@ -849,13 +851,11 @@ Optionally show prompt INFO and insert INITIAL input."
         (cl-loop for w in suggestions repeat jinx-menu-suggestions do
           (push `[,w (jinx--correct-replace ,ov ,w)] menu)))
       (let ((submenu (list "Accept and save")))
-        (cl-loop for (key . fun) in jinx--save-keys
-                 for actions = (funcall fun nil key word) do
-                 (unless (consp (car actions)) (setq actions (list actions)))
-                 (cl-loop for (k w a) in actions do
+        (cl-loop for (key . fun) in jinx--save-keys do
+                 (cl-loop for (k w a) in (funcall fun 'format key word) do
                           (push `[,a (jinx-correct-word
                                       ,(overlay-start ov) ,(overlay-end ov)
-                                      ,(concat (if (stringp k) k (char-to-string k)) w))]
+                                      ,(concat k w))]
                                 submenu)))
         (push (nreverse submenu) menu))
       (easy-menu-create-menu (format "Correct \"%s\"" word)
@@ -898,66 +898,84 @@ Optionally show prompt INFO and insert INITIAL input."
            (user-error "No languages selected"))
        " ")))
 
-(defun jinx--add-local-word (var word)
-  "Add WORD to local word list VAR."
-  (add-to-list 'jinx--session-words word)
-  (set var
-       (string-join
-        (sort (delete-dups (cons word (split-string (symbol-value var))))
-              #'string<)
-        " ")))
+(defun jinx--save-local-word (action var word)
+  "Add/remove WORD to/from local word list VAR.
+ACTION can be add or remove."
+  (let ((list (split-string (symbol-value var))))
+    (pcase-exhaustive action
+      ('add
+       (push word list)
+       (add-to-list 'jinx--session-words word))
+      ('remove
+       (cl-callf2 remove word list)
+       (cl-callf2 remove word jinx--session-words)))
+    (set var (string-join (sort (delete-dups list) #'string<) " "))))
+
+(defun jinx--add-file-local (var &optional delete)
+  "Add file local variable VAR, optionally DELETE."
+  (apply (intern (concat (if delete "delete-" "add-")
+                         "file-local-variable"
+                         (and jinx-file-local-prop-line "-prop-line")))
+         var (and (not delete) (list (symbol-value var)))))
 
 ;;;; Save functions
 
-(defun jinx--save-personal (save key word)
-  "Save WORD in personal dictionary.
-If SAVE is non-nil save, otherwise format candidate given action KEY."
-  (if save
-      (let ((idx (seq-position word key (lambda (x y) (not (equal x y))))))
-        (jinx--mod-add (or (nth idx jinx--dicts)
-                           (user-error "Invalid dictionary"))
-                       (substring word idx)))
-    (cl-loop
-     for dict in jinx--dicts for idx from 1
-     for pre = (make-string idx key)
-     for ann = (format "Personal:%s" (car (jinx--mod-describe dict))) collect
-     (list pre word ann))))
+(defun jinx--save-personal (action key word)
+  "Add or remove WORD from personal dictionary, or format word with KEY.
+ACTION can be add, remove, has, format."
+  (let* ((idx (seq-position word key (lambda (x y) (not (equal x y)))))
+         (dict (or (nth idx jinx--dicts) (user-error "Invalid dictionary")))
+         (word (substring word idx)))
+    (pcase-exhaustive action
+      ('add (jinx--mod-add dict word))
+      ('remove (jinx--mod-remove dict word))
+      ('has (jinx--mod-has dict word))
+      ('format
+       (cl-loop
+        for dict in jinx--dicts for idx from 1 collect
+        (list (make-string idx key) word
+              (format "Personal:%s" (car (jinx--mod-describe dict)))))))))
 
-(defun jinx--save-file (save key word)
-  "Save WORD in file-local variable.
-If SAVE is non-nil save, otherwise format candidate given action KEY."
-  (if save
-      (progn
-        (jinx--add-local-word 'jinx-local-words word)
-        (add-file-local-variable 'jinx-local-words jinx-local-words))
-    (list key word "File")))
+(defun jinx--save-file (action key word)
+  "Add or remove WORD from file-local variable, or format word with KEY.
+ACTION can be add, remove, has, format."
+  (pcase-exhaustive action
+    ((or 'add 'remove)
+     (jinx--save-local-word action 'jinx-local-words word)
+     (jinx--add-file-local 'jinx-local-words (equal jinx-local-words "")))
+    ('has (member word (split-string jinx-local-words)))
+    ('format `((,(char-to-string key) ,word "File")))))
 
-(defun jinx--save-dir (save key word)
-  "Save WORD in directory-local variable.
+(defun jinx--save-dir (action key word)
+  "Add or remove WORD from directory-local variable, or format word with KEY.
 Uses a .dir-locals.el file in the current directory or any parent
 directory.  If no .dir-locals.el file is found, it is created in the
 project root.  If no project root is found, it is created in the current
-directory.  If SAVE is non-nil save, otherwise format candidate given
-action KEY."
-  (if save
-      (progn
-        (jinx--add-local-word 'jinx-dir-local-words word)
-        (let ((default-directory
-               (or (locate-dominating-file default-directory ".dir-locals.el")
-                   (when-let* ((proj (project-current)))
-                     (declare-function project-root "project")
-                     (project-root proj))
-                   default-directory)))
-          (save-window-excursion
-            (add-dir-local-variable nil 'jinx-dir-local-words jinx-dir-local-words))))
-    (list key word "Directory")))
+directory.  ACTION can be add, remove, has, format."
+  (pcase-exhaustive action
+    ((or 'add 'remove)
+     (jinx--save-local-word action 'jinx-dir-local-words word)
+     (let ((default-directory
+            (or (locate-dominating-file default-directory ".dir-locals.el")
+                (when-let* ((proj (project-current)))
+                  (declare-function project-root "project")
+                  (project-root proj))
+                default-directory)))
+       (save-window-excursion
+         (if (equal jinx-dir-local-words "")
+             (delete-dir-local-variable nil 'jinx-dir-local-words)
+           (add-dir-local-variable nil 'jinx-dir-local-words jinx-dir-local-words)))))
+    ('has (member word (split-string jinx-dir-local-words)))
+    ('format `((,(char-to-string key) ,word "Directory")))))
 
-(defun jinx--save-session (save key word)
-  "Save WORD for the current session.
-If SAVE is non-nil save, otherwise format candidate given action KEY."
-  (if save
-      (add-to-list 'jinx--session-words word)
-    (list key word "Session")))
+(defun jinx--save-session (action key word)
+  "Add or remove WORD from current session, or format word with KEY.
+ACTION can be add, remove, has, format."
+  (pcase-exhaustive action
+    ('add (add-to-list 'jinx--session-words word))
+    ('remove (cl-callf2 remove word jinx--session-words))
+    ('has (member word jinx--session-words))
+    ('format `((,(char-to-string key) ,word "Session")))))
 
 ;;;; Public commands
 
@@ -982,7 +1000,7 @@ buffers.  See also the variable `jinx-languages'."
                   (and buffer-file-name
                        (y-or-n-p "Save `jinx-languages' as file-local variable? "))
                 jinx-save-languages))
-      (add-file-local-variable 'jinx-languages jinx-languages)
+      (jinx--add-file-local 'jinx-languages)
       (setf (alist-get 'jinx-languages file-local-variables-alist) jinx-languages))))
   (jinx--load-dicts)
   (jinx--cleanup))
@@ -1045,6 +1063,39 @@ Optionally insert INITIAL input in the minibuffer."
        (when-let* ((bounds (jinx--bounds-of-word)))
          (setf (cons start end) bounds
                initial nil))))))
+
+(defun jinx-remove-word ()
+  "Remove word from personal dictionary, session, etc.
+The word and dictionary are read via the minibuffer.  The word defaults
+to the word at point."
+  (interactive nil jinx-mode)
+  (let* ((word (read-string
+                "Remove word: "
+                (pcase (jinx--bounds-of-word)
+                  (`(,start . ,end)
+                   (buffer-substring-no-properties start end)))))
+         (_ (when (equal word "") (user-error "No input")))
+         (actions
+          (cl-loop for (key . fun) in jinx--save-keys nconc
+                   (cl-loop for (k w a) in (funcall fun 'format key word)
+                            for kw = (concat (substring k 1) w)
+                            if (funcall fun 'has key kw)
+                            collect (list a fun 'remove key kw))))
+         (choice
+          (or (assoc
+               (completing-read
+                (format "Remove ‘%s’ from: " word)
+                (completion-table-with-metadata
+                 (or actions
+                     (user-error "Word ‘%s’ is not saved anywhere" word))
+                 `((eager-display . t)
+                   (display-sort-function . ,#'identity)
+                   (cycle-sort-function . ,#'identity)))
+                nil nil nil t)
+               actions)
+              (user-error "No selection"))))
+    (apply (cdr choice))
+    (jinx--cleanup)))
 
 ;;;###autoload
 (defun jinx-correct (&optional arg)
