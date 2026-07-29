@@ -926,9 +926,9 @@ If SAVE is non-nil save, otherwise format candidate given action KEY."
                        (substring word idx)))
     (cl-loop
      for dict in jinx--dicts for idx from 1
-     for at = (make-string idx key)
+     for pre = (make-string idx key)
      for ann = (format "Personal:%s" (car (jinx--mod-describe dict))) collect
-     (list at word ann))))
+     (list pre word ann))))
 
 (defun jinx--save-file (save key word)
   "Save WORD in file-local variable.
