@@ -80,11 +80,8 @@ static void jinx_free_dict(void* dict) {
 static emacs_value jinx_dict(emacs_env* env, ptrdiff_t jinx_unused(nargs),
                              emacs_value args[], void* jinx_unused(data)) {
     jinx_autofree char* str = jinx_cstr(env, args[0]);
-    EnchantDict* dict =
-        str ? enchant_broker_request_dict(jinx_broker(), str) : 0;
-    return dict
-        ? env->make_user_ptr(env, jinx_free_dict, dict)
-        : Qnil;
+    EnchantDict* dict = str ? enchant_broker_request_dict(jinx_broker(), str) : 0;
+    return dict ? env->make_user_ptr(env, jinx_free_dict, dict) : Qnil;
 }
 
 static void jinx_describe_cb(const char* const lang_tag,

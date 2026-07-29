@@ -284,6 +284,7 @@ of a buffer.  Write a custom predicate instead, see `jinx--predicates'."
     ["Correct word" jinx-correct-word
      :keys "\\[universal-argument] \\[universal-argument] \\[jinx-correct]"]
     ["Change languages" jinx-languages]
+    ["Remove word" jinx-remove-word]
     "----"
     ["Manual" (info "(jinx)")]
     ["Customize" (customize-group 'jinx)]
