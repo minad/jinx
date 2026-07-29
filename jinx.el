@@ -492,7 +492,7 @@ position."
               (unless (looking-at-p "\\>")
                 (re-search-forward "\\>\\|$")
                 (setq end (match-beginning 0)))
-              (jinx--delete-overlays start end)
+              (remove-overlays start end 'category 'jinx-overlay)
               (goto-char start)
               (while (re-search-forward "\\<\\w+\\>" end t)
                 (let ((word-start (match-beginning 0))
@@ -555,17 +555,11 @@ If CHECK is non-nil, always check first."
       (user-error "No misspelled word in %s"
                   (if visible "visible text" (format "buffer `%s'" (buffer-name))))))
 
-(defun jinx--delete-overlays (start end)
-  "Delete overlays between START and END."
-  (dolist (ov (overlays-in start end))
-    (when (eq (overlay-get ov 'category) 'jinx-overlay)
-      (delete-overlay ov))))
-
 (defun jinx--cleanup ()
   "Cleanup all overlays and trigger fontification."
   (with-silent-modifications
     (without-restriction
-      (jinx--delete-overlays (point-min) (point-max))
+      (remove-overlays nil nil 'category 'jinx-overlay)
       (remove-list-of-text-properties (point-min) (point-max) '(jinx--pending))
       (jinx--in-base-buffer #'jit-lock-refontify))))
 
