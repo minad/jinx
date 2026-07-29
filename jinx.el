@@ -424,10 +424,9 @@ WORD can also be a position."
       ;; Allow capitalized words
       (let (case-fold-search)
         (and (string-match-p "\\`[[:upper:]][[:lower:]]+\\'" word)
-             (cl-loop
-              for w in jinx--session-words
-              thereis (and (string-equal-ignore-case word w)
-                           (string-match-p "\\`[[:lower:]]+\\'" w)))))
+             (cl-loop for w in jinx--session-words
+                      thereis (and (string-equal-ignore-case word w)
+                                   (string-match-p "\\`[[:lower:]]+\\'" w)))))
       (cl-loop for dict in jinx--dicts
                thereis (jinx--mod-check dict word))))
 
