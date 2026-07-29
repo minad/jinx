@@ -83,14 +83,16 @@
   "Dictionary language codes, as a string separated by whitespace."
   :type 'string)
 
+(defcustom jinx-save-prop-line nil
+  "Save file-local variables in the prop line.
+By default use the \"Local Variables\" comment block."
+  :type 'boolean)
+
 (defcustom jinx-save-languages 'ask
   "Save the variable `jinx-languages' as file-local variable?"
   :type '(choice (const :tag "Never"  nil)
                  (const :tag "Always" t)
                  (const :tag "Ask"    ask)))
-
-;;;###autoload
-(put 'jinx-languages 'safe-local-variable #'stringp)
 
 (defcustom jinx-include-faces
   '((prog-mode font-lock-comment-face
@@ -191,10 +193,6 @@ of a buffer.  Write a custom predicate instead, see `jinx--predicates'."
   "Maximal number of suggestions shown in the context menu."
   :type 'natnum)
 
-(defcustom jinx-file-local-prop-line nil
-  "Store file local variables in the prop line."
-  :type 'boolean)
-
 ;; TODO Replace with a universal variable in Emacs bug#80071
 (defvar-local jinx-local-words ""
   "File-local words, as a string separated by whitespace.")
@@ -205,6 +203,7 @@ of a buffer.  Write a custom predicate instead, see `jinx--predicates'."
 
 ;;;###autoload
 (progn
+  (put 'jinx-languages 'safe-local-variable #'stringp)
   (put 'jinx-local-words 'safe-local-variable #'stringp)
   (put 'jinx-dir-local-words 'safe-local-variable #'stringp)
   (put 'jinx-mode 'safe-local-variable #'not))
@@ -913,10 +912,10 @@ ACTION can be add or remove."
     (set var (string-join (sort (delete-dups list) #'string<) " "))))
 
 (defun jinx--add-file-local (var &optional delete)
-  "Add file local variable VAR, optionally DELETE."
+  "Add file-local variable VAR, optionally DELETE."
   (apply (intern (concat (if delete "delete-" "add-")
                          "file-local-variable"
-                         (and jinx-file-local-prop-line "-prop-line")))
+                         (and jinx-save-prop-line "-prop-line")))
          var (and (not delete) (list (symbol-value var)))))
 
 ;;;; Save functions

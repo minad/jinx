@@ -6,7 +6,7 @@
 
 - New command =jinx-remove-word= to remove words from personal dictionary, file
   local variable, and so on.
-- New customizable variable =jinx-file-local-prop-line=.
+- New customizable variable =jinx-save-prop-line=.
 
 * Version 2.8 (2026-05-19)
 
@@ -46,7 +46,7 @@
 * Version 2.1 (2025-04-04)
 
 - ~jinx-correct~: For capitalized words, offer lower case variants to save in
-  personal dictionary and file local variables.
+  personal dictionary and file-local variables.
 - Add ~help-echo~ to the Jinx overlays.
 
 * Version 2.0 (2025-03-11)
@@ -92,14 +92,14 @@
 
 * Version 1.6 (2024-04-12)
 
-- Bugfix (again): Ensure that directory local variables work correctly with
+- Bugfix (again): Ensure that directory-local variables work correctly with
   Jinx. It is possible to turn Jinx on or off via dir-locals, and also configure
   the language and local words.
 
 * Version 1.5 (2024-04-04)
 
 - Bugfix: Ensure that ~jinx-next~ unfolds hidden misspellings.
-- Bugfix: Ensure that directory local variable enabling ~jinx-mode~ works.
+- Bugfix: Ensure that directory-local variable enabling ~jinx-mode~ works.
 
 * Version 1.4 (2024-03-10)
 
