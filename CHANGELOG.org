@@ -2,7 +2,7 @@
 #+author: Daniel Mendler
 #+language: en
 
-* Development
+* Version 2.9 (2026-08-01)
 
 - New command =jinx-remove-word= to remove words from personal dictionary, file
   local variable, and so on.
