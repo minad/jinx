@@ -481,7 +481,9 @@ VISIBLE must be nil or t."
   "Check region between START and END.
 Optionally RETRY word at given position.  Return updated END
 position."
-  (let ((st (syntax-table)) case-fold-search
+  (let ((orig-st (syntax-table))
+        parse-sexp-lookup-properties
+        case-fold-search
         retry-start retry-end)
     (unwind-protect
         (with-silent-modifications
@@ -530,7 +532,7 @@ position."
               (remove-list-of-text-properties start end '(jinx--pending))
               (when retry-start
                 (put-text-property retry-start retry-end 'jinx--pending t)))))
-      (set-syntax-table st))))
+      (set-syntax-table orig-st))))
 
 (defun jinx--get-overlays (start end &optional visible)
   "Return misspelled word overlays between START and END.
