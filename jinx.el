@@ -481,58 +481,52 @@ VISIBLE must be nil or t."
   "Check region between START and END.
 Optionally RETRY word at given position.  Return updated END
 position."
-  (let ((orig-st (syntax-table))
-        parse-sexp-lookup-properties
-        case-fold-search
-        retry-start retry-end)
-    (unwind-protect
-        (with-silent-modifications
-          (save-excursion
-            (save-match-data
-              ;; Use dictionary-dependent syntax table
-              (set-syntax-table jinx--syntax-table)
-              ;; Ensure that region starts and ends at word boundaries
-              (goto-char start)
-              (unless (looking-at-p "\\<")
-                (re-search-backward "\\<\\|^")
-                (setq start (match-beginning 0)))
-              (goto-char end)
-              (unless (looking-at-p "\\>")
-                (re-search-forward "\\>\\|$")
-                (setq end (match-beginning 0)))
-              (remove-overlays start end 'category 'jinx-overlay)
-              (goto-char start)
-              (while (re-search-forward "\\<\\w+\\>" end t)
-                (let ((word-start (match-beginning 0))
-                      (word-end (match-end 0)))
-                  ;; No quote or apostrophe at start or end
-                  (while (and (< word-start word-end)
-                              (let ((c (char-after word-start)))
-                                (or (= c ?') (= c ?’))))
-                    (incf word-start))
-                  (while (and (< word-start word-end)
-                              (let ((c (char-before word-end)))
-                                (or (= c ?') (= c ?’))))
-                    (decf word-end))
-                  (while (< word-start word-end)
-                    (let ((subword-end word-end))
-                      (when jinx--camel
-                        (goto-char word-start)
-                        (when (looking-at "\\([[:upper:]]?[[:lower:]]+\\)\\(?:[[:upper:]][[:lower:]]+\\)+\\>")
-                          (setq subword-end (match-end 1))))
-                      (goto-char subword-end)
-                      (pcase (run-hook-with-args-until-success 'jinx--predicates word-start)
-                        ((and (pred integerp) skip)
-                         (goto-char (max subword-end (min end skip))))
-                        ('nil
-                         (if (and retry (<= word-start retry subword-end))
-                             (setq retry-start word-start retry-end subword-end retry nil)
-                           (overlay-put (make-overlay word-start subword-end) 'category 'jinx-overlay))))
-                      (setq word-start subword-end)))))
-              (remove-list-of-text-properties start end '(jinx--pending))
-              (when retry-start
-                (put-text-property retry-start retry-end 'jinx--pending t)))))
-      (set-syntax-table orig-st))))
+  (let (parse-sexp-lookup-properties case-fold-search retry-start retry-end)
+    (with-silent-modifications
+      (save-excursion
+        (save-match-data
+          (with-syntax-table jinx--syntax-table
+            ;; Ensure that region starts and ends at word boundaries
+            (goto-char start)
+            (unless (looking-at-p "\\<")
+              (re-search-backward "\\<\\|^")
+              (setq start (match-beginning 0)))
+            (goto-char end)
+            (unless (looking-at-p "\\>")
+              (re-search-forward "\\>\\|$")
+              (setq end (match-beginning 0)))
+            (remove-overlays start end 'category 'jinx-overlay)
+            (goto-char start)
+            (while (re-search-forward "\\<\\w+\\>" end t)
+              (let ((word-start (match-beginning 0))
+                    (word-end (match-end 0)))
+                ;; No quote or apostrophe at start or end
+                (while (and (< word-start word-end)
+                            (let ((c (char-after word-start)))
+                              (or (= c ?') (= c ?’))))
+                  (incf word-start))
+                (while (and (< word-start word-end)
+                            (let ((c (char-before word-end)))
+                              (or (= c ?') (= c ?’))))
+                  (decf word-end))
+                (while (< word-start word-end)
+                  (let ((subword-end word-end))
+                    (when jinx--camel
+                      (goto-char word-start)
+                      (when (looking-at "\\([[:upper:]]?[[:lower:]]+\\)\\(?:[[:upper:]][[:lower:]]+\\)+\\>")
+                        (setq subword-end (match-end 1))))
+                    (goto-char subword-end)
+                    (pcase (run-hook-with-args-until-success 'jinx--predicates word-start)
+                      ((and (pred integerp) skip)
+                       (goto-char (max subword-end (min end skip))))
+                      ('nil
+                       (if (and retry (<= word-start retry subword-end))
+                           (setq retry-start word-start retry-end subword-end retry nil)
+                         (overlay-put (make-overlay word-start subword-end) 'category 'jinx-overlay))))
+                    (setq word-start subword-end)))))
+            (remove-list-of-text-properties start end '(jinx--pending))
+            (when retry-start
+              (put-text-property retry-start retry-end 'jinx--pending t))))))))
 
 (defun jinx--get-overlays (start end &optional visible)
   "Return misspelled word overlays between START and END.
@@ -875,14 +869,15 @@ Optionally show prompt INFO and insert INITIAL input."
     (message "Jinx: No dictionaries available for %S" jinx-languages)))
 
 (defun jinx--bounds-of-word ()
-  "Return bounds of word at point using `jinx--syntax-table'."
-  (save-excursion
-    (save-match-data
-      (with-syntax-table jinx--syntax-table
-        (unless (looking-at-p "\\<")
-          (re-search-backward "\\<" nil t))
-        (when (re-search-forward "\\<\\w+\\>" nil t)
-          (cons (match-beginning 0) (match-end 0)))))))
+  "Return bounds of word at point."
+  (let (parse-sexp-lookup-properties case-fold-search)
+    (save-excursion
+      (save-match-data
+        (with-syntax-table jinx--syntax-table
+          (unless (looking-at-p "\\<")
+            (re-search-backward "\\<" nil t))
+          (when (re-search-forward "\\<\\w+\\>" nil t)
+            (cons (match-beginning 0) (match-end 0))))))))
 
 (defun jinx--read-languages ()
   "Read languages via `completing-read-multiple'."
