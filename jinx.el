@@ -27,25 +27,24 @@
 
 ;;; Commentary:
 
-;; Jinx is a fast just-in-time spell-checker for Emacs.  Jinx
-;; highlights misspelled words in the text of the visible portion of
-;; the buffer.  For efficiency, Jinx highlights misspellings lazily,
-;; recognizes window boundaries and text folding, if any.  For
-;; example, when unfolding or scrolling, only the newly visible part
-;; of the text is checked if it has not been checked before.  Each
-;; misspelling can be corrected from a list of dictionary words
-;; presented as a completion menu.
+;; Jinx is a fast just-in-time spell-checker for Emacs.  Jinx highlights
+;; misspelled words in the text of the visible portion of the buffer.  For
+;; efficiency, Jinx highlights misspelled words lazily, recognizes window
+;; boundaries and text folding, if any.  For example, when unfolding or
+;; scrolling, only the newly visible part of the text is checked if it has
+;; not been checked before.  Each misspelling can be corrected from a list
+;; of dictionary words presented as a completion menu.
 
-;; Installing Jinx is straight-forward and configuring should not need
-;; much intervention.  Jinx can be used completely on its own, but can
-;; also safely co-exist with Emacs's built-in spell-checker Ispell.
+;; Installing Jinx is straight-forward and configuring should not need much
+;; intervention.  Jinx can be used completely on its own, but can also
+;; safely co-exist with Emacs's built-in spell-checker Ispell.
 
 ;; Jinx's high performance and low resource usage comes from directly
 ;; calling the API of the Enchant library, see
 ;; https://rrthomas.github.io/enchant/.  Jinx automatically compiles
-;; jinx-mod.c and loads the dynamic module at startup.  By binding
-;; directly to the native Enchant API, Jinx avoids slower
-;; inter-process communication.
+;; jinx-mod.c and loads the dynamic module at startup.  By binding directly
+;; to the native Enchant API, Jinx avoids slower inter-process
+;; communication.
 
 ;; See the manual for further information.
 
@@ -282,6 +281,7 @@ of a buffer.  Write a custom predicate instead, see `jinx--predicates'."
      :keys "\\[universal-argument] \\[jinx-correct]"]
     ["Correct word" jinx-correct-word
      :keys "\\[universal-argument] \\[universal-argument] \\[jinx-correct]"]
+    ["Occur" jinx-occur]
     ["Change languages" jinx-languages]
     ["Remove word" jinx-remove-word]
     "----"
@@ -1001,6 +1001,56 @@ buffers.  See also the variable `jinx-languages'."
       (setf (alist-get 'jinx-languages file-local-variables-alist) jinx-languages))))
   (jinx--load-dicts)
   (jinx--cleanup))
+
+;;;###autoload
+(defun jinx-occur ()
+  "Display all lines containing misspelled words in a separate `occur-mode' buffer."
+  (interactive)
+  (let ((buf (get-buffer-create "*jinx-occur*"))
+        (where (buffer-name))
+        overlays lines)
+    (save-excursion
+      (jinx--correct-guard
+       (goto-char (point-min))
+       (setq overlays (jinx--force-overlays (point-min) (point-max) :check t))
+       (dolist (ov overlays)
+         (goto-char (overlay-start ov))
+         (let ((bol (pos-bol))
+               (line (line-number-at-pos))
+               (ov (cons (copy-overlay ov) (copy-marker (overlay-start ov)))))
+           (if (equal (caar lines) line)
+               (push ov (nth 3 (car lines)))
+             (push `( ,line ,(buffer-substring bol (pos-eol)) ,bol (,ov)) lines))))))
+    (with-current-buffer buf
+      (with-silent-modifications
+        (erase-buffer)
+        (insert (format (propertize "%d misspelled words in %d lines in %s\n" 'face 'underline)
+                        (length overlays) (length lines) where))
+        (pcase-dolist (`(,line ,str ,bol ,ovs) (nreverse lines))
+          (let ((start (point)))
+            (insert
+             (format (propertize "%7d:"
+                                 'occur-prefix t
+                                 'front-sticky t
+                                 'rear-nonsticky t
+                                 'read-only t
+                                 'font-lock-face list-matching-lines-prefix-face)
+                     line)
+             str ?\n)
+            (put-text-property start (1- (point)) 'mouse-face 'highlight)
+            (add-text-properties start (point)
+                                 `( follow-link t
+                                    occur-target ,(cdar (last ovs))
+                                    occur-match t))
+            (dolist (ov ovs)
+              (let ((beg (+ start 8 (- (overlay-start (car ov)) bol)))
+                    (end (+ start 8 (- (overlay-end (car ov)) bol))))
+                (add-text-properties beg end `(occur-match t occur-target ,(cdr ov)))
+                (move-overlay (car ov) beg end buf)))))
+        (goto-char (point-min))
+        (occur-mode)
+        (setq next-error-last-buffer buf)
+        (pop-to-buffer buf)))))
 
 ;;;###autoload
 (defun jinx-correct-all (&optional only-check)

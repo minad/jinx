@@ -2,6 +2,10 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Development
+
+- New command =jinx-occur= which lists all misspelled words in a separate buffer.
+
 * Version 2.10 (2026-08-13)
 
 - Let-bind =parse-sexp-lookup-properties= to nil during Jinx tokenization. This
