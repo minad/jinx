@@ -110,10 +110,10 @@ checking."
   :type '(alist :key-type symbol :value-type (choice symbol (repeat face))))
 
 (defcustom jinx-camel-modes
-  '(java-mode java-ts-mode js-mode js-ts-mode ruby-mode ruby-ts-mode rust-mode
-    rust-ts-mode haskell-mode kotlin-mode swift-mode csharp-mode csharp-ts-mode
-    objc-mode typescript-ts-mode typescript-mode tsx-ts-mode python-mode
-    python-ts-mode dart-mode go-mode go-ts-mode scala-mode groovy-mode)
+  '( java-mode java-ts-mode js-mode js-ts-mode ruby-mode ruby-ts-mode rust-mode
+     rust-ts-mode haskell-mode kotlin-mode swift-mode csharp-mode csharp-ts-mode
+     objc-mode typescript-ts-mode typescript-mode tsx-ts-mode python-mode
+     python-ts-mode dart-mode go-mode go-ts-mode scala-mode groovy-mode)
   "Modes where camelCase or PascalCase words should be accepted.
 Set to t to enable camelCase everywhere."
   :type '(choice (const t) (repeat symbol)))
@@ -296,8 +296,8 @@ of a buffer.  Write a custom predicate instead, see `jinx--predicates'."
   "List of compile flags passed to the C compiler.")
 
 (defvar jinx--reschedule-hooks
-  '(window-selection-change-functions window-scroll-functions
-    window-state-change-hook post-command-hook)
+  '( window-selection-change-functions window-scroll-functions
+     window-state-change-hook post-command-hook)
   "Hooks which reschedule the spell checking timer, see `jinx--reschedule'.")
 
 (defvar jinx--predicates
@@ -845,7 +845,7 @@ Optionally show prompt INFO and insert INITIAL input."
       (when-let* ((suggestions (jinx--session-suggestions word)))
         (push ["── Session ──" :active nil] menu)
         (cl-loop for w in suggestions repeat jinx-menu-suggestions do
-          (push `[,w (jinx--correct-replace ,ov ,w)] menu)))
+                 (push `[,w (jinx--correct-replace ,ov ,w)] menu)))
       (let ((submenu (list "Accept and save")))
         (cl-loop for (key . fun) in jinx--save-keys do
                  (cl-loop for (k w a) in (funcall fun 'format key word) do
@@ -885,15 +885,15 @@ Optionally show prompt INFO and insert INITIAL input."
   (let ((langs (delete-dups
                 (cl-loop for (l . p) in (jinx--mod-langs) collect
                          (propertize l 'jinx--group (format "Provider %s" p))))))
-      (string-join
-       (or (completing-read-multiple
-            (format "Change languages (%s): "
-                    (string-join (split-string jinx-languages) ", "))
-            (completion-table-with-metadata
-             langs `((group-function . ,#'jinx--group)))
-            nil t)
-           (user-error "No languages selected"))
-       " ")))
+    (string-join
+     (or (completing-read-multiple
+          (format "Change languages (%s): "
+                  (string-join (split-string jinx-languages) ", "))
+          (completion-table-with-metadata
+           langs `((group-function . ,#'jinx--group)))
+          nil t)
+         (user-error "No languages selected"))
+     " ")))
 
 (defun jinx--save-local-word (action var word)
   "Add/remove WORD to/from local word list VAR.
@@ -1055,7 +1055,7 @@ Optionally insert INITIAL input in the minibuffer."
      (while-let ((skip (let ((ov (make-overlay start end)))
                          (unwind-protect
                              (jinx--correct-overlay ov :initial initial)
-                         (delete-overlay ov)))))
+                           (delete-overlay ov)))))
        (forward-to-word skip)
        (when-let* ((bounds (jinx--bounds-of-word)))
          (setf (cons start end) bounds
@@ -1178,10 +1178,10 @@ This command dispatches to the following commands:
       (add-hook hook #'jinx--reschedule nil t))
     (jit-lock-register #'jinx--mark-pending))
    (t
-    (mapc #'kill-local-variable '(jinx--exclude-regexp jinx--include-faces
-                                  jinx--exclude-faces jinx--camel
-                                  jinx--dicts jinx--syntax-table
-                                  jinx--session-words))
+    (mapc #'kill-local-variable '( jinx--exclude-regexp jinx--include-faces
+                                   jinx--exclude-faces jinx--camel
+                                   jinx--dicts jinx--syntax-table
+                                   jinx--session-words))
     (dolist (hook jinx--reschedule-hooks)
       (remove-hook hook #'jinx--reschedule t))
     (jit-lock-unregister #'jinx--mark-pending)
