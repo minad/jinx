@@ -543,19 +543,17 @@ If VISIBLE is non-nil, only include visible overlays."
       (push (pop overlays) before))
     (nconc overlays (nreverse before))))
 
-(cl-defun jinx--force-overlays (start end &key visible check)
+(defun jinx--force-overlays (start end &optional visible)
   "Return misspelled word overlays between START and END, enforce checking.
-If VISIBLE is non-nil, only include visible overlays.
-If CHECK is non-nil, always check first."
-  (or (and (not check) (jinx--get-overlays start end visible))
-      (progn
-        (with-delayed-message (1 "Fontifying...")
-          (jinx--in-base-buffer #'jit-lock-fontify-now start end))
-        (with-delayed-message (1 "Checking...")
-          (jinx--check-region start end))
-        (jinx--get-overlays start end visible))
+If VISIBLE is non-nil, only include visible overlays."
+  (with-delayed-message (1 "Fontifying...")
+    (jinx--in-base-buffer #'jit-lock-fontify-now start end))
+  (with-delayed-message (1 "Checking...")
+    (jinx--check-region start end))
+  (or (jinx--get-overlays start end visible)
       (user-error "No misspelled word in %s"
-                  (if visible "visible text" (format "buffer `%s'" (buffer-name))))))
+                  (if visible "visible text"
+                    (format "buffer `%s'" (buffer-name))))))
 
 (defun jinx--cleanup ()
   "Cleanup all overlays and trigger fontification."
@@ -1012,7 +1010,7 @@ buffers.  See also the variable `jinx-languages'."
     (save-excursion
       (jinx--correct-guard
        (goto-char (point-min))
-       (setq overlays (jinx--force-overlays (point-min) (point-max) :check t))
+       (setq overlays (jinx--force-overlays (point-min) (point-max)))
        (dolist (ov overlays)
          (goto-char (overlay-start ov))
          (let ((bol (pos-bol))
@@ -1061,8 +1059,7 @@ misspelled words, but do not open the correction UI."
   (interactive "*P")
   (jinx--correct-guard
    (let* ((overlays (jinx--force-overlays (or (use-region-beginning) (point-min))
-                                          (or (use-region-end) (point-max))
-                                          :check t))
+                                          (or (use-region-end) (point-max))))
           (count (length overlays))
           (idx 0))
      (if only-check
@@ -1082,7 +1079,7 @@ misspelled words, but do not open the correction UI."
   (interactive "*")
   (save-excursion
     (jinx--correct-guard
-     (let* ((overlays (jinx--force-overlays (window-start) (window-end) :visible t))
+     (let* ((overlays (jinx--force-overlays (window-start) (window-end) t))
             (count (length overlays))
             (idx 0))
        ;; Not using `while-let' is intentional here.
@@ -1184,7 +1181,8 @@ This command dispatches to the following commands:
   (unless (= n 0)
     (if (minibufferp)
         (throw 'jinx--goto n)
-      (let ((ov (jinx--force-overlays (point-min) (point-max))))
+      (let ((ov (or (jinx--get-overlays (point-min) (point-max))
+                    (jinx--force-overlays (point-min) (point-max)))))
         (unless (or (> n 0) (<= (overlay-start (car ov)) (point) (overlay-end (car ov))))
           (incf n))
         (goto-char (overlay-end (nth (mod n (length ov)) ov)))
