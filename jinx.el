@@ -1024,8 +1024,9 @@ buffers.  See also the variable `jinx-languages'."
     (with-current-buffer buf
       (with-silent-modifications
         (erase-buffer)
-        (insert (format (propertize "%d misspelled words in %d lines in %s\n" 'face 'underline)
-                        (length overlays) (length lines) where))
+        (insert (format (propertize "%d misspelled words in %d lines in %s" 'face 'underline)
+                        (length overlays) (length lines) where)
+                ?\n)
         (pcase-dolist (`(,line ,str ,bol ,ovs) (nreverse lines))
           (let ((start (point)))
             (insert
