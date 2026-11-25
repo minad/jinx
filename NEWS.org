@@ -2,6 +2,12 @@
 #+author: Daniel Mendler
 #+language: en
 
+* Development
+
+- Accept words next to a hyphen if the dictionary contains them with the hyphen.
+  This covers elided compound words like the German "Übungs- und
+  Prüfungsaufgaben".
+
 * Version 2.11 (2026-09-26)
 
 - New command =jinx-occur= which lists all misspelled words in a separate buffer.
