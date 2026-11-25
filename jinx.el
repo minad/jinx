@@ -304,7 +304,8 @@ of a buffer.  Write a custom predicate instead, see `jinx--predicates'."
   (list #'jinx--face-excluded-p
         #'jinx--regexp-excluded-p
         #'jinx--property-excluded-p
-        #'jinx--word-valid-p)
+        #'jinx--word-valid-p
+        #'jinx--hyphenated-valid-p)
   "Predicate functions called at point with argument START.
 Predicate should return t if the word before point is valid.
 Predicate may return a position to skip forward.")
@@ -435,6 +436,17 @@ WORD can also be a position."
                                    (string-match-p "\\`[[:lower:]]+\\'" w)))))
       (cl-loop for dict in jinx--dicts
                thereis (jinx--mod-check dict word))))
+
+(defun jinx--hyphenated-valid-p (start)
+  "Return non-nil if the word between START and point is valid with a hyphen.
+Dictionaries may contain parts of compound words with a leading or
+trailing hyphen, e.g., \"Übungs-\" for the German \"Übungs- und
+Prüfungsaufgaben\"."
+  (let ((word (buffer-substring-no-properties start (point)))
+        ;; Hyphen-minus, hyphen, non-breaking hyphen
+        (hyphens '(?- ?‐ ?‑)))
+    (or (and (memq (char-after) hyphens) (jinx--word-valid-p (concat word "-")))
+        (and (memq (char-before start) hyphens) (jinx--word-valid-p (concat "-" word))))))
 
 ;;;; Internal functions
 
