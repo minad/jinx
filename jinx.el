@@ -583,7 +583,7 @@ If VISIBLE is non-nil, only include visible overlays."
     (save-excursion
       (save-match-data
         (goto-char (point-min))
-        (when (re-search-forward "^ *#\\+language: +\\([a-z_]+\\) *$" nil t)
+        (when (re-search-forward "^ *#\\+language: +\\([a-z_ ]+\\) *$" nil t)
           (setq-local jinx-languages (match-string-no-properties 1)))))))
 
 (defun jinx--timer-handler ()
